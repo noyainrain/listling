@@ -1,0 +1,35 @@
+[master]
+load-plugins=pylint.extensions.docstyle
+
+[messages control]
+disable=
+    # Good design is best figured out by humans (yet)
+    design,
+    # There are built-ins with common names like id
+    redefined-builtin,
+    # Arguments should not be manipulated anyway
+    dangerous-default-value
+
+[reports]
+output-format=colorized
+
+[basic]
+# Remove length constraint, short and long names have their use
+function-rgx=[a-z_][a-z0-9_]*$
+variable-rgx=%(function-rgx)s
+attr-rgx=%(function-rgx)s
+argument-rgx=%(function-rgx)s
+class-attribute-rgx=([A-Za-z_][A-Za-z0-9_]*|(__.*__))$
+method-rgx=%(function-rgx)s
+
+[format]
+# Long URLs and strings may be more readable
+ignore-long-lines=://|'.+'|".+"
+
+[typecheck]
+# http.client status codes are defined dynamically
+generated-members=http\.client\.[A-Z]
+
+[classes]
+# Add initialize, it is used by Tornado
+defining-attr-methods=__init__,__new__,setUp,initialize

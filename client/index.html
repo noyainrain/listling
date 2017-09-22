@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <title>Open Listling</title>
+
+    {% raw micro_dependencies() %}
+    <link rel="stylesheet" href="{{ static_url('listling.css') }}" />
+    <script src="{{ static_url('listling/index.js') }}" defer="defer"></script>
+</head>
+
+<body is="listling-ui">
+    {% raw micro_boot() %}
+    {% raw micro_templates() %}
+
+    <template class="listling-start-page-template">
+        <div class="listling-start-intro">
+            <h1 class="micro-logo"><img /> <span></span></h1>
+            <p class="listling-start-slogan">Collaborative lists</p>
+            <p class="listling-start-keywords">Free · Simple · No registration required</p>
+        </div>
+    </template>
+    <style>
+        .listling-start-intro {
+            margin: calc(1.5rem * 3) 0;
+            text-align: center;
+        }
+
+        .listling-start-intro .micro-logo {
+            font-size: 3em;
+        }
+
+        .listling-start-slogan {
+            font-size: 2em;
+            font-weight: 300;
+        }
+
+        .listling-start-keywords {
+            color: #888;
+        }
+    </style>
+
+    <template class="listling-about-page-template">
+        <micro-about-page
+            short="{title} is a service for collaboratively composing lists."
+            project-title="Open Listling" project-url="https://github.com/noyainrain/listling"
+            project-icon="{{ static_url('images/listling.svg') }}" project-license="AGPL"
+            project-license-url="https://www.gnu.org/licenses/agpl.html"
+            project-copyright="Copyright © 2017 Open Listling contributors">
+        </micro-about-page>
+    </template>
+</body>

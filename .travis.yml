@@ -1,0 +1,30 @@
+dist: trusty
+language: python
+python:
+    - 3.5
+    - 3.6
+services:
+    - redis-server
+before_install:
+    - nvm install 8
+install:
+    - make deps
+    - make deps-dev
+script:
+    - make test
+    - make test-ext
+    # Skip code style checks if WIP is indicated
+    - test -z "${TRAVIS_COMMIT_MESSAGE##*WIP*}" || make lint
+jobs:
+    include:
+        - &test-ui
+          stage: test-ui
+          addons:
+              sauce_connect:
+                  username: noyainrain
+              jwt:
+                  secure: pu5fkrxWCuIupFB6DYPuEN0Y1mvGVysYTVDg1QXhTwCmW2/MP6FM6Y1sQxIwMcpVuyGI9Ph9glW/LP1pXRMwqZ8tS30xNBkKJUV8wyPOwESEGpD3Mg1OoIxQPdyjjZqIWoHk5BzzgugQGqLfa66UmZhIeQ4oARXC4IVFYVbfB9m4lGHxgKE3B/g8v5nbNiLFlvt6jt/ALSiSjBJOyiuzVJ+Jd7H3CzLzNnMxO/8FHoeyaHKgxiqv46ZbyTcKWogpRUAlSx2QC/vwLJGH7ryClbNsAPSsG7V8QJjev7GU/Hb/LzAltFxrM+t0kZ3puW4Lta9kkKzJ7+jmPWPSvgO6fnh4IGyxGkXTH7OJzQeEWoYwEiAJdCGVEKuHO+IF1Gbia26FNyqzpf3qqXGC4xrR4zsgVqwUku1/UTrYw1MVoXRM4XFTP4seywVCr7mV2jWz9GF8AZ4o2z4vjJg83401amdA+aW+bRbbsZs0yy7hFRerhcOT5wRST5A1dAp8Wnc/kCXHjclTXMBDXVgAyE7NImgbmg7pEttTxgUi/Fj6trkC/esBITUGyUG4uGcsJcqysnvFibseLkL9aHT1meVwrWFPoBf8eMQxwkRbmtlv8DxRNfN0Jv8kIEq1G94JaZEP5DFHwIw6wSAIiO7Z3st2jXKwEtYSfju9CXpRtHyQkik=
+          script: make test-ui WEBDRIVER_URL="https://$SAUCE_USERNAME:$SAUCE_ACCESS_KEY@ondemand.saucelabs.com/wd/hub" TUNNEL_ID="$TRAVIS_JOB_NUMBER" SUBJECT="#$TRAVIS_JOB_NUMBER"
+          env: BROWSER=chrome PLATFORM="Windows 10"
+        - <<: *test-ui
+          env: BROWSER=MicrosoftEdge PLATFORM="Windows 10"

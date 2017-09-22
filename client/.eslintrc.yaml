@@ -1,0 +1,70 @@
+parserOptions:
+    ecmaVersion: 2017
+env:
+    browser: true
+    es6: true
+globals:
+    micro: false
+    ui: false
+    listling: false
+extends: eslint
+rules:
+    # Disable because...
+    # Valid use case to match control characters
+    no-control-regex: off
+    # We use Sphinx for documentation
+    valid-jsdoc: off
+    # API design is best figured out by humans (yet)
+    class-methods-use-this: off
+    # Superfluous in ES5+
+    radix: off
+    # undefined is a valid feature
+    no-undefined: off
+    # Blank lines should be flexibly inserted where they support the train of thought
+    lines-around-comment: off
+    newline-after-var: off
+    # Some entities, like private methods, do not require documentation
+    require-jsdoc: off
+    # Mixing let and const may be less readable
+    prefer-const: off
+
+    # Allow aligning with first argument, may be more readable
+    indent:
+        - error
+        - 4
+        - ArrayExpression: first
+          CallExpression:
+              arguments: first
+          FunctionDeclaration:
+              parameters: first
+          FunctionExpression:
+              parameters: first
+          ObjectExpression: first
+    # Allow __type__ property
+    no-underscore-dangle:
+        - error
+        - allow:
+              - __type__
+          allowAfterThis: true
+    # Make consistent with other brackets
+    object-curly-spacing:
+        - error
+        - never
+
+    # Additional rules
+    no-extra-parens: error
+    no-template-curly-in-string: error
+    no-extra-label: error
+    no-warning-comments: error
+    linebreak-style: error
+    max-len:
+        - error
+        - code: 100
+          ignoreRegExpLiterals: true
+          ignoreStrings: true
+          ignoreTemplateLiterals: true
+          ignoreUrls: true
+    nonblock-statement-body-position: error
+    prefer-rest-params: error
+    prefer-spread: error
+    rest-spread-spacing: error
