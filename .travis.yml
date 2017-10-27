@@ -28,3 +28,5 @@ jobs:
           env: BROWSER=chrome PLATFORM="Windows 10"
         - <<: *test-ui
           env: BROWSER=MicrosoftEdge PLATFORM="Windows 10"
+        - <<: *test-ui
+          env: BROWSER=safari PLATFORM="macOS 10.12"
