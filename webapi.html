@@ -1,0 +1,508 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>2. Web API &#8212; Open Listling 0.1.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.png"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="3. Python API" href="pythonapi.html" />
+    <link rel="prev" title="1. Open Listling" href="README.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="web-api">
+<h1>2. Web API<a class="headerlink" href="#web-api" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>2.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>The application provides a JSON REST API.</p>
+<p>Arguments are passed to an endpoint simply as JSON object and the result is returned as JSON value.
+<em>Objects</em> contain a <code class="docutils literal"><span class="pre">__type__</span></code> attribute that holds the name of the object type.</p>
+<p>If a requested endpoint doesn’t exist, a <a class="reference internal" href="#notfounderror"><span class="std std-ref">NotFoundError</span></a> is returned. For any endpoint, an
+<a class="reference internal" href="#inputerror"><span class="std std-ref">InputError</span></a> is returned if the input contains invalid arguments.</p>
+<p>The URL that uniquely identifies an object is referred to as <em>object-url</em>, e.g. <code class="docutils literal"><span class="pre">users/abc</span></code> for a
+<a class="reference internal" href="#user"><span class="std std-ref">User</span></a> with the <em>id</em> <code class="docutils literal"><span class="pre">abc</span></code>.</p>
+</div>
+<div class="section" id="authentication-and-permissions">
+<h2>2.2. Authentication and Permissions<a class="headerlink" href="#authentication-and-permissions" title="Permalink to this headline">¶</a></h2>
+<p>To make an API request authenticated as some user, include a cookie named <code class="docutils literal"><span class="pre">auth_secret</span></code> with the
+<a class="reference internal" href="#user"><span class="std std-ref">User</span></a> ‘s <em>auth_secret</em>.</p>
+<p>If user authentication with the given secret fails, an <a class="reference internal" href="#authenticationerror"><span class="std std-ref">AuthenticationError</span></a> is returned. For
+any endpoint, a <a class="reference internal" href="#permissionerror"><span class="std std-ref">PermissionError</span></a> is returned if the current user is not allowed to perform the
+action.</p>
+</div>
+<div class="section" id="lists">
+<h2>2.3. Lists<a class="headerlink" href="#lists" title="Permalink to this headline">¶</a></h2>
+<p>For most API endpoints which return a list, a slice of the form <code class="docutils literal"><span class="pre">/(start):(stop)</span></code> may be appended
+to the URL, where <em>start</em> (inclusive) and <em>stop</em> (exclusive) are indices of the items to return.
+The maximum number of items is limited to a <em>limit</em> of <code class="docutils literal"><span class="pre">100</span></code>. Both <em>start</em> and <em>stop</em> are optional
+and default to <code class="docutils literal"><span class="pre">0</span></code> and <code class="docutils literal"><span class="pre">start</span> <span class="pre">+</span> <span class="pre">limit</span></code> respectively.</p>
+<p>Example: <code class="docutils literal"><span class="pre">/api/activity</span></code> (which is equivalent to <code class="docutils literal"><span class="pre">/api/activity/:</span></code> or <code class="docutils literal"><span class="pre">/api/activity/0:100</span></code>)
+returns the first hundred items (i.e. global events) and <code class="docutils literal"><span class="pre">/api/activity/10:20</span></code> returns the items
+from index 10 up to including 19.</p>
+</div>
+<div class="section" id="additional-types">
+<h2>2.4. Additional types<a class="headerlink" href="#additional-types" title="Permalink to this headline">¶</a></h2>
+<p>A <em>polyglot string</em> is an <code class="xref py py-class docutils literal"><span class="pre">Object</span></code> holding multiple translations of a string indexed by short
+language tag.</p>
+</div>
+<div class="section" id="usage-examples">
+<h2>2.5. Usage examples<a class="headerlink" href="#usage-examples" title="Permalink to this headline">¶</a></h2>
+<p>A new <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> is created and logged in with the following request:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -d &quot;&quot; https://example.org/api/login
+{
+    &quot;__type__&quot;: &quot;User&quot;,
+    &quot;id&quot;: &quot;abcd&quot;,
+    &quot;auth_secret&quot;: &quot;wxyz&quot;,
+    ...
+}
+</pre></div>
+</div>
+<p>To authenticate further API calls, the returned <em>auth_secret</em> is set as cookie.</p>
+<p>Setting a user’s <em>email</em> address requires multiple steps. First:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -b &quot;auth_secret=wxyz&quot; -d &#39;{&quot;email&quot;: &quot;happy@example.org&quot;}&#39; \
+       https://example.org/api/users/abcd/set-email
+{
+    &quot;__type__&quot;: &quot;AuthRequest&quot;,
+    &quot;id&quot;: &quot;efgh&quot;
+}
+</pre></div>
+</div>
+<p>This triggers a third party authentication via the email provider (as layed out in
+<a class="reference internal" href="#authrequest"><span class="std std-ref">AuthRequest</span></a>). The resulting authentication code (here <code class="docutils literal"><span class="pre">stuv</span></code>) is then verified to finish
+setting the email address:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -b &quot;auth_secret=wxyz&quot; -d &#39;{&quot;auth_request_id&quot;: &quot;efgh&quot;, &quot;auth&quot;: &quot;stuv&quot;}&#39; \
+       https://example.org/api/users/abcd/finish-set-email
+{
+    &quot;__type__&quot;: &quot;User&quot;,
+    &quot;id&quot;: &quot;abcd&quot;,
+    &quot;email&quot;: &quot;happy@example.org&quot;,
+    ...
+}
+</pre></div>
+</div>
+</div>
+<div class="section" id="authrequest">
+<span id="id1"></span><h2>2.6. AuthRequest<a class="headerlink" href="#authrequest" title="Permalink to this headline">¶</a></h2>
+<p>Third party authentication request.</p>
+<p>To set an <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> ‘s email address, a third party authentication via the email provider is
+performed to proof ownership over the address: First an email message containing a secret
+authentication code is sent to the user. The email provider authenticates the user by login to their
+mailbox, where they retrieve the code. Finally the code is passed back to and verified by the
+application.</p>
+<dl class="attribute">
+<dt id="id">
+<code class="descname">id</code><a class="headerlink" href="#id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unique ID of the object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trashed">
+<code class="descname">trashed</code><a class="headerlink" href="#trashed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates if the object has been trashed (deleted).</p>
+</dd></dl>
+
+</div>
+<div class="section" id="user">
+<span id="id2"></span><h2>2.7. User<a class="headerlink" href="#user" title="Permalink to this headline">¶</a></h2>
+<p>User is editable by the user oneself.</p>
+<dl class="attribute">
+<dt>
+<code class="descname">id</code></dt>
+<dd><p>Unique ID of the object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">trashed</code></dt>
+<dd><p>Indicates if the object has been trashed (deleted).</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">authors</code></dt>
+<dd><p><a class="reference internal" href="#user"><span class="std std-ref">User</span></a> s who edited the object.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">name</code></dt>
+<dd><p>Name or nick name.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">email</code></dt>
+<dd><p>Email address, being a single line string. May be <code class="docutils literal"><span class="pre">None</span></code>. Visible only to the user oneself.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">auth_secret</code></dt>
+<dd><p>Secret for authentication. Visible only to the user oneself.</p>
+</dd></dl>
+
+<dl class="get">
+<dt id="get--api-users-(id)">
+<code class="descname">GET </code><code class="descname">/api/users/</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="headerlink" href="#get--api-users-(id)" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the user given by <em>id</em>.</p>
+</dd></dl>
+
+<dl class="post">
+<dt id="post--api-(object-url)">
+<code class="descname">POST </code><code class="descname">/api/(object-url)</code><a class="headerlink" href="#post--api-(object-url)" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">{attrs...}</span></code></p>
+<p>Edit the attributes given by <em>attrs</em> and return the updated object.</p>
+<p>A <em>trashed</em> (deleted) object cannot be edited. In this case a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a>
+(<cite>object_trashed</cite>) is returned.</p>
+<p>Permission: Authenticated users.</p>
+</dd></dl>
+
+<dl class="post">
+<dt id="post--api-users-(id)-set-email">
+<code class="descname">POST </code><code class="descname">/api/users/</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><code class="descname">/set-email</code><a class="headerlink" href="#post--api-users-(id)-set-email" title="Permalink to this definition">¶</a></dt>
+<dd><p>{“email”}</p>
+<p>Start to set the user’s <em>email</em> address.</p>
+<p>A third party authentication via the email provider (as layed out in <a class="reference internal" href="#authrequest"><span class="std std-ref">AuthRequest</span></a>) is
+triggered and a corresponding <a class="reference internal" href="#authrequest"><span class="std std-ref">AuthRequest</span></a> is returned. To finish setting the email address
+use <a class="reference internal" href="#post--api-users-(id)-finish-set-email" title="POST /api/users/(id)/finish-set-email"><code class="xref http http-post docutils literal"><span class="pre">POST</span> <span class="pre">/api/users/(id)/finish-set-email</span></code></a>.</p>
+<p>Permission: The user oneself.</p>
+</dd></dl>
+
+<dl class="post">
+<dt id="post--api-users-(id)-finish-set-email">
+<code class="descname">POST </code><code class="descname">/api/users/</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><code class="descname">/finish-set-email</code><a class="headerlink" href="#post--api-users-(id)-finish-set-email" title="Permalink to this definition">¶</a></dt>
+<dd><p>{“auth_request_id”, “auth”}</p>
+<p>Finish setting the user’s <em>email</em> address and return the user.</p>
+<p><em>auth</em> is the authentication code, resulting from the <a class="reference internal" href="#authrequest"><span class="std std-ref">AuthRequest</span></a> with <em>auth_request_id</em>,
+to be verified. If the verification fails, a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a> (<code class="docutils literal"><span class="pre">auth_invalid</span></code>) is returned. If
+the given email address is already associated with another user, a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a>
+(<code class="docutils literal"><span class="pre">email_duplicate</span></code>) is returned.</p>
+<p>Permission: The user oneself.</p>
+</dd></dl>
+
+<dl class="post">
+<dt id="post--api-users-(id)-remove-email">
+<code class="descname">POST </code><code class="descname">/api/users/</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><code class="descname">/remove-email</code><a class="headerlink" href="#post--api-users-(id)-remove-email" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the user’s current <em>email</em> address and return the user.</p>
+<p>If the user’s <em>email</em> is not set, a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a> (<code class="docutils literal"><span class="pre">user_no_email</span></code>) is returned.</p>
+<p>Permission: The user oneself.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="activity">
+<span id="id3"></span><h2>2.8. Activity<a class="headerlink" href="#activity" title="Permalink to this headline">¶</a></h2>
+<p>Activity feed (of events) around a common topic/context.</p>
+<p><em>activity-url</em> is the URL that identifies the activity feed, e.g. <code class="docutils literal"><span class="pre">/api/activity</span></code>.</p>
+<dl class="get">
+<dt id="get-(activity-url)">
+<code class="descname">GET </code><code class="descname">(activity-url)</code><a class="headerlink" href="#get-(activity-url)" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the list of recorded <a class="reference internal" href="#event"><span class="std std-ref">Event</span></a> s.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="event">
+<span id="id4"></span><h2>2.9. Event<a class="headerlink" href="#event" title="Permalink to this headline">¶</a></h2>
+<p>Event about an action on an <em>object</em> by an <em>user</em>.</p>
+<dl class="attribute">
+<dt>
+<code class="descname">id</code></dt>
+<dd><p>Unique ID of the object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">trashed</code></dt>
+<dd><p>Indicates if the object has been trashed (deleted).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="type">
+<code class="descname">type</code><a class="headerlink" href="#type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Type of the event.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="object">
+<code class="descname">object</code><a class="headerlink" href="#object" title="Permalink to this definition">¶</a></dt>
+<dd><p>Object for which the event happened. <code class="docutils literal"><span class="pre">null</span></code> if it is a global event.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">user</code></dt>
+<dd><p><a class="reference internal" href="#user"><span class="std std-ref">User</span></a> who triggered the event.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">time</code></dt>
+<dd><p>Date and time at which the event happened.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="detail">
+<code class="descname">detail</code><a class="headerlink" href="#detail" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionary with additonal details about the event. The contents depend on the event <em>type</em>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="valueerror">
+<span id="id5"></span><h2>2.10. ValueError<a class="headerlink" href="#valueerror" title="Permalink to this headline">¶</a></h2>
+<p>Returned for value-related errors.</p>
+<dl class="attribute">
+<dt id="code">
+<code class="descname">code</code><a class="headerlink" href="#code" title="Permalink to this definition">¶</a></dt>
+<dd><p>Error string providing more information about the problem.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="inputerror">
+<span id="id6"></span><h2>2.11. InputError<a class="headerlink" href="#inputerror" title="Permalink to this headline">¶</a></h2>
+<p>Returned if the input to an endpoint contains one or more arguments with an invalid value.</p>
+<p>InputError is a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a> with <em>code</em> set to <code class="docutils literal"><span class="pre">input_invalid</span></code>.</p>
+<dl class="attribute">
+<dt id="errors">
+<code class="descname">errors</code><a class="headerlink" href="#errors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Map of argument names / error strings for every problematic argument of the input.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="notfounderror">
+<span id="id7"></span><h2>2.12. NotFoundError<a class="headerlink" href="#notfounderror" title="Permalink to this headline">¶</a></h2>
+<p>Returned if a requested endpoint does not exist.</p>
+</div>
+<div class="section" id="authenticationerror">
+<span id="id8"></span><h2>2.13. AuthenticationError<a class="headerlink" href="#authenticationerror" title="Permalink to this headline">¶</a></h2>
+<p>Returned if user authentication fails.</p>
+</div>
+<div class="section" id="permissionerror">
+<span id="id9"></span><h2>2.14. PermissionError<a class="headerlink" href="#permissionerror" title="Permalink to this headline">¶</a></h2>
+<p>Returned if the current user is not allowed to perform an action.</p>
+</div>
+<div class="section" id="listling">
+<span id="id10"></span><h2>2.15. Listling<a class="headerlink" href="#listling" title="Permalink to this headline">¶</a></h2>
+<p>Listling application.</p>
+<dl class="get">
+<dt id="get--api-settings">
+<code class="descname">GET </code><code class="descname">/api/settings</code><a class="headerlink" href="#get--api-settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the settings.</p>
+</dd></dl>
+
+<dl class="get">
+<dt id="get--api-activity">
+<code class="descname">GET </code><code class="descname">/api/activity</code><a class="headerlink" href="#get--api-activity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Global <a class="reference internal" href="#activity"><span class="std std-ref">Activity</span></a> feed.</p>
+</dd></dl>
+
+<dl class="post">
+<dt id="post--api-login">
+<code class="descname">POST </code><code class="descname">/api/login</code><a class="headerlink" href="#post--api-login" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">{&quot;code&quot;:</span> <span class="pre">null}</span></code></p>
+<p>Log in an <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> (device) and return them.</p>
+<p>If <em>code</em> is given, log in an existing user with the login <em>code</em>. If the login fails, a
+<code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> (<code class="docutils literal"><span class="pre">code_invalid</span></code>) is returned.</p>
+<p>If <em>code</em> is <code class="docutils literal"><span class="pre">null</span></code>, create and log in a new user. The very first user who logs in is
+registered as staff member.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="settings">
+<span id="id11"></span><h2>2.16. Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h2>
+<p>App settings.</p>
+<dl class="attribute">
+<dt>
+<code class="descname">id</code></dt>
+<dd><p>Unique ID of the object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">trashed</code></dt>
+<dd><p>Indicates if the object has been trashed (deleted).</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">authors</code></dt>
+<dd><p><a class="reference internal" href="#user"><span class="std std-ref">User</span></a> s who edited the object.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">title</code></dt>
+<dd><p>Site title.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">icon</code></dt>
+<dd><p>URL of the site icon. May be <code class="docutils literal"><span class="pre">null</span></code>.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">favicon</code></dt>
+<dd><p>URL of the site icon optimized for a small size. May be <code class="docutils literal"><span class="pre">null</span></code>.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">provider_name</code></dt>
+<dd><p>Service provider name. May be <code class="docutils literal"><span class="pre">null</span></code>.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">provider_url</code></dt>
+<dd><p>URL of the website of the service provider. May be <code class="docutils literal"><span class="pre">null</span></code>.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">provider_description</code></dt>
+<dd><p>Short polyglot description of the service provider, which can be read as an addendum to the
+<em>provider_name</em>.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">feedback_url</code></dt>
+<dd><p>URL of the feedback site / help desk. May be <code class="docutils literal"><span class="pre">null</span></code>.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">staff</code></dt>
+<dd><p>Staff users.</p>
+</dd></dl>
+
+<dl class="post">
+<dt id="post--api-(object-url)">
+<code class="descname">POST </code><code class="descname">/api/(object-url)</code><a class="headerlink" href="#post--api-(object-url)" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">{attrs...}</span></code></p>
+<p>Edit the attributes given by <em>attrs</em> and return the updated object.</p>
+<p>A <em>trashed</em> (deleted) object cannot be edited. In this case a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a>
+(<cite>object_trashed</cite>) is returned.</p>
+<p>Permission: Authenticated users.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="contents.html">
+    <img class="logo" src="_static/listling.svg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">Open Listling</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Collaborative lists</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=noyainrain&repo=listling&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="README.html">1. Introduction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">2. Web API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">2.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#authentication-and-permissions">2.2. Authentication and Permissions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#lists">2.3. Lists</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#additional-types">2.4. Additional types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#usage-examples">2.5. Usage examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#authrequest">2.6. AuthRequest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user">2.7. User</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#activity">2.8. Activity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#event">2.9. Event</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#valueerror">2.10. ValueError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#inputerror">2.11. InputError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#notfounderror">2.12. NotFoundError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#authenticationerror">2.13. AuthenticationError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#permissionerror">2.14. PermissionError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#listling">2.15. Listling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#settings">2.16. Settings</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pythonapi.html">3. Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CONTRIBUTING.html">4. Contributing</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017 Open Listling contributors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

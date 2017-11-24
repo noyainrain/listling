@@ -1,0 +1,173 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>4. Contributing to Open Listling &#8212; Open Listling 0.1.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.png"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="3. Python API" href="pythonapi.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="contributing-to-open-listling">
+<span id="contributing-to-open-listling"></span><h1>4. Contributing to Open Listling<a class="headerlink" href="#contributing-to-open-listling" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="how-to-contribute">
+<span id="how-to-contribute"></span><h2>4.1. How to contribute<a class="headerlink" href="#how-to-contribute" title="Permalink to this headline">¶</a></h2>
+<ol class="simple">
+<li>For any non-trivial contribution:<ol>
+<li><a class="reference external" href="https://github.com/noyainrain/listling/issues">Create an issue</a> describing the intended
+change [1]</li>
+<li>A team member reviews your draft. Make the requested changes, if any.</li>
+</ol>
+</li>
+<li>Create a topic branch</li>
+<li>Code...</li>
+<li><a class="reference external" href="https://github.com/noyainrain/listling/pulls">Create a pull request</a></li>
+<li>Travis CI runs the code quality checks. Fix the reported issues, if any.</li>
+<li>A team member reviews your contribution. Make the requested changes, if any.</li>
+<li>A team member merges your contribution \o/</li>
+</ol>
+<p>[1] A good description contains:</p>
+<ul class="simple">
+<li>If the API or web API is modified, any method signature (including the return value and possible
+errors) and object signature (including properties)</li>
+<li>If the UI is modified, a simple sketch</li>
+<li>If a new dependency is introduced, a short description of the dependency and possible alternatives
+and the reason why it is the best option</li>
+</ul>
+</div>
+<div class="section" id="requirements">
+<span id="requirements"></span><h2>4.2. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<p>A supported browser (e.g. Firefox) along with a WebDriver implementation (e.g. geckodriver) are
+required for the UI tests and must be set up on your system.</p>
+</div>
+<div class="section" id="installing-development-dependencies">
+<span id="installing-development-dependencies"></span><h2>4.3. Installing development dependencies<a class="headerlink" href="#installing-development-dependencies" title="Permalink to this headline">¶</a></h2>
+<p>To install the development dependencies for Open Listling, type:</p>
+<div class="highlight-sh"><div class="highlight"><pre><span></span>make deps-dev
+</pre></div>
+</div>
+</div>
+<div class="section" id="running-the-unit-tests">
+<span id="running-the-unit-tests"></span><h2>4.4. Running the unit tests<a class="headerlink" href="#running-the-unit-tests" title="Permalink to this headline">¶</a></h2>
+<p>To run all unit tests, type:</p>
+<div class="highlight-sh"><div class="highlight"><pre><span></span>make
+</pre></div>
+</div>
+</div>
+<div class="section" id="development-utilities">
+<span id="development-utilities"></span><h2>4.5. Development utilities<a class="headerlink" href="#development-utilities" title="Permalink to this headline">¶</a></h2>
+<p>The Makefile that comes with Open Listling provides additional utilities for different development
+tasks. To get an overview, type:</p>
+<div class="highlight-sh"><div class="highlight"><pre><span></span>make <span class="nb">help</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="contents.html">
+    <img class="logo" src="_static/listling.svg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">Open Listling</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Collaborative lists</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=noyainrain&repo=listling&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="README.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="webapi.html">2. Web API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pythonapi.html">3. Python API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">4. Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-contribute">4.1. How to contribute</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#requirements">4.2. Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installing-development-dependencies">4.3. Installing development dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-the-unit-tests">4.4. Running the unit tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#development-utilities">4.5. Development utilities</a></li>
+</ul>
+</li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017 Open Listling contributors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,139 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>3. Python API &#8212; Open Listling 0.1.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.png"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4. Contributing to Open Listling" href="CONTRIBUTING.html" />
+    <link rel="prev" title="2. Web API" href="webapi.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="python-api">
+<h1>3. Python API<a class="headerlink" href="#python-api" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-listling">
+<span id="listling"></span><h2>3.1. listling<a class="headerlink" href="#module-listling" title="Permalink to this headline">¶</a></h2>
+<p>Web app for collaboratively composing lists.</p>
+<dl class="class">
+<dt id="listling.Listling">
+<em class="property">class </em><code class="descclassname">listling.</code><code class="descname">Listling</code><span class="sig-paren">(</span><em>redis_url=''</em>, <em>email='bot&#64;localhost'</em>, <em>smtp_url=''</em>, <em>render_email_auth_message=None</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#listling"><span class="std std-ref">Listling</span></a>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-listling.server">
+<span id="server"></span><h2>3.2. server<a class="headerlink" href="#module-listling.server" title="Permalink to this headline">¶</a></h2>
+<p>Open Listling server.</p>
+<dl class="function">
+<dt id="listling.server.make_server">
+<code class="descclassname">listling.server.</code><code class="descname">make_server</code><span class="sig-paren">(</span><em>port=8080</em>, <em>url=None</em>, <em>debug=False</em>, <em>redis_url=''</em>, <em>smtp_url=''</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.server.make_server" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an Open Listling server.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="contents.html">
+    <img class="logo" src="_static/listling.svg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">Open Listling</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Collaborative lists</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=noyainrain&repo=listling&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="README.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="webapi.html">2. Web API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">3. Python API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-listling">3.1. listling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-listling.server">3.2. server</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="CONTRIBUTING.html">4. Contributing</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017 Open Listling contributors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
