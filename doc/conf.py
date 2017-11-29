@@ -7,10 +7,11 @@ import micro
 extensions = ['sphinx.ext.autodoc', 'sphinxcontrib.httpdomain']
 source_suffix = ['.rst', '.md']
 source_parsers = {'.md': 'recommonmark.parser.CommonMarkParser'}
+master_doc = 'index'
 
 project = 'Open Listling'
 copyright = '2017 Open Listling contributors'
-version = release = '0.1.0'
+version = release = '0.1.1'
 
 html_theme_options = {
     'logo': 'listling.svg',
