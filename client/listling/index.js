@@ -71,7 +71,7 @@ listling.UseCaseElement = class extends HTMLLIElement {
             document.importNode(ui.querySelector(".listling-use-case-template").content, true));
         //this.tabIndex = 0;
         this.querySelector("h1").textContent = this.getAttribute("titl");
-        this.querySelector("span").classList.add(`fa-${this.getAttribute("icon")}`);
+        this.querySelector("i").classList.add(`fa-${this.getAttribute("icon")}`);
         this.addEventListener("mouseenter", this);
         this.querySelector("a").addEventListener("focus", this);
         let button = this.querySelector("button");

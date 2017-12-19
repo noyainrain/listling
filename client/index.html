@@ -36,11 +36,11 @@
                 <li is="listling-use-case" titl="Playlist" icon="play"></li>-->
             </ul>
             <p class="listling-start-missing"><small>Missing a certain kind of list?
-            <a class="action action-subtle" style="font-size: 1em;" href="mailto:feedback@listling.org"><span class="fa fa-envelope"></span> Tell us!</a></small></p>
+            <a class="action action-subtle" style="font-size: 1em;" href="mailto:feedback@listling.org"><i class="fa fa-envelope"></i> Tell us!</a></small></p>
         </div>
 
         <footer style="text-align: center;">
-            <p><small>Made with <span class="fa fa-heart"></span> in Berlin</small></p>
+            <p><small>Made with <i class="fa fa-heart"></i> in Berlin</small></p>
         </footer>
     </template>
     <style>
@@ -85,14 +85,14 @@
     </style>
 
     <template class="listling-use-case-template">
-        <span class="fa"></span>
+        <i class="fa"></i>
         <h1></h1>
         <div class="micro-state-selected">
             <p><small>Just a simple list.</small>
             <p class="xgroup">
-                <a href="/lists/new" class="listling-use-case-create-list action xaction-subtle"><span class="fa fa-paper-plane"></span> Start</a>
+                <a href="/lists/new" class="listling-use-case-create-list action xaction-subtle"><i class="fa fa-paper-plane"></i> Start</a>
             </p>
-            <p style="color: #888;">or view <button is="micro-button" class="listling-use-case-create-example link"><span class="fa fa-book"></span> Example</button></p>
+            <p style="color: #888;">or view <button is="micro-button" class="listling-use-case-create-example link"><i class="fa fa-book"></i> Example</button></p>
         </div>
     </template>
     <style>
@@ -136,7 +136,7 @@
             display: none;
         }
 
-        [is=listling-use-case] > span {
+        [is=listling-use-case] > i {
             display: block;
             text-align: center;
             font-size: calc(2 * 1.5rem - 1.5rem / 4);
@@ -217,7 +217,7 @@
                 <ul is="micro-menu" class="view">
                     <li>
                         <button is="micro-button" type="button" class="listling-list-edit action">
-                            <span class="fa fa-pencil"></span> Edit
+                            <i class="fa fa-pencil"></i> Edit
                         </button>
                     </li>
                 </ul>
@@ -227,12 +227,12 @@
             <label class="edit"><textarea name="description" placeholder="Description"></textarea></label>
 
             <p class="listling-detail view" title="Edited by">
-                <span class="fa fa-pencil"></span>
+                <i class="fa fa-pencil"></i>
                 <span><template><micro-user></micro-user></template></span>
             </p>
 
             <ul is="micro-menu" class="edit">
-                <li><button is="micro-button" class="action"><span class="fa fa-check-circle"></span> Done</button></li>
+                <li><button is="micro-button" class="action"><i class="fa fa-check-circle"></i> Done</button></li>
                 <li><button is="micro-button" class="link action-cancel">Cancel</button></li>
             </ul>
         </form>
@@ -245,12 +245,12 @@
 
         <div class="listling-list-trash view">
             <p>
-                <span></span> <button is="micro-button" type="button" class="link" title="Show"><span class="fa fa-search-plus"></span></button>
+                <span></span> <button is="micro-button" type="button" class="link" title="Show"><i class="fa fa-search-plus"></i></button>
             </p>
             <div>
                 <header>
                     <h1>Trashed items</h1>
-                    <button is="micro-button" type="button" class="link" title="Hide"><span class="fa fa-search-minus"></span></button>
+                    <button is="micro-button" type="button" class="link" title="Hide"><i class="fa fa-search-minus"></i></button>
                 </header>
                 <ul>
                     <template>
@@ -263,7 +263,7 @@
         <div class="listling-list-create-item view">
             <p>
                 <button is="micro-button" class="action">
-                    <span class="fa fa-plus-circle"></span> Add item
+                    <i class="fa fa-plus-circle"></i> Add item
                 </button>
             </p>
             <li is="listling-item"></li>
@@ -348,23 +348,23 @@
                         <li>
                             <button is="micro-button" type="button"
                                     class="listling-item-edit action">
-                                <span class="fa fa-pencil"></span> Edit
+                                <i class="fa fa-pencil"></i> Edit
                             </button>
                         </li>
                         <li>
                             <button is="micro-button" type="button" class="listling-item-restore action">
-                                <span class="fa fa-undo"></span> Restore
+                                <i class="fa fa-undo"></i> Restore
                             </button>
                         </li>
                         <li>
                             <button is="micro-button" type="button" class="link">
-                                <span class="fa fa-bars"></span>
+                                <i class="fa fa-bars"></i>
                             </button>
                             <ul is="micro-menu">
                                 <li>
                                     <button is="micro-button" type="button"
                                             class="listling-item-trash action">
-                                        <span class="fa fa-trash"></span> Trash
+                                        <i class="fa fa-trash"></i> Trash
                                     </button>
                                 </li>
                             </ul>
@@ -380,14 +380,14 @@
                     </label>
 
                     <p class="listling-detail listling-item-mode-view" title="Edited by">
-                        <span class="fa fa-pencil"></span>
+                        <i class="fa fa-pencil"></i>
                         <span>
                             <template><micro-user></micro-user></template>
                         </span>
                     </p>
 
                     <ul is="micro-menu" class="listling-item-mode-edit">
-                        <li><button is="micro-button" class="action action-done"><span class="fa fa-check-circle"></span> Done</button></li>
+                        <li><button is="micro-button" class="action action-done"><i class="fa fa-check-circle"></i> Done</button></li>
                         <li><button is="micro-button" type="button" class="link action-cancel">Cancel</button></li>
                     </ul>
                 </div>
