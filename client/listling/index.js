@@ -350,12 +350,50 @@ listling.ItemElement = class extends HTMLLIElement {
         this._item = value;
         this.querySelector(".listling-item-check .action").disabled = this._item && this._item.trashed;
         this.querySelector(".listling-item-uncheck .action").disabled = this._item && this._item.trashed;
+        this.classList.toggle("listling-item-has-entity", this._item && this._item.entity);
         this.classList.toggle("listling-item-trashed", this._item && this._item.trashed);
         this.classList.toggle("listling-item-checked", this._item && this._item.checked);
         this.querySelector("h1 span").textContent = this._form.elements.title.value =
             this._item && this._item.title || "";
         this.querySelector(".listling-item-description").textContent =
             this._form.elements.description.value = this._item && this._item.description || "";
+
+        function requireYoutube() {
+            return new Promise(resolve => {
+                let script = document.createElement("script");
+                script.src = "https://www.youtube.com/iframe_api";
+                document.head.appendChild(script);
+                window.onYouTubeIframeAPIReady = function() {
+                    resolve(YT);
+                }
+            });
+        }
+
+        let div = this.querySelector(".listling-item-entity");
+        div.textContent = "";
+        let entity = this._item && this._item.entity;
+        switch(entity && entity.__type__) {
+            case "ImageEntity":
+                let img = document.createElement("img");
+                img.src = entity.url;
+                div.appendChild(img);
+                break;
+            case "AVEntity":
+                let iframe = document.createElement("div");
+                div.appendChild(iframe);
+                requireYoutube().then(yt => {
+                    let videoId = entity.url.match(/v=(.*)/)[1];
+                    function onReady() {
+                        /*console.log("VIDEOID", videoId);
+                        console.log("ENTITY", entity.url);
+                        console.log(player)
+                        player.loadVideoByUrl(entity.url);*/
+                    };
+                    let player = new yt.Player(iframe, {videoId, events: {onReady}});
+                });
+                break;
+        }
+
         let span = this.querySelector(".listling-detail span:not(.fa)");
         let fragment = micro.bind.join(span, this._item && this._item.authors, "user");
         span.textContent = "";

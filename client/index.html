@@ -427,6 +427,7 @@
                 </header>
 
                 <div class="listling-item-content">
+                    <div class="listling-item-entity"></div>
                     <p class="listling-item-description listling-item-mode-view micro-multiline">
                     </p>
                     <label class="listling-item-mode-edit">
@@ -449,6 +450,35 @@
         </li>
     </template>
     <style>
+        /*.listling-item-entity {
+            position: relative;
+            width: 100%;
+            padding-top: calc(9 / 16 * 100%);
+        }
+
+        .listling-item-entity img {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }*/
+
+        .listling-item-entity {
+            background: #ddd;
+        }
+
+        .listling-item-entity > * {
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+            max-height: calc(70ch * 9 / 16);
+        }
+
+        .listling-item-entity img {
+            object-fit: contain;
+        }
+
         .action i {
             min-width: calc(1.5em);
             text-align: center;
@@ -474,6 +504,10 @@
             margin: 0;
             /*padding-right: calc(1.5rem - var(--micro-padding));*/
         }
+
+        /*[is=listling-item].listling-item-has-entity header {
+            border-bottom: none;
+        }*/
 
         listling-list-page:not(.listling-list-feature-check) .listling-item-check,
         listling-list-page:not(.listling-list-feature-check) .listling-item-uncheck,
@@ -545,6 +579,11 @@
             color: #888;
         }
 
+        [is=listling-item].listling-item-trashed .listling-item-entity img,
+        [is=listling-item].listling-item-checked .listling-item-entity img {
+            filter: grayscale(100%) opacity(50%);
+        }
+
         [is=listling-item].listling-item-trashed .micro-ol-handle,
         [is=listling-item].listling-item-trashed .listling-item-edit,
         [is=listling-item].listling-item-trashed header [is="micro-menu"]:last-child > li:last-child,
@@ -552,15 +591,19 @@
             display: none;
         }
 
-        .listling-item-content {
+        /*.listling-item-content {
             padding: 0 var(--micro-padding) 0 1.5rem;
             padding: 0 var(--micro-padding);
-        }
+        }*/
 
         .listling-item-content p,
         .listling-item-content label,
         .listling-item-content ul {
             margin: calc(1.5rem / 4) 0;
+        }
+
+        .listling-item-content p {
+            padding: 0 var(--micro-padding);
         }
 
         .listling-detail {

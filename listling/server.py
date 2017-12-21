@@ -14,10 +14,12 @@
 
 """Open Listling server."""
 
+import http
 import json
 
 import micro
 from micro.server import Endpoint, Server
+from tornado.web import HTTPError
 
 from . import Listling
 
@@ -80,6 +82,7 @@ def make_server(port=8080, url=None, debug=False, redis_url='', smtp_url=''):
     app = Listling(redis_url, smtp_url=smtp_url)
     handlers = [
         (r'/api/lists$', ListsEndpoint),
+        (r'/api/previews/(.+)$', ResolveContentEndpoint),
         (r'/api/lists/create-example$', ListsCreateExampleEndpoint),
         (r'/api/lists/([^/]+)$', ListEndpoint),
         (r'/api/lists/([^/]+)/items$', ListItemsEndpoint),
@@ -90,6 +93,15 @@ def make_server(port=8080, url=None, debug=False, redis_url='', smtp_url=''):
         (r'/api/lists/([^/]+)/items/([^/]+)/uncheck', ItemUncheckEndpoint)
     ]
     return Server(app, handlers, port, url, client_modules_path='node_modules', debug=debug)
+
+class ResolveContentEndpoint(Endpoint):
+    async def get(self, url):
+        content = await self.app.resolve_content(url)
+        print('content', content)
+        if content:
+            self.write(vars(content))
+        else:
+            raise HTTPError(http.client.NOT_FOUND)
 
 class ListsEndpoint(Endpoint):
     def post(self):

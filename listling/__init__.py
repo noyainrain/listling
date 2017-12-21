@@ -14,4 +14,4 @@
 
 """Web app for collaboratively composing lists."""
 
-from .listling import Item, List, Listling
+from .listling import Item, List, Listling, ImageEntity

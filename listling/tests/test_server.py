@@ -20,6 +20,7 @@ class ServerTest(ServerTestCase):
         item = lst.items.create('Sleep')
 
         yield self.request('/api/lists', method='POST', body='{"title": "Colony tasks"}')
+        yield self.request('/api/previews/{}/static/images/favicon.png'.format(self.server.url))
         yield self.request('/api/lists/create-example', method='POST', body='{"kind": "simple"}')
         yield self.request('/api/lists/{}'.format(lst.id))
         yield self.request('/api/lists/{}'.format(lst.id), method='POST',

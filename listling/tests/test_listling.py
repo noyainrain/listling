@@ -1,10 +1,13 @@
 # TODO
+import os
 from subprocess import check_call
 from tempfile import mkdtemp
 
-from tornado.testing import AsyncTestCase
+from tornado.web import Application
+from tornado.testing import AsyncTestCase, gen_test
+from tornado.gen import sleep
 
-from listling import Item, List, Listling
+from listling import Item, List, Listling, ImageEntity
 
 SETUP_DB_SCRIPT = """\
 from listling import Listling
@@ -50,14 +53,14 @@ class ListlingUpdateTest(AsyncTestCase):
         app.update()
         self.assertEqual(app.settings.title, 'My Open Listling')
 
-    #def test_update_db_version_previous(self):
-    #    self.setup_db('simple-list')
-    #    app = Listling(redis_url='15')
-    #    app.update()
+    def test_update_db_version_previous(self):
+        self.setup_db('tmp2')
+        app = Listling(redis_url='15')
+        app.update()
 
-    #    lst = next(app.lists)
-    #    item = next(lst.items)
-    #    self.assertFalse(item.checked)
+        lst = list(app.lists.values())[0]
+        item = list(lst.items.values())[0]
+        self.assertIsNone(item.entity)
 
     def test_update_db_version_first(self):
         self.setup_db('tmp')
@@ -70,6 +73,9 @@ class ListlingUpdateTest(AsyncTestCase):
         self.assertFalse(lst.features)
         self.assertFalse(item.checked)
         self.assertEqual(item.lst, lst)
+
+        # Update to version 2
+        self.assertIsNone(item.entity)
 
 class ListTest(ListlingTestCase):
     def setUp(self):
@@ -94,6 +100,17 @@ class ItemTest(ListlingTestCase):
         item.edit(description='FOOTODO')
         self.assertEqual(item.title, 'Sleep')
         self.assertEqual(item.description, 'FOOTODO')
+
+    @gen_test
+    async def test_edit_image(self):
+        app = Application(static_path=os.path.join(os.path.dirname(__file__), 'res'), static_url_prefix='/')
+        server = app.listen(16160, 'localhost')
+        item = self.make_item()
+        item.edit(description='A\nhttp://localhost:16160/image.png  ')
+        await sleep(1) # XXX
+        server.stop()
+        self.assertIsInstance(item.entity, ImageEntity)
+        self.assertEqual(item.entity.url, 'http://localhost:16160/image.png')
 
     def test_check(self):
         item = self.make_item(features={'check': 'user'})
