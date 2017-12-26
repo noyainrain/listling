@@ -15,6 +15,21 @@
     {% raw micro_boot() %}
     {% raw micro_templates() %}
 
+    <template class="listling-share-notification-template">
+        <p>
+            To share the list, simply give this link to other contributors:
+        </p>
+        <label>
+            <input readonly="readonly" />
+            <small>Share link</small>
+        </label>
+        <p>
+            <small>
+                Anyone with the link can add and edit items and change the details of the list.
+            </small>
+        </p>
+    </template>
+
     <!--<template>
         <span data-content="format '{lst} was created by {user}'">
             <template data-slot="lst">
@@ -229,9 +244,19 @@
 
                 <ul is="micro-menu" class="view">
                     <li>
-                        <button is="micro-button" type="button" class="listling-list-edit action">
-                            <i class="fa fa-pencil"></i> Edit
+                        <button is="micro-button" type="button" class="listling-list-share action">
+                            <i class="fa fa-envelope"></i> Share
                         </button>
+                    </li>
+                    <li>
+                        <button type="button" class="link"><i class="fa fa-bars"></i></button>
+                        <ul is="micro-menu">
+                            <li>
+                                <button is="micro-button" type="button" class="listling-list-edit action">
+                                    <i class="fa fa-pencil"></i> Edit
+                                </button>
+                            </li>
+                        </ul>
                     </li>
                 </ul>
             </header>

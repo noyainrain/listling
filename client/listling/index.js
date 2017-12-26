@@ -125,7 +125,17 @@ listling.ListPage = class extends micro.Page {
         this.appendChild(
             document.importNode(ui.querySelector(".listling-list-page-template").content, true));
         this.querySelector("form > :not(header) button").run = this._edit.bind(this);
-        this.querySelector(".action").run = () => this.edit = true;
+
+        this.querySelector(".listling-list-share").run = () => {
+            let notification = document.createElement("micro-simple-notification");
+            notification.content.appendChild(document.importNode(
+                ui.querySelector(".listling-share-notification-template").content, true));
+            notification.content.querySelector("input").value =
+                `${location.origin}${listling.makeListURL(this._list)}`;
+            ui.notify(notification);
+        };
+
+        this.querySelector(".listling-list-edit").run = () => this.edit = true;
         this.querySelector(".action-cancel").run = this._cancel.bind(this);
         this.querySelector(".listling-list-create-item .action").run = this._createItem.bind(this);
         this._trashDiv = this.querySelector(".listling-list-trash");

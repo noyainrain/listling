@@ -72,6 +72,8 @@ describe("UI", function() {
                            timeout);
 
         // Edit list
+        await browser.findElement({css: "listling-list-page [is=micro-menu] li:last-child"})
+            .click();
         await browser.findElement({css: ".listling-list-edit"}).click();
         form = await browser.findElement({css: "listling-list-page form"});
         input = await form.findElement({name: "title"});
