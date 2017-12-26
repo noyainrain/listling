@@ -22,6 +22,10 @@
 
 window.listling = {};
 
+listling.makeListURL = function(lst) {
+    return `/lists/${lst.id.split(":")[1]}${micro.util.slugify(lst.title, 32)}`;
+}
+
 /**
  * Open Listling UI.
  */
@@ -36,8 +40,22 @@ listling.UI = class extends micro.UI {
         this.pages = this.pages.concat([
             {url: "^/$", page: "listling-start-page"},
             {url: "^/about$", page: makeAboutPage},
-            {url: "^/lists/([^/]+)$", page: listling.ListPage.make}
+            {url: "^/lists/([^/]+)(?:/[^/]+)?$", page: listling.ListPage.make}
         ]);
+
+        Object.assign(this.renderEvent, {
+            ["create-list"](event) {
+                let template = document.importNode(
+                    ui.querySelector(".listling-event-create-list-template").content, true);
+                let a = template.querySelector("a");
+                a.href = listling.makeListURL(event.detail.lst);
+                a.textContent = event.detail.lst.title;
+                let userElem = template.querySelector("micro-user");
+                userElem.user = event.user;
+                return micro.util.formatFragment("{lst} was created by {user}",
+                                                 {lst: a, user: userElem});
+            }
+        });
     }
 };
 
@@ -185,6 +203,8 @@ listling.ListPage = class extends micro.Page {
 
     set list(value) {
         this._list = value;
+        this.caption = this._list.title;
+        history.replaceState(null, null, listling.makeListURL(this._list));
         this.classList.toggle("listling-list-feature-check", this._list.features.check);
         this.querySelector("h1 span").textContent = this._form.elements.title.value =
             this._list.title;
