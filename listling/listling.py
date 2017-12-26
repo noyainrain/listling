@@ -15,7 +15,7 @@
 """Open Listling core."""
 
 import micro
-from micro import Application, Editable, Object, Settings
+from micro import Application, Editable, Object, Settings, Event
 from micro.jsonredis import JSONRedis, JSONRedisMapping
 from micro.util import randstr
 
@@ -150,6 +150,8 @@ class Listling(Application):
                 features=f)
             self._app.r.oset(lst.id, lst)
             self._app.r.rpush(self.map_key, lst.id)
+            self._app.activity.publish(
+                Event.create('create-list', None, {'lst': lst}, app=self._app))
             return lst
 
         def create_example(self, kind):

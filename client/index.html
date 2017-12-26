@@ -15,6 +15,19 @@
     {% raw micro_boot() %}
     {% raw micro_templates() %}
 
+    <!--<template>
+        <span data-content="format '{lst} was created by {user}'">
+            <template data-slot="lst">
+                <a data-href=" event.detail.lst" data-content="event.detail.lst.title">
+                </a>
+            </template>
+            <template data-slot="user"><micro-user data-user="event.user"></micro-user></template>
+        </span>
+    </template>-->
+    <template class="listling-event-create-list-template">
+        <a class="link"></a> was created by <micro-user></micro-user>
+    </template>
+
     <template class="listling-start-page-template">
         <div class="listling-start-intro">
             <h1 class="micro-logo"><img /> <span></span></h1>
