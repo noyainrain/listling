@@ -44,7 +44,7 @@ class ListlingUpdateTest(AsyncTestCase):
                     '--branch', tag, '.', d])
         check_call(['python3', '-c', SETUP_DB_SCRIPT], cwd=d)
 
-    def xtest_update_db_fresh(self):
+    def test_update_db_fresh(self):
         app = Listling(redis_url='15')
         app.r.flushdb()
         app.update()
@@ -59,8 +59,8 @@ class ListlingUpdateTest(AsyncTestCase):
     #    item = next(lst.items)
     #    self.assertFalse(item.checked)
 
-    def xtest_update_db_version_first(self):
-        self.setup_db('simple-list')
+    def test_update_db_version_first(self):
+        self.setup_db('tmp')
         app = Listling(redis_url='15')
         app.update()
 
