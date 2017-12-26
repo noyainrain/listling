@@ -68,7 +68,7 @@ describe("UI", function() {
         // Create example list
         await browser.findElement({css: ".micro-ui-logo"}).click();
         await browser.findElement({css: ".listling-use-case-create-example"}).click();
-        await browser.wait(untilElementTextLocated({css: "listling-list-page h1"}, "Some list"),
+        await browser.wait(untilElementTextLocated({css: "listling-list-page h1"}, "Project tasks"),
                            timeout);
 
         // Edit list
@@ -94,13 +94,13 @@ describe("UI", function() {
         form = await browser.findElement({css: "[is=listling-item] form"});
         input = await form.findElement({name: "title"});
         await input.clear();
-        await input.sendKeys("Item 1");
+        await input.sendKeys("Research");
         await form.findElement({css: "button:not([type])"}).click();
-        await browser.wait(untilElementTextLocated({css: "[is=listling-item] h1"}, "Item 1"),
+        await browser.wait(untilElementTextLocated({css: "[is=listling-item] h1"}, "Research"),
                            timeout);
 
         // Trash item
-        await browser.findElement({css: "[is=listling-item] [is=micro-menu] li:last-child"})
+        await browser.findElement({css: "[is=listling-item] [is=micro-menu]:last-child li:last-child"})
             .click();
         await browser.findElement({css: ".listling-item-trash"}).click();
         await browser.wait(
@@ -110,8 +110,18 @@ describe("UI", function() {
         // Restore item
         await browser.findElement({css: ".listling-list-trash button"}).click();
         await browser.findElement({css: ".listling-list-trash .listling-item-restore"}).click();
-        await browser.wait(untilElementTextLocated({css: "[is=listling-item] h1"}, "Item 1"),
+        await browser.wait(untilElementTextLocated({css: "[is=listling-item] h1"}, "Research"),
                            timeout);
+
+        // Uncheck item
+        let checkButton = await browser.findElement({css: ".listling-item-check .action"});
+        let uncheckButton = await browser.findElement({css: ".listling-item-uncheck .action"});
+        await uncheckButton.click();
+        await browser.wait(until.elementIsVisible(checkButton), timeout);
+
+        // Check item
+        await checkButton.click();
+        await browser.wait(until.elementIsVisible(uncheckButton), timeout);
 
         // View about
         // TODO

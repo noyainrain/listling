@@ -21,31 +21,39 @@ from micro.util import randstr
 
 EXAMPLE_DATA = {
     'todo': (
-        'Tasks',
-        'bla',
+        'Project tasks',
+        'Things we need to do to complete the project.',
         {'check': 'user'},
-        [('Do chores', None)]
+        [
+            {'title': 'Do research', 'checked': True},
+            {'title': 'Build prototype'},
+            {'title': 'Write report', 'description': 'Summary of the results'}
+        ]
     ),
     'simple': (
         'Some list',
         'Items can be added, removed and edited.',
         {},
-        [('Item A', None), ('Item B', None), ('Item C', None)]
+        [{'title': 'Item A'}, {'title': 'Item B'}, {'title': 'Item C'}]
     ),
     'shopping': (
         'Kitchen shopping list',
         'When you go shopping next time, please bring the items from this list.',
         {},
-        [('Soy sauce', None), ('Vegetables', 'Especially tomatoes'), ('Chocolate (vegan)', None)]
+        [
+            {'title': 'Soy sauce'},
+            {'title': 'Vegetables', 'description': 'Especially tomatoes'},
+            {'title': 'Chocolate (vegan)'}
+        ]
     ),
     'meeting-agenda': (
         'Working group agenda',
         'We meet and discuss important issues.',
         {},
         [
-            ('Round of introductions', None),
-            ('Lunch poll', 'What will we have for lunch today?'),
-            ('Next meeting', 'When and where will our next meeting be?')
+            {'title': 'Round of introductions'},
+            {'title': 'Lunch poll', 'description': 'What will we have for lunch today?'},
+            {'title': 'Next meeting', 'description': 'When and where will our next meeting be?'}
         ]
     )
 }
@@ -155,7 +163,7 @@ class Listling(Application):
 
             lst = self.create(data[0], description, data[2])
             for item in data[3]:
-                lst.items.create(item[0], item[1])
+                lst.items.create(**item)
             return lst
 
     def __init__(self, redis_url='', email='bot@localhost', smtp_url='',
@@ -200,11 +208,11 @@ class List(Object, Editable):
             self._app = host.app
             super().__init__(self._app.r, '{}.items'.format(host.id))
 
-        def create(self, title, description=None):
+        def create(self, title, description=None, checked=False):
             item = Item(
                 id='Item:{}'.format(randstr()), trashed=False, app=self._app,
                 authors=[self._app.user.id], title=title, description=description,
-                checked=False, lst_id=self.host.id)
+                checked=checked, lst_id=self.host.id)
             self._app.r.oset(item.id, item)
             self._app.r.rpush(self.map_key, item.id)
             return item

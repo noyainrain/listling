@@ -24,12 +24,12 @@
 
         <div class="listling-start-intro">
             <ul class="listling-start-lists">
-                <li is="listling-use-case" class="listling-selected" kind="simple" titl="Simple list" icon="list"></li>
+                <li is="listling-use-case" class="listling-selected" kind="todo" titl="To-Do list" icon="check"></li>
                 <li is="listling-use-case" kind="shopping" titl="Shopping list" icon="shopping-cart"></li>
                 <li is="listling-use-case" kind="meeting-agenda" titl="Meeting agenda" icon="handshake-o"></li>
+                <li is="listling-use-case" kind="simple" titl="Simple list" icon="list"></li>
 
                 <!--<li is="listling-use-case" titl="Collection" icon="archive"></li>
-                <li is="listling-use-case" class="listling-selected" titl="To-Do list" icon="check"></li>
                 <li is="listling-use-case" titl="Schedule" icon="table"></li>
                 <li is="listling-use-case" titl="Poll" icon="thumbs-up"></li>
                 <li is="listling-use-case" titl="Ranking" icon="star"></li>
@@ -340,9 +340,16 @@
                 <header>
                     <div class="micro-ol-handle listling-item-mode-view"></div>
 
-                    <button class="listling-item-check listling-item-mode-view">
-                        <i class="fa fa-square-o"></i>
-                    </button>
+                    <ul is="micro-menu" class="micro-secondary listling-item-mode-view">
+                        <li class="listling-item-check">
+                            <button is="micro-button" type="button" class="action listling-item-mode-view">
+                                <i class="fa fa-square-o"></i></button>
+                        </li>
+                        <li class="listling-item-uncheck">
+                            <button is="micro-button" type="button" class="action listling-item-mode-view">
+                                <i class="fa fa-check-square-o"></i></button>
+                        </li>
+                    </ul>
 
                     <h1>
                         <span class="listling-item-mode-view"></span>
@@ -400,6 +407,15 @@
         </li>
     </template>
     <style>
+        .action i {
+            min-width: calc(1.5em);
+            text-align: center;
+        }
+
+        [is="micro-menu"].micro-secondary > li.listling-item-uncheck > .action {
+            color: green;
+        }
+
         [is=listling-item] .action-subtle {
             font-size: 1em;
         }
@@ -417,11 +433,23 @@
             /*padding-right: calc(1.5rem - var(--micro-padding));*/
         }
 
+        listling-list-page:not(.listling-list-feature-check) .listling-item-check,
+        listling-list-page:not(.listling-list-feature-check) .listling-item-uncheck,
+        [is=listling-item].listling-item-checked .listling-item-check,
+        [is=listling-item]:not(.listling-item-checked) .listling-item-uncheck {
+            display: none;
+        }
+
+        .listling-item-check,
+        .listling-item-uncheck {
+            text-align: center;
+        }
+
         [is=listling-item].listling-item-mode-edit header h1 {
             padding: calc(1.5rem / 4);
         }
 
-        [is=listling-item].listling-item-trashed header h1 {
+        listling-list-page:not(.listling-list-feature-check) [is=listling-item].listling-item-trashed header h1 {
             padding-left: calc(1.5rem / 4);
             /*padding-right: calc(1.5rem - var(--micro-padding));*/
         }
@@ -470,13 +498,14 @@
             display: none;
         }
 
-        [is=listling-item].listling-item-trashed {
+        [is=listling-item].listling-item-trashed,
+        [is=listling-item].listling-item-checked {
             color: #888;
         }
 
         [is=listling-item].listling-item-trashed .micro-ol-handle,
         [is=listling-item].listling-item-trashed .listling-item-edit,
-        [is=listling-item].listling-item-trashed header li:last-child,
+        [is=listling-item].listling-item-trashed header [is="micro-menu"]:last-child > li:last-child,
         [is=listling-item]:not(.listling-item-trashed) .listling-item-restore {
             display: none;
         }
