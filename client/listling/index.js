@@ -155,6 +155,16 @@ listling.ListPage = class extends micro.Page {
                 this._data.settingsExpanded = !this._data.settingsExpanded;
             },
 
+            share: () => {
+                // TODO: use data binding
+                let notification = document.createElement("micro-simple-notification");
+                notification.content.appendChild(document.importNode(
+                    ui.querySelector(".listling-share-notification-template").content, true));
+                notification.content.querySelector("input").value =
+                    `${location.origin}${listling.util.makeListURL(this._data.lst)}`;
+                ui.notify(notification);
+            },
+
             startEdit: () => {
                 this._data.editMode = true;
                 this._form.elements[0].focus();

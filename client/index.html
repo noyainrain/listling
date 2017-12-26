@@ -15,6 +15,21 @@
     {% raw micro_boot() %}
     {% raw micro_templates() %}
 
+    <template class="listling-share-notification-template">
+        <p>
+            To share the list, simply give this link to other contributors:
+        </p>
+        <label>
+            <input readonly="readonly" />
+            <small>Share link</small>
+        </label>
+        <p>
+            <small>
+                Anyone with the link can add and edit items and change the details of the list.
+            </small>
+        </p>
+    </template>
+
     <template class="listling-start-page-template">
         <div class="listling-start-intro">
             <h1 class="micro-logo">
@@ -183,20 +198,28 @@
                 </h1>
                 <ul is="micro-menu" class="listling-list-menu listling-list-mode-view">
                     <li>
-                        <button is="micro-button" type="button" class="listling-list-edit action"
-                                data-run="startEdit" data-shortcut="new Shortcut 'E'">
-                            <i class="fa fa-pencil-alt"></i> Edit
+                        <button
+                            is="micro-button" type="button" class="listling-list-share action"
+                            data-run="share"
+                        >
+                            <i class="fa fa-envelope"></i> Share
                         </button>
                     </li>
                     <li>
                         <button type="button" class="link"><i class="fa fa-fw fa-bars"></i></button>
                         <ul is="micro-menu">
-                            <li data-content="switch lst.activity.user_subscribed">
+                            <li>
+                                <button is="micro-button" type="button" class="listling-list-edit action"
+                                        data-run="startEdit" data-shortcut="new Shortcut 'E'">
+                                    <i class="fa fa-pencil-alt"></i> Edit
+                                </button>
+                            </li>
+                            <li class="listling-list-subscribe" data-content="switch lst.activity.user_subscribed">
                                 <template>
                                     <button
                                         is="micro-button"
                                         type="button"
-                                        class="listling-list-unsubscribe action"
+                                        class="action"
                                         data-run="unsubscribe"
                                         data-shortcut="new Shortcut 'S'"
                                     >
@@ -207,7 +230,7 @@
                                     <button
                                         is="micro-button"
                                         type="button"
-                                        class="listling-list-subscribe action"
+                                        class="action"
                                         data-run="subscribe"
                                         data-shortcut="new Shortcut 'S'"
                                     >
@@ -395,9 +418,9 @@
 
         listling-list-page:not(.listling-list-mode-view) .listling-list-mode-view,
         listling-list-page:not(.listling-list-mode-edit) .listling-list-mode-edit,
-        body:not(.micro-feature-es6-typed-array) .listling-list-menu li:last-child,
-        body:not(.micro-feature-service-workers) .listling-list-menu li:last-child,
-        body:not(.micro-feature-push) .listling-list-menu li:last-child,
+        body:not(.micro-feature-es6-typed-array) .listling-list-subscribe,
+        body:not(.micro-feature-service-workers) .listling-list-subscribe,
+        body:not(.micro-feature-push) .listling-list-subscribe,
         body:not(.micro-ui-map-service-enabled) .listling-list-features-location,
         listling-list-page:not(.listling-list-has-trashed-items) .listling-list-trash,
         .listling-list-trash.listling-list-trash-expanded > p,
