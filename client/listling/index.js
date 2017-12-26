@@ -124,6 +124,8 @@ listling.ListPage = class extends micro.Page {
         ui.addEventListener("item-edit", this);
         ui.addEventListener("item-trash", this);
         ui.addEventListener("item-restore", this);
+        ui.addEventListener("item-check", this);
+        ui.addEventListener("item-uncheck", this);
         this._itemsUl = this.querySelector(".listling-list-items")
         this._itemsUl.addEventListener("moveitem", this);
 
@@ -183,6 +185,7 @@ listling.ListPage = class extends micro.Page {
 
     set list(value) {
         this._list = value;
+        this.classList.toggle("listling-list-feature-check", this._list.features.check);
         this.querySelector("h1 span").textContent = this._form.elements.title.value =
             this._list.title;
         this.querySelector(".listling-list-description").textContent =
@@ -243,7 +246,7 @@ listling.ListPage = class extends micro.Page {
     async handleEvent(event) {
         if (event.type === "list-items-create") {
             this._items.splice(this._items.length, 0, event.detail.item);
-        } else if (["item-edit", "item-trash", "item-restore"].includes(event.type)) {
+        } else if (["item-edit", "item-trash", "item-restore", "item-check", "item-uncheck"].includes(event.type)) {
             let i = this._items.findIndex(i => i.id === event.detail.item.id);
             this._items[i] = event.detail.item;
         } else if (event.type === "list-items-move") {
@@ -275,11 +278,23 @@ listling.ItemElement = class extends HTMLLIElement {
     createdCallback() {
         this.appendChild(
             document.importNode(ui.querySelector(".listling-item-template").content, true));
+
+        this.querySelector(".listling-item-check .action").run = async () => {
+            let item = await micro.call("POST", `/api/lists/${ui.page.list.id}/items/${this._item.id}/check`);
+            ui.dispatchEvent(new CustomEvent("item-check", {detail: {item}}));
+        };
+
+        this.querySelector(".listling-item-uncheck .action").run = async () => {
+            let item = await micro.call("POST", `/api/lists/${ui.page.list.id}/items/${this._item.id}/uncheck`);
+            ui.dispatchEvent(new CustomEvent("item-uncheck", {detail: {item}}));
+        };
+
         this.querySelector(".listling-item-edit").run = () => this._toggleEdit(true);
         this.querySelector(".listling-item-trash").run = this._trash.bind(this);
         this.querySelector(".listling-item-restore").run = this._restore.bind(this);
         this.querySelector(".action-done").run = this._edit.bind(this);
         this.querySelector(".action-cancel").run = this._cancel.bind(this);
+
         this._form = this.querySelector("form");
         //this.list = null;
         this.item = null;
@@ -291,7 +306,10 @@ listling.ItemElement = class extends HTMLLIElement {
 
     set item(value) {
         this._item = value;
+        this.querySelector(".listling-item-check .action").disabled = this._item && this._item.trashed;
+        this.querySelector(".listling-item-uncheck .action").disabled = this._item && this._item.trashed;
         this.classList.toggle("listling-item-trashed", this._item && this._item.trashed);
+        this.classList.toggle("listling-item-checked", this._item && this._item.checked);
         this.querySelector("h1 span").textContent = this._form.elements.title.value =
             this._item && this._item.title || "";
         this.querySelector(".listling-item-description").textContent =

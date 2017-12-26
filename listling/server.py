@@ -85,7 +85,9 @@ def make_server(port=8080, url=None, debug=False, redis_url='', smtp_url=''):
         (r'/api/lists/([^/]+)/items$', ListItemsEndpoint),
         *make_orderable_endpoints(r'/api/lists/([^/]+)/items', lambda i: app.lists[i].items),
         (r'/api/lists/([^/]+)/items/([^/]+)$', ItemEndpoint),
-        *make_trashable_endpoints(r'/api/lists/([^/]+)/items/([^/]+)', lambda i, j: app.lists[i].items[j])
+        *make_trashable_endpoints(r'/api/lists/([^/]+)/items/([^/]+)', lambda i, j: app.lists[i].items[j]),
+        (r'/api/lists/([^/]+)/items/([^/]+)/check', ItemCheckEndpoint),
+        (r'/api/lists/([^/]+)/items/([^/]+)/uncheck', ItemUncheckEndpoint)
     ]
     return Server(app, handlers, port, url, client_modules_path='node_modules', debug=debug)
 
@@ -132,4 +134,16 @@ class ItemEndpoint(Endpoint):
         item = self.app.lists[list_id].items[id]
         args = self.check_args({'title': (str, 'opt'), 'description': (str, None, 'opt')})
         item.edit(**args)
+        self.write(item.json(restricted=True, include=True))
+
+class ItemCheckEndpoint(Endpoint):
+    def post(self, lst_id, id):
+        item = self.app.lists[lst_id].items[id]
+        item.check()
+        self.write(item.json(restricted=True, include=True))
+
+class ItemUncheckEndpoint(Endpoint):
+    def post(self, lst_id, id):
+        item = self.app.lists[lst_id].items[id]
+        item.uncheck()
         self.write(item.json(restricted=True, include=True))

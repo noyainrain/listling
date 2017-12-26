@@ -16,7 +16,7 @@ class ServerTest(ServerTestCase):
 
     @gen_test
     def test_availibility(self):
-        lst = self.app.lists.create('Colony tasks')
+        lst = self.app.lists.create('Colony tasks', features={'check': 'user'})
         item = lst.items.create('Sleep')
 
         yield self.request('/api/lists', method='POST', body='{"title": "Colony tasks"}')
@@ -30,3 +30,7 @@ class ServerTest(ServerTestCase):
         yield self.request('/api/lists/{}/items/{}'.format(lst.id, item.id))
         yield self.request('/api/lists/{}/items/{}'.format(lst.id, item.id), method='POST',
                            body='{"description": "FOOTODO"}')
+        yield self.request('/api/lists/{}/items/{}/check'.format(lst.id, item.id), method='POST',
+                           body='')
+        yield self.request('/api/lists/{}/items/{}/uncheck'.format(lst.id, item.id), method='POST',
+                           body='')
