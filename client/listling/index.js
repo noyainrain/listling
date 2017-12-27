@@ -70,6 +70,7 @@ listling.StartPage = class extends micro.Page {
         this.querySelector(".micro-logo span").textContent = ui.settings.title;
         this.querySelector(".micro-logo img").src = ui.settings.icon || "";
         this.querySelector(".listling-start-lists").addEventListener("select", this);
+        this.querySelector(".listling-start-missing a").href = ui.settings.feedback_url;
     }
 
     handleEvent(event) {

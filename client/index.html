@@ -64,7 +64,7 @@
                 <li is="listling-use-case" titl="Playlist" icon="play"></li>-->
             </ul>
             <p class="listling-start-missing"><small>Missing a certain kind of list?
-            <a class="action action-subtle" style="font-size: 1em;" href="mailto:feedback@listling.org"><i class="fa fa-envelope"></i> Tell us!</a></small></p>
+            <a class="action action-subtle" style="font-size: 1em;"><i class="fa fa-envelope"></i> Tell us!</a></small></p>
         </div>
 
         <footer style="text-align: center;">
@@ -72,6 +72,10 @@
         </footer>
     </template>
     <style>
+        [is="listling-ui"]:not(.micro-ui-settings-have-feedback-url) .listling-start-missing {
+            display: none;
+        }
+
         .listling-start-intro {
             margin: calc(1.5rem * 3) 0;
             text-align: center;
