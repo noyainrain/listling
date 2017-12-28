@@ -93,7 +93,12 @@ def make_server(port=8080, url=None, debug=False, redis_url='', smtp_url=''):
 
 class ListsEndpoint(Endpoint):
     def post(self):
-        args = self.check_args({'title': str, 'description': (str, None, 'opt')})
+        args = self.check_args({
+            'title': str,
+            'description': (str, None, 'opt'),
+            'features': (dict, 'opt')
+            # TODO check if keys and values are strings
+        })
         lst = self.app.lists.create(**args)
         self.write(lst.json(restricted=True, include=True))
 
