@@ -40,6 +40,7 @@ listling.UI = class extends micro.UI {
         this.pages = this.pages.concat([
             {url: "^/$", page: "listling-start-page"},
             {url: "^/about$", page: makeAboutPage},
+            {url: "^/lists/new/([^/]+)$", page: listling.ListPage.makeNew},
             {url: "^/lists/([^/]+)(?:/[^/]+)?$", page: listling.ListPage.make}
         ]);
 
@@ -92,6 +93,7 @@ listling.UseCaseElement = class extends HTMLLIElement {
         this.querySelector("h1").textContent = this.getAttribute("titl");
         this.querySelector("i").classList.add(`fa-${this.getAttribute("icon")}`);
         this.addEventListener("mouseenter", this);
+        this.querySelector("a").href = `/lists/new/${this.getAttribute("kind")}`;
         this.querySelector("a").addEventListener("focus", this);
         let button = this.querySelector("button");
         console.log("kind", this.getAttribute("kind"));
@@ -113,11 +115,14 @@ listling.UseCaseElement = class extends HTMLLIElement {
 listling.ListPage = class extends micro.Page {
     static async make(url, id) {
         let page = document.createElement("listling-list-page");
-        if (id === "new") {
-            page.edit = true;
-        } else {
-            page.list = await micro.call("GET", `/api/lists/List:${id}`);
-        }
+        page.list = await micro.call("GET", `/api/lists/List:${id}`);
+        return page;
+    }
+
+    static makeNew(url, kind) {
+        let page = document.createElement("listling-list-page");
+        page.edit = true;
+        page.newKind = kind;
         return page;
     }
 
@@ -253,10 +258,16 @@ listling.ListPage = class extends micro.Page {
     }
 
     async _edit() {
+        let features = {};
+        if (this.newKind === "todo") {
+            features = {check: "user"};
+        }
+
         let url = this._list ? `/api/lists/${this._list.id}` : "/api/lists";
         let list = await micro.call("POST", url, {
             title: this._form.elements.title.value,
-            description: this._form.elements.description.value
+            description: this._form.elements.description.value,
+            features: features
         });
         if (this._list) {
             this.list = list;
