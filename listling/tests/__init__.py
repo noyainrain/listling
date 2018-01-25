@@ -12,6 +12,4 @@
 # You should have received a copy of the GNU Affero General Public License along with this program.
 # If not, see <https://www.gnu.org/licenses/>.
 
-"""Web app for collaboratively composing lists."""
-
-from .listling import Item, List, Listling
+"""Open Listling tests."""

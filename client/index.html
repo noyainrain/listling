@@ -16,10 +16,59 @@
 
     <template class="listling-start-page-template">
         <div class="listling-start-intro">
-            <h1 class="micro-logo"><img /> <span></span></h1>
+            <h1 class="micro-logo">
+                <img data-src="or settings.icon ''" /> <span data-content="settings.title"></span>
+            </h1>
             <p class="listling-start-slogan">Collaborative lists</p>
             <p class="listling-start-keywords">Free · Simple · No registration required</p>
         </div>
+
+        <div class="listling-start-intro">
+            <ul class="listling-start-use-cases" data-content="list useCases 'useCase'">
+                <template>
+                    <li
+                        data-class-listling-selected="eq useCase selectedUseCase"
+                        data-class-listling-start-no-example="eq useCase.id 'simple'"
+                        data-onmouseenter="bind selectUseCase useCase"
+                    >
+                        <i data-class-name="format 'fa fa-{icon}' 'icon' useCase.icon"></i>
+                        <h1 data-content="useCase.title"></h1>
+                        <div>
+                            <p>
+                                <a class="listling-start-create-list action"
+                                   href="/lists/new" data-onfocus="bind selectUseCase useCase">
+                                    <i class="fa fa-paper-plane"></i> Start
+                                </a>
+                            </p>
+                            <p class="listling-start-create-example">
+                                or view
+                                <button
+                                    is="micro-button"
+                                    type="button"
+                                    class="link"
+                                    data-run="bind createExample useCase"
+                                    data-onfocus="bind selectUseCase useCase"
+                                >
+                                    <i class="fa fa-book"></i> Example
+                                </button>
+                            </p>
+                        </div>
+                    </li>
+                </template>
+            </ul>
+            <p class="listling-start-missing">
+                <small>
+                    Missing a certain kind of list?
+                    <a class="action action-subtle" data-href="settings.feedback_url">
+                        <i class="fa fa-envelope"></i> Tell us!
+                    </a>
+                </small>
+            </p>
+        </div>
+
+        <footer>
+            <p><small>Made with <i class="fa fa-heart"></i> in Berlin</small></p>
+        </footer>
     </template>
     <style>
         .listling-start-intro {
@@ -39,6 +88,69 @@
         .listling-start-keywords {
             color: #888;
         }
+
+        .listling-start-use-cases {
+            display: grid;
+            padding: 0;
+            grid-template-columns: repeat(auto-fill, calc(14ch * 1.33 + 1.5rem / 2));
+            grid-gap: calc(1.5rem / 2) 0;
+            justify-content: center;
+            list-style: none;
+        }
+
+        .listling-start-use-cases li {
+            padding: calc(1.5rem / 4);
+            border: 1px solid transparent;
+            border-radius: calc(1.5rem / 8);
+        }
+
+        .listling-start-use-cases li.listling-selected {
+            border-color: #ddd;
+        }
+
+        .listling-start-use-cases li h1,
+        .listling-start-use-cases li p {
+            margin: calc(1.5rem / 4) 0 0 0;
+        }
+
+        .listling-start-use-cases li > i {
+            display: block;
+            font-size: calc(2 * 0.875em);
+            color: #888;
+        }
+
+        .listling-start-use-cases li h1 {
+            font-size: 1.33em;
+        }
+
+        .listling-start-use-cases li div {
+            height: 0;
+            overflow: hidden;
+        }
+
+        .listling-start-use-cases li.listling-selected div {
+            height: auto;
+        }
+
+        .listling-start-create-example {
+            color: #888;
+        }
+
+        .listling-start-use-cases li.listling-start-no-example .listling-start-create-example {
+            visibility: hidden;
+        }
+
+        listling-start-page footer {
+            text-align: center;
+        }
+
+        listling-start-page footer i {
+            color: lightpink;
+        }
+
+        [is="listling-ui"]:not(.micro-ui-settings-have-feedback-url) .listling-start-missing {
+            display: none;
+        }
     </style>
 
     <template class="listling-about-page-template">
@@ -49,5 +161,259 @@
             project-license-url="https://www.gnu.org/licenses/agpl.html"
             project-copyright="Copyright © 2017 Open Listling contributors">
         </micro-about-page>
+    </template>
+
+    <template class="listling-list-page-template">
+        <form>
+            <header>
+                <h1>
+                    <span class="listling-list-mode-view" data-content="lst.title"></span>
+                    <label class="listling-list-mode-edit">
+                        <input name="title" placeholder="List title" required="required"
+                               autocomplete="off" data-value="or lst.title ''" />
+                    </label>
+                </h1>
+                <ul is="micro-menu" class="listling-list-mode-view">
+                    <li>
+                        <button is="micro-button" type="button" class="listling-list-edit action"
+                                data-run="startEdit">
+                            <i class="fa fa-pencil"></i> Edit
+                        </button>
+                    </li>
+                </ul>
+            </header>
+
+            <p class="listling-list-mode-view micro-multiline" data-content="lst.description"></p>
+            <label class="listling-list-mode-edit">
+                <textarea name="description" placeholder="Description (optional)"
+                          data-value="or lst.description ''">
+                </textarea>
+            </label>
+
+            <p class="listling-detail listling-list-mode-view" title="Edited by">
+                <i class="fa fa-pencil"></i>
+                <span data-content="join lst.authors 'user'">
+                    <template><micro-user data-user="user"></micro-user></template>
+                </span>
+            </p>
+
+            <ul is="micro-menu" class="listling-list-mode-edit">
+                <li>
+                    <button is="micro-button" class="action" data-run="edit">
+                        <i class="fa fa-check-circle"></i> Done
+                    </button>
+                </li>
+                <li>
+                    <button is="micro-button" type="button" class="link" data-run="cancelEdit">
+                        Cancel
+                    </button>
+                </li>
+            </ul>
+        </form>
+
+        <ol
+            is="micro-ol"
+            class="listling-list-items listling-list-mode-view"
+            data-onmoveitem="moveItem"
+            data-content="list items 'item' filter isNotTrashed"
+        >
+            <template>
+                <li is="listling-item" data-item="item"></li>
+            </template>
+        </ol>
+
+        <div class="listling-list-trash listling-list-mode-view"
+             data-class-listling-list-trash-expanded="trashExpanded">
+            <p class="listling-detail">
+                <span
+                    data-content="formatPlural 'There is one trashed item.' 'There are {n} trashed items.' 'n' trashedItemsCount">
+                </span>
+                <button is="micro-button" type="button" class="link" title="Show"
+                        data-run="showTrash">
+                    <i class="fa fa-search-plus"></i>
+                </button>
+            </p>
+            <div>
+                <header>
+                    <h1>Trashed items</h1>
+                    <button is="micro-button" type="button" class="link" title="Hide"
+                            data-run="hideTrash">
+                        <i class="fa fa-search-minus"></i>
+                    </button>
+                </header>
+                <ul class="listling-list-trashed-items" data-content="list trashedItems 'item'">
+                    <template>
+                        <li is="listling-item" data-item="item"></li>
+                    </template>
+                </ul>
+            </div>
+        </div>
+
+        <div class="listling-list-create-item listling-list-mode-view"
+             data-class-listling-list-creating-item="creatingItem">
+            <p>
+                <button is="micro-button" type="button" class="action" data-run="startCreateItem">
+                    <i class="fa fa-plus-circle"></i> Add item
+                </button>
+            </p>
+            <li is="listling-item" data-onedit="stopCreateItem" data-oncancel="stopCreateItem"></li>
+        </div>
+    </template>
+    <style>
+        .listling-list-items,
+        .listling-list-trashed-items {
+            padding: 0;
+        }
+
+        .listling-list-trash > div > header h1 {
+            border: none;
+            font-size: 1em;
+            font-weight: bold;
+            color: #888;
+        }
+
+        listling-list-page:not(.listling-list-mode-view) .listling-list-mode-view,
+        listling-list-page:not(.listling-list-mode-edit) .listling-list-mode-edit,
+        listling-list-page:not(.listling-list-has-trashed-items) .listling-list-trash,
+        .listling-list-trash.listling-list-trash-expanded > p,
+        .listling-list-trash:not(.listling-list-trash-expanded) > div,
+        .listling-list-create-item.listling-list-creating-item > p,
+        .listling-list-create-item:not(.listling-list-creating-item) > li {
+            display: none;
+        }
+    </style>
+
+    <template class="listling-item-template">
+        <form>
+            <header>
+                <div class="micro-ol-handle listling-item-mode-view"></div>
+                <h1>
+                    <span class="listling-item-mode-view" data-content="item.title"></span>
+                    <label class="listling-item-mode-edit">
+                        <input name="title" placeholder="Title" required="required"
+                               autocomplete="off" data-value="or item.title ''" />
+                    </label>
+                </h1>
+                <ul is="micro-menu" class="micro-secondary listling-item-mode-view">
+                    <li>
+                        <button is="micro-button" type="button" class="listling-item-restore action"
+                                data-run="restore">
+                            <i class="fa fa-undo"></i> Restore
+                        </button>
+                    </li>
+                    <li>
+                        <button is="micro-button" type="button" class="link">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <ul is="micro-menu">
+                            <li>
+                                <button is="micro-button" type="button"
+                                        class="listling-item-edit action" data-run="startEdit">
+                                    <i class="fa fa-pencil"></i> Edit
+                                </button>
+                            </li>
+                            <li>
+                                <button is="micro-button" type="button"
+                                        class="listling-item-trash action" data-run="trash">
+                                    <i class="fa fa-trash"></i> Trash
+                                </button>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </header>
+
+            <div class="listling-item-content">
+                <p class="listling-item-mode-view micro-multiline" data-content="item.text"></p>
+                <label class="listling-item-mode-edit">
+                    <textarea name="text" placeholder="Text (optional)"
+                              data-value="or item.text ''">
+                    </textarea>
+                </label>
+
+                <p class="listling-detail listling-item-mode-view" title="Edited by">
+                    <i class="fa fa-pencil"></i>
+                    <span data-content="join item.authors 'user'">
+                        <template><micro-user data-user="user"></micro-user></template>
+                    </span>
+                </p>
+
+                <ul is="micro-menu" class="listling-item-mode-edit">
+                    <li>
+                        <button is="micro-button" class="action" data-run="edit">
+                            <i class="fa fa-check-circle"></i> Done
+                        </button>
+                    </li>
+                    <li>
+                        <button is="micro-button" type="button" class="link" data-run="cancelEdit">
+                            Cancel
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </form>
+    </template>
+    <style>
+        [is=listling-item] {
+            border: 1px solid var(--micro-color-delimiter);
+            border-radius: calc(1.5rem / 8);
+            margin: 1.5rem 0;
+            list-style: none;
+        }
+
+        [is=listling-item].listling-item-trashed {
+            color: #888;
+        }
+
+        [is=listling-item] header {
+            border-bottom: 1px solid var(--micro-color-delimiter);
+            margin: 0;
+        }
+
+        [is=listling-item] .micro-ol-handle {
+            padding: calc(1.5em / 4);
+            width: calc(1.5em / 2 + 1.5em / 2);
+            height: calc(1.5em + 1.5em / 2);
+            background: radial-gradient(circle closest-side, #888 0%, #888 50%, transparent 50%)
+                        content-box 0 0 / calc(1.5rem / 4) calc(1.5rem / 4);
+        }
+
+        [is=listling-item] h1 {
+            font-size: 1em;
+            padding: calc(1.5em / 4) 0;
+        }
+
+        [is=listling-item].listling-item-trashed h1 {
+            padding-left: calc(1.5rem / 4);
+        }
+
+        [is=listling-item] h1 > label {
+            margin: 0 calc(1.5rem / 4);
+        }
+
+        .listling-item-content {
+            padding: 0 calc(1.5rem / 4);
+        }
+
+        .listling-item-content p,
+        .listling-item-content ul,
+        .listling-item-content label {
+            margin: calc(1.5rem / 4) 0;
+        }
+
+        [is=listling-item]:not(.listling-item-mode-view) .listling-item-mode-view,
+        [is=listling-item]:not(.listling-item-mode-edit) .listling-item-mode-edit,
+        [is=listling-item].listling-item-trashed .micro-ol-handle,
+        [is=listling-item]:not(.listling-item-trashed) .listling-item-restore,
+        [is=listling-item].listling-item-trashed [is=micro-menu] li:last-child {
+            display: none;
+        }
+    </style>
+
+    <template class="listling-create-list-event-template">
+        <a class="link" data-href="makeListURL event.detail.lst"
+           data-content="event.detail.lst.title">
+        </a>
+        was created by <micro-user data-user="event.user"></micro-user>
     </template>
 </body>
