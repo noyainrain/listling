@@ -5,12 +5,13 @@
         "clean": "rm -rf node_modules"
     },
     "dependencies": {
-        "@noyainrain/micro": "^0.3"
+        "@noyainrain/micro": "^0.10"
     },
     "devDependencies": {
         "eslint": "^4.0",
         "eslint-config-eslint": "^4.0",
-        "mocha": "^4.0"
+        "mocha": "^4.0",
+        "chai": "^4.1"
     },
     "private": true
 }
