@@ -5,7 +5,7 @@ listling
 --------
 
 .. automodule:: listling
-   :members: Listling
+   :members: Listling, List, Item
 
 server
 ------

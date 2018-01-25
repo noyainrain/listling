@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>3. Python API &#8212; Open Listling 0.1.1 documentation</title>
+    <title>3. Python API &#8212; Open Listling 0.2.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.1.1',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -50,6 +50,48 @@
 <dt id="listling.Listling">
 <em class="property">class </em><code class="descclassname">listling.</code><code class="descname">Listling</code><span class="sig-paren">(</span><em>redis_url=''</em>, <em>email='bot&#64;localhost'</em>, <em>smtp_url=''</em>, <em>render_email_auth_message=None</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#listling"><span class="std std-ref">Listling</span></a>.</p>
+<dl class="class">
+<dt id="listling.Listling.Lists">
+<em class="property">class </em><code class="descname">Lists</code><span class="sig-paren">(</span><em>host</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling.Lists" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#id11"><span class="std std-ref">Lists</span></a>.</p>
+<dl class="method">
+<dt id="listling.Listling.Lists.create">
+<code class="descname">create</code><span class="sig-paren">(</span><em>title</em>, <em>description=None</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling.Lists.create" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#post--api-lists" title="POST /api/lists"><code class="xref http http-post docutils literal"><span class="pre">POST</span> <span class="pre">/api/lists</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="listling.Listling.Lists.create_example">
+<code class="descname">create_example</code><span class="sig-paren">(</span><em>use_case</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling.Lists.create_example" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#post--api-lists-create-example" title="POST /api/lists/create-example"><code class="xref http http-post docutils literal"><span class="pre">POST</span> <span class="pre">/api/lists/create-example</span></code></a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="listling.List">
+<em class="property">class </em><code class="descclassname">listling.</code><code class="descname">List</code><span class="sig-paren">(</span><em>id</em>, <em>app</em>, <em>authors</em>, <em>title</em>, <em>description</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#list"><span class="std std-ref">List</span></a>.</p>
+<dl class="class">
+<dt id="listling.List.Items">
+<em class="property">class </em><code class="descname">Items</code><span class="sig-paren">(</span><em>host</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List.Items" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#items"><span class="std std-ref">Items</span></a>.</p>
+<dl class="method">
+<dt id="listling.List.Items.create">
+<code class="descname">create</code><span class="sig-paren">(</span><em>title</em>, <em>text=None</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List.Items.create" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#post--api-lists-(id)-items" title="POST /api/lists/(id)/items"><code class="xref http http-post docutils literal"><span class="pre">POST</span> <span class="pre">/api/lists/(id)/items</span></code></a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="listling.Item">
+<em class="property">class </em><code class="descclassname">listling.</code><code class="descname">Item</code><span class="sig-paren">(</span><em>id</em>, <em>app</em>, <em>authors</em>, <em>trashed</em>, <em>list_id</em>, <em>title</em>, <em>text</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#item"><span class="std std-ref">Item</span></a>.</p>
 </dd></dl>
 
 </div>
@@ -127,7 +169,7 @@
       &copy;2017 Open Listling contributors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.6</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>
