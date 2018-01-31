@@ -10,7 +10,7 @@ source_parsers = {'.md': 'recommonmark.parser.CommonMarkParser'}
 master_doc = 'index'
 
 project = 'Open Listling'
-copyright = '2017 Open Listling contributors'
+copyright = '2018 Open Listling contributors'
 version = release = '0.2.0'
 
 html_theme_options = {
