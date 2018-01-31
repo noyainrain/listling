@@ -43,4 +43,4 @@ Features marked as deprecated are removed after a period of six months.
 
 * Sven James &lt;sven.jms AT gmail.com>
 
-Copyright (C) 2017 Open Listling contributors
+Copyright (C) 2018 Open Listling contributors
