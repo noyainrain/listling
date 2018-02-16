@@ -1,6 +1,7 @@
 html {
     --micro-color-primary: #4d8dd9;
     --micro-color-primary-shade: #225ca0;
+    --micro-color-primary-tint: #8fb7e7;
     --micro-color-secondary: #d94b1f;
     --micro-color-mono-shade: #616161;
 }

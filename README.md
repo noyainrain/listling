@@ -39,6 +39,11 @@ Safari; see http://caniuse.com/ ).
 
 Features marked as deprecated are removed after a period of six months.
 
+## Community
+
+Join the chat at
+[#listling on freenode](https://webchat.freenode.net/?randomnick=1&channels=%23listling).
+
 ## Contributors
 
 * Sven James &lt;sven.jms AT gmail.com>

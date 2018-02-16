@@ -27,16 +27,23 @@
             <ul class="listling-start-use-cases" data-content="list useCases 'useCase'">
                 <template>
                     <li
+                        class="micro-quick-nav"
                         data-class-listling-selected="eq useCase selectedUseCase"
                         data-class-listling-start-no-example="eq useCase.id 'simple'"
-                        data-onmouseenter="bind selectUseCase useCase"
+                        tabindex="0"
+                        data-onmouseenter="focusUseCase"
+                        data-onfocus="bind selectUseCase useCase"
                     >
                         <i data-class-name="format 'fa fa-{icon}' 'icon' useCase.icon"></i>
                         <h1 data-content="useCase.title"></h1>
                         <div>
                             <p>
-                                <a class="listling-start-create-list action"
-                                   href="/lists/new" data-onfocus="bind selectUseCase useCase">
+                                <a
+                                    class="listling-start-create-list action"
+                                    href="/lists/new"
+                                    title="⌨ S"
+                                    data-onfocus="bind selectUseCase useCase"
+                                >
                                     <i class="fa fa-paper-plane"></i> Start
                                 </a>
                             </p>
@@ -46,6 +53,7 @@
                                     is="micro-button"
                                     type="button"
                                     class="link"
+                                    title="⌨ E"
                                     data-run="bind createExample useCase"
                                     data-onfocus="bind selectUseCase useCase"
                                 >
@@ -59,7 +67,8 @@
             <p class="listling-start-missing">
                 <small>
                     Missing a certain kind of list?
-                    <a class="action action-subtle" data-href="settings.feedback_url">
+                    <a class="action action-subtle" data-href="settings.feedback_url"
+                       data-shortcut="new Shortcut 'T'">
                         <i class="fa fa-envelope"></i> Tell us!
                     </a>
                 </small>
@@ -123,13 +132,9 @@
             font-size: 1.33em;
         }
 
-        .listling-start-use-cases li div {
+        .listling-start-use-cases li:not(.listling-selected) div {
             height: 0;
             overflow: hidden;
-        }
-
-        .listling-start-use-cases li.listling-selected div {
-            height: auto;
         }
 
         .listling-start-create-example {
@@ -176,7 +181,7 @@
                 <ul is="micro-menu" class="listling-list-mode-view">
                     <li>
                         <button is="micro-button" type="button" class="listling-list-edit action"
-                                data-run="startEdit">
+                                data-run="startEdit" data-shortcut="new Shortcut 'E'">
                             <i class="fa fa-pencil"></i> Edit
                         </button>
                     </li>
@@ -199,12 +204,13 @@
 
             <ul is="micro-menu" class="listling-list-mode-edit">
                 <li>
-                    <button is="micro-button" class="action" data-run="edit">
+                    <button is="micro-button" class="action" title="⌨ Enter" data-run="edit">
                         <i class="fa fa-check-circle"></i> Done
                     </button>
                 </li>
                 <li>
-                    <button is="micro-button" type="button" class="link" data-run="cancelEdit">
+                    <button is="micro-button" type="button" class="link" data-run="cancelEdit"
+                            data-shortcut="new Shortcut 'Escape'">
                         Cancel
                     </button>
                 </li>
@@ -214,11 +220,13 @@
         <ol
             is="micro-ol"
             class="listling-list-items listling-list-mode-view"
-            data-onmoveitem="moveItem"
-            data-content="list items 'item' filter isNotTrashed"
+            data-onmoveitem="moveItemDrag"
+            data-content="list presentItems 'item'"
         >
             <template>
-                <li is="listling-item" data-item="item"></li>
+                <li is="listling-item" class="micro-quick-nav" data-item="item"
+                    data-onmove="moveItemKey">
+                </li>
             </template>
         </ol>
 
@@ -228,22 +236,22 @@
                 <span
                     data-content="formatPlural 'There is one trashed item.' 'There are {n} trashed items.' 'n' trashedItemsCount">
                 </span>
-                <button is="micro-button" type="button" class="link" title="Show"
-                        data-run="showTrash">
+                <button is="micro-button" type="button" class="link" title="Show (⌨ S)"
+                        data-run="toggleTrash">
                     <i class="fa fa-search-plus"></i>
                 </button>
             </p>
             <div>
                 <header>
                     <h1>Trashed items</h1>
-                    <button is="micro-button" type="button" class="link" title="Hide"
-                            data-run="hideTrash">
+                    <button is="micro-button" type="button" class="link" title="Hide (⌨ S)"
+                            data-run="toggleTrash">
                         <i class="fa fa-search-minus"></i>
                     </button>
                 </header>
                 <ul class="listling-list-trashed-items" data-content="list trashedItems 'item'">
                     <template>
-                        <li is="listling-item" data-item="item"></li>
+                        <li is="listling-item" class="micro-quick-nav" data-item="item"></li>
                     </template>
                 </ul>
             </div>
@@ -252,7 +260,8 @@
         <div class="listling-list-create-item listling-list-mode-view"
              data-class-listling-list-creating-item="creatingItem">
             <p>
-                <button is="micro-button" type="button" class="action" data-run="startCreateItem">
+                <button is="micro-button" type="button" class="action" data-run="startCreateItem"
+                        data-shortcut="new Shortcut 'A'">
                     <i class="fa fa-plus-circle"></i> Add item
                 </button>
             </p>
@@ -286,7 +295,9 @@
     <template class="listling-item-template">
         <form>
             <header>
-                <div class="micro-ol-handle listling-item-mode-view"></div>
+                <div class="micro-ol-handle listling-item-mode-view"
+                     title="Move (⌨ Alt + ↑ / Alt + ↓)" tabindex="0">
+                </div>
                 <h1>
                     <span class="listling-item-mode-view" data-content="item.title"></span>
                     <label class="listling-item-mode-edit">
@@ -297,7 +308,7 @@
                 <ul is="micro-menu" class="micro-secondary listling-item-mode-view">
                     <li>
                         <button is="micro-button" type="button" class="listling-item-restore action"
-                                data-run="restore">
+                                data-run="restore" data-shortcut="new Shortcut 'R'">
                             <i class="fa fa-undo"></i> Restore
                         </button>
                     </li>
@@ -307,14 +318,24 @@
                         </button>
                         <ul is="micro-menu">
                             <li>
-                                <button is="micro-button" type="button"
-                                        class="listling-item-edit action" data-run="startEdit">
+                                <button
+                                    is="micro-button"
+                                    type="button"
+                                    class="listling-item-edit action"
+                                    data-run="startEdit"
+                                    data-shortcut="new Shortcut 'E'"
+                                >
                                     <i class="fa fa-pencil"></i> Edit
                                 </button>
                             </li>
                             <li>
-                                <button is="micro-button" type="button"
-                                        class="listling-item-trash action" data-run="trash">
+                                <button
+                                    is="micro-button"
+                                    type="button"
+                                    class="listling-item-trash action"
+                                    data-run="trash"
+                                    data-shortcut="new Shortcut 'T'"
+                                >
                                     <i class="fa fa-trash"></i> Trash
                                 </button>
                             </li>
@@ -340,12 +361,13 @@
 
                 <ul is="micro-menu" class="listling-item-mode-edit">
                     <li>
-                        <button is="micro-button" class="action" data-run="edit">
+                        <button is="micro-button" class="action" title="⌨ Enter" data-run="edit">
                             <i class="fa fa-check-circle"></i> Done
                         </button>
                     </li>
                     <li>
-                        <button is="micro-button" type="button" class="link" data-run="cancelEdit">
+                        <button is="micro-button" type="button" class="link" data-run="cancelEdit"
+                                data-shortcut="new Shortcut 'Escape'">
                             Cancel
                         </button>
                     </li>
