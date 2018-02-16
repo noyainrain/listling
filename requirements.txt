@@ -1,1 +1,1 @@
-git+https://github.com/noyainrain/micro.git@0.10.0
+git+https://github.com/noyainrain/micro.git@0.11.0
