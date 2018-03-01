@@ -19,11 +19,19 @@ Lists
 
 .. http:post:: /api/lists
 
-   ``{"title", "description": null}``
+   ``{"use_case", "v"}``
 
-   Create a :ref:`List` and return it.
+   Create a :ref:`List` for the given *use_case* and return it.
+
+   Available *use_case* s are ``simple``, ``todo``, ``shopping`` and ``meeting-agenda``. The
+   endpoint version *v* must be ``2``.
 
    Permission: Authenticated users.
+
+   .. deprecated:: 0.3.0
+
+      The signature ``{"title", "description": null, "v": 1}``. Instead, set *use_case* to
+      ``simple`` and edit the new list to set *title* and *description*.
 
 .. http:post:: /api/lists/create-example
 
@@ -31,7 +39,7 @@ Lists
 
    Create an example :ref:`List` for the given *use_case* and return it.
 
-   Available *use_case* s are: ``shopping``, ``meeting-agenda``
+   For available *use_cases* see :http:post:`/api/lists`, excluding ``simple``.
 
    Permission: Authenticated users.
 
@@ -66,6 +74,12 @@ List
 .. describe:: description
 
    Description of the list. May be ``null``.
+
+.. describe:: features
+
+   Set of features enabled for the list.
+
+   Available features are ``check``.
 
 .. include:: micro/editable-endpoints.inc
 
@@ -115,6 +129,28 @@ Item
 
    Text content of the item. May be ``null``.
 
+.. describe:: checked
+
+   Indicates if the item is marked as complete.
+
 .. include:: micro/editable-endpoints.inc
 
 .. include:: micro/trashable-endpoints.inc
+
+.. http:post:: /api/lists/(list-id)/items/(id)/check
+
+   Mark the item as complete.
+
+   If the feature ``check`` is not enabled for the list, a :ref:`ValueError` (`feature_disabled`) is
+   returned.
+
+   Permission: Authenticated users.
+
+.. http:post:: /api/lists/(list-id)/items/(id)/uncheck
+
+   Mark the item as incomplete.
+
+   If the feature ``check`` is not enabled for the list, a :ref:`ValueError` (`feature_disabled`) is
+   returned.
+
+   Permission: Authenticated users.

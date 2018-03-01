@@ -22,19 +22,6 @@
 
 window.listling = {};
 
-/**
- * Dispatch an *event* at the specified *target*.
- *
- * If defined, the related on-event handler is called.
- */
-listling.dispatchEvent = function(target, event) {
-    target.dispatchEvent(event);
-    let on = target[`on${event.type}`];
-    if (on) {
-        on.call(target, event);
-    }
-};
-
 listling.makeListURL = function(ctx, lst) {
     if (lst === undefined) {
         [ctx, lst] = [undefined, ctx];
@@ -76,6 +63,7 @@ listling.UI = class extends micro.UI {
 listling.StartPage = class extends micro.Page {
     createdCallback() {
         const USE_CASES = [
+            {id: "todo", title: "To-Do list", icon: "check"},
             {id: "shopping", title: "Shopping list", icon: "shopping-cart"},
             {id: "meeting-agenda", title: "Meeting agenda", icon: "handshake-o"},
             {id: "simple", title: "Simple list", icon: "list"}
@@ -100,6 +88,11 @@ listling.StartPage = class extends micro.Page {
                 setTimeout(() => {
                     this._data.selectedUseCase = useCase;
                 }, 0);
+            },
+
+            createList: async useCase => {
+                let list = await micro.call("POST", "/api/lists", {use_case: useCase.id, v: 2});
+                ui.navigate(`/lists/${list.id.split(":")[1]}`);
             },
 
             createExample: async useCase => {
@@ -150,15 +143,19 @@ listling.ListPage = class extends micro.Page {
             editMode: true,
             trashExpanded: false,
             creatingItem: false,
+            settingsExpanded: false,
             toggleTrash: () => {
                 this._data.trashExpanded = !this._data.trashExpanded;
             },
             startCreateItem: () => {
                 this._data.creatingItem = true;
-                this.querySelector(".listling-list-create-item form").elements[0].focus();
+                this.querySelector(".listling-list-create-item form").elements[1].focus();
             },
             stopCreateItem: () => {
                 this._data.creatingItem = false;
+            },
+            toggleSettings: () => {
+                this._data.settingsExpanded = !this._data.settingsExpanded;
             },
 
             startEdit: () => {
@@ -170,7 +167,9 @@ listling.ListPage = class extends micro.Page {
                 let url = this._data.lst ? `/api/lists/${this._data.lst.id}` : "/api/lists";
                 let list = await micro.call("POST", url, {
                     title: this._form.elements.title.value,
-                    description: this._form.elements.description.value
+                    description: this._form.elements.description.value,
+                    features: Array.from([this._form.elements.features], e => e.checked && e.value)
+                        .filter(feature => feature)
                 });
                 if (this._data.lst) {
                     this.list = list;
@@ -223,19 +222,22 @@ listling.ListPage = class extends micro.Page {
             this.classList.toggle("listling-list-has-trashed-items", this._data.trashedItemsCount);
             this.classList.toggle("listling-list-mode-view", !this._data.editMode);
             this.classList.toggle("listling-list-mode-edit", this._data.editMode);
+            this.classList.toggle("listling-list-feature-check",
+                                  this._data.lst && this._data.lst.features.includes("check"));
         };
-        this._data.watch("editMode", updateClass);
-        this._data.watch("trashedItemsCount", updateClass);
+        ["lst", "editMode", "trashedItemsCount"].forEach(
+            prop => this._data.watch(prop, updateClass));
         updateClass();
 
         this._items = null;
         this._form = this.querySelector("form");
         this._events = ["list-items-create", "list-items-move", "item-edit", "item-trash",
-                        "item-restore"];
+                        "item-restore", "item-check", "item-uncheck"];
     }
 
     async attachedCallback() {
-        ui.shortcutContext.add("S", this._data.toggleTrash);
+        ui.shortcutContext.add("B", this._data.toggleTrash);
+        ui.shortcutContext.add("S", this._data.toggleSettings);
         this._events.forEach(e => ui.addEventListener(e, this));
         if (this._data.editMode) {
             this._form.elements[0].focus();
@@ -249,6 +251,7 @@ listling.ListPage = class extends micro.Page {
     }
 
     detachedCallback() {
+        ui.shortcutContext.remove("B");
         ui.shortcutContext.remove("S");
         this._events.forEach(e => ui.removeEventListener(e, this));
     }
@@ -273,7 +276,9 @@ listling.ListPage = class extends micro.Page {
             let j = event.detail.to
                 ? this._items.findIndex(item => item.id === event.detail.to.id) + 1 : 0;
             this._items.splice(j, 0, event.detail.item);
-        } else if (["item-edit", "item-trash", "item-restore"].includes(event.type)) {
+        } else if (
+            ["item-edit", "item-trash", "item-restore", "item-check", "item-uncheck"]
+                .includes(event.type)) {
             let i = this._items.findIndex(item => item.id === event.detail.item.id);
             this._items[i] = event.detail.item;
             this._data.trashedItemsCount = this._data.trashedItems.length;
@@ -342,6 +347,18 @@ listling.ItemElement = class extends HTMLLIElement {
                 let item = await micro.call(
                     "POST", `/api/lists/${ui.page.list.id}/items/${this._data.item.id}/restore`);
                 ui.dispatchEvent(new CustomEvent("item-restore", {detail: {item}}));
+            },
+
+            check: async() => {
+                let item = await micro.call(
+                    "POST", `/api/lists/${ui.page.list.id}/items/${this._data.item.id}/check`);
+                ui.dispatchEvent(new CustomEvent("item-check", {detail: {item}}));
+            },
+
+            uncheck: async() => {
+                let item = await micro.call(
+                    "POST", `/api/lists/${ui.page.list.id}/items/${this._data.item.id}/uncheck`);
+                ui.dispatchEvent(new CustomEvent("item-uncheck", {detail: {item}}));
             }
         });
         micro.bind.bind(this.children, this._data);
@@ -349,6 +366,8 @@ listling.ItemElement = class extends HTMLLIElement {
         let updateClass = () => {
             this.classList.toggle("listling-item-trashed",
                                   this._data.item && this._data.item.trashed);
+            this.classList.toggle("listling-item-checked",
+                                  this._data.item && this._data.item.checked);
             this.classList.toggle("listling-item-mode-view", !this._data.editMode);
             this.classList.toggle("listling-item-mode-edit", this._data.editMode);
         };
@@ -358,7 +377,7 @@ listling.ItemElement = class extends HTMLLIElement {
 
         this.tabIndex = 0;
         this.shortcutContext = new micro.keyboard.ShortcutContext(this);
-        let move = dir => listling.dispatchEvent(this, new CustomEvent("move", {detail: {dir}}));
+        let move = dir => micro.util.dispatchEvent(this, new CustomEvent("move", {detail: {dir}}));
         this.shortcutContext.add("Alt+ArrowUp", move.bind(null, "up"));
         this.shortcutContext.add("Alt+ArrowDown", move.bind(null, "down"));
 

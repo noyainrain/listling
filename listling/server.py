@@ -19,6 +19,7 @@
 
 import json
 
+import micro
 from micro.server import Endpoint, Server, make_orderable_endpoints, make_trashable_endpoints
 
 from . import Listling
@@ -34,13 +35,22 @@ def make_server(port=8080, url=None, debug=False, redis_url='', smtp_url=''):
         *make_orderable_endpoints(r'/api/lists/([^/]+)/items', lambda id: app.lists[id].items),
         (r'/api/lists/([^/]+)/items/([^/]+)$', _ItemEndpoint),
         *make_trashable_endpoints(r'/api/lists/([^/]+)/items/([^/]+)',
-                                  lambda list_id, id: app.lists[list_id].items[id])
+                                  lambda list_id, id: app.lists[list_id].items[id]),
+        (r'/api/lists/([^/]+)/items/([^/]+)/check$', _ItemCheckEndpoint),
+        (r'/api/lists/([^/]+)/items/([^/]+)/uncheck$', _ItemUncheckEndpoint)
     ]
     return Server(app, handlers, port, url, client_modules_path='node_modules', debug=debug)
 
 class _ListsEndpoint(Endpoint):
     def post(self):
-        args = self.check_args({'title': str, 'description': (str, None, 'opt')})
+        args = self.check_args({
+            'use_case': (str, 'opt'),
+            'title': (str, 'opt'),
+            'description': (str, None, 'opt'),
+            'v': (int, 'opt')
+        })
+        if args.get('v', 1) == 1 and 'title' not in args:
+            raise micro.ValueError('title_missing')
         lst = self.app.lists.create(**args)
         self.write(lst.json(restricted=True, include=True))
 
@@ -57,7 +67,11 @@ class _ListEndpoint(Endpoint):
 
     def post(self, id):
         lst = self.app.lists[id]
-        args = self.check_args({'title': (str, 'opt'), 'description': (str, None, 'opt')})
+        args = self.check_args({
+            'title': (str, 'opt'),
+            'description': (str, None, 'opt'),
+            'features': (list, 'opt')
+        })
         lst.edit(**args)
         self.write(lst.json(restricted=True, include=True))
 
@@ -81,4 +95,16 @@ class _ItemEndpoint(Endpoint):
         item = self.app.lists[list_id].items[id]
         args = self.check_args({'title': (str, 'opt'), 'text': (str, None, 'opt')})
         item.edit(**args)
+        self.write(item.json(restricted=True, include=True))
+
+class _ItemCheckEndpoint(Endpoint):
+    def post(self, lst_id, id):
+        item = self.app.lists[lst_id].items[id]
+        item.check()
+        self.write(item.json(restricted=True, include=True))
+
+class _ItemUncheckEndpoint(Endpoint):
+    def post(self, lst_id, id):
+        item = self.app.lists[lst_id].items[id]
+        item.uncheck()
         self.write(item.json(restricted=True, include=True))

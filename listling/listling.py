@@ -16,21 +16,42 @@
 
 import micro
 from micro import Application, Collection, Editable, Object, Orderable, Trashable, Settings, Event
+from micro.jsonredis import JSONRedis
 from micro.util import randstr, str_or_none
 
+_USE_CASES = {
+    'simple': {'title': 'New list', 'features': []},
+    'todo': {'title': 'New to-do list', 'features': ['check']},
+    'shopping': {'title': 'New shopping list', 'features': []},
+    'meeting-agenda': {'title': 'New meeting agenda', 'features': []}
+}
+
 _EXAMPLE_DATA = {
+    'todo': (
+        'Project tasks',
+        'Things we need to do to complete our project.',
+        [
+            {'title': 'Do research', 'checked': True},
+            {'title': 'Create draft'},
+            {'title': 'Write report', 'text': 'Summary of the results'}
+        ]
+    ),
     'shopping': (
         'Kitchen shopping list',
         'When you go shopping next time, please bring the items from this list.',
-        [('Soy sauce', None), ('Vegetables', 'Especially tomatoes'), ('Chocolate (vegan)', None)]
+        [
+            {'title': 'Soy sauce'},
+            {'title': 'Vegetables', 'text': 'Especially tomatoes'},
+            {'title': 'Chocolate (vegan)'}
+        ]
     ),
     'meeting-agenda': (
         'Working group agenda',
         'We meet on Monday and discuss important issues.',
         [
-            ('Round of introductions', None),
-            ('Lunch poll', 'What will we have for lunch today?'),
-            ('Next meeting', 'When and where will our next meeting be?')
+            {'title': 'Round of introductions'},
+            {'title': 'Lunch poll', 'text': 'What will we have for lunch today?'},
+            {'title': 'Next meeting', 'text': 'When and where will our next meeting be?'}
         ]
     )
 }
@@ -41,12 +62,27 @@ class Listling(Application):
     class Lists(Collection):
         """See :ref:`Lists`."""
 
-        def create(self, title, description=None):
+        def create(self, use_case=None, description=None, title=None, v=1):
             """See :http:post:`/api/lists`."""
-            if str_or_none(title) is None:
-                raise micro.ValueError('title_empty')
+            if v == 1:
+                # create(title, description=None)
+                title = title or use_case
+                if title is None:
+                    raise TypeError()
+                lst = self.create('simple', v=2)
+                lst.edit(title=title, description=description)
+                return lst
+            elif v == 2:
+                # create(use_case='simple')
+                use_case = use_case or 'simple'
+            else:
+                raise NotImplementedError()
+
+            if use_case not in _USE_CASES:
+                raise micro.ValueError('use_case_unknown')
+            data = _USE_CASES[use_case]
             lst = List(id='List:{}'.format(randstr()), app=self.app, authors=[self.app.user.id],
-                       title=title, description=str_or_none(description))
+                       title=data['title'], description=None, features=data['features'])
             self.app.r.oset(lst.id, lst)
             self.app.r.rpush(self.map_key, lst.id)
             self.app.activity.publish(
@@ -61,9 +97,15 @@ class Listling(Application):
             description = (
                 '{}\n\nThis example was created just for you, so please feel free to play around.'
                 .format(data[1]))
-            lst = self.create(data[0], description)
+
+            lst = self.create(use_case, v=2)
+            lst.edit(title=data[0], description=description)
             for item in data[2]:
-                lst.items.create(item[0], item[1])
+                args = dict(item)
+                checked = args.pop('checked', False)
+                item = lst.items.create(**args)
+                if checked:
+                    item.check()
             return lst
 
     def __init__(self, redis_url='', email='bot@localhost', smtp_url='',
@@ -75,7 +117,24 @@ class Listling(Application):
     def do_update(self):
         version = self.r.get('version')
         if not version:
-            self.r.set('version', 1)
+            self.r.set('version', 2)
+            return
+
+        version = int(version)
+        r = JSONRedis(self.r.r)
+        r.caching = False
+
+        # Deprecated since 0.3.0
+        if version < 2:
+            lists = r.omget(r.lrange('lists', 0, -1))
+            for lst in lists:
+                lst['features'] = []
+                items = r.omget(r.lrange('{}.items'.format(lst['id']), 0, -1))
+                for item in items:
+                    item['checked'] = False
+                r.omset({item['id']: item for item in items})
+            r.omset({lst['id']: lst for lst in lists})
+            r.set('version', 2)
 
     def create_settings(self):
         return Settings(
@@ -95,45 +154,64 @@ class List(Object, Editable):
                 raise micro.ValueError('title_empty')
             item = Item(
                 id='Item:{}'.format(randstr()), app=self.app, authors=[self.app.user.id],
-                trashed=False, list_id=self.host[0].id, title=title, text=str_or_none(text))
+                trashed=False, list_id=self.host[0].id, title=title, text=str_or_none(text),
+                checked=False)
             self.app.r.oset(item.id, item)
             self.app.r.rpush(self.map_key, item.id)
             return item
 
-    def __init__(self, id, app, authors, title, description):
+    def __init__(self, id, app, authors, title, description, features):
         super().__init__(id, app)
         Editable.__init__(self, authors)
         self.title = title
         self.description = description
+        self.features = features
         self.items = List.Items((self, 'items'))
 
     def do_edit(self, **attrs):
         if 'title' in attrs and str_or_none(attrs['title']) is None:
             raise micro.ValueError('title_empty')
+        if 'features' in attrs and not set(attrs['features']) <= {'check'}:
+            raise micro.ValueError('feature_unknown')
         if 'title' in attrs:
             self.title = attrs['title']
         if 'description' in attrs:
             self.description = str_or_none(attrs['description'])
+        if 'features' in attrs:
+            self.features = attrs['features']
 
     def json(self, restricted=False, include=False):
         return {**super().json(restricted, include), **Editable.json(self, restricted, include),
-                'title': self.title, 'description': self.description}
+                'title': self.title, 'description': self.description, 'features': self.features}
 
 class Item(Object, Editable, Trashable):
     """See :ref:`Item`."""
 
-    def __init__(self, id, app, authors, trashed, list_id, title, text):
+    def __init__(self, id, app, authors, trashed, list_id, title, text, checked):
         super().__init__(id, app)
         Editable.__init__(self, authors)
         Trashable.__init__(self, trashed)
         self._list_id = list_id
         self.title = title
         self.text = text
+        self.checked = checked
 
     @property
     def list(self):
         # pylint: disable=missing-docstring; already documented
         return self.app.lists[self._list_id]
+
+    def check(self):
+        """See :http:post:`/api/lists/(list-id)/items/(id)/check`."""
+        _check_feature(self.app.user, 'check', self)
+        self.checked = True
+        self.app.r.oset(self.id, self)
+
+    def uncheck(self):
+        """See :http:post:`/api/lists/(list-id)/items/(id)/uncheck`."""
+        _check_feature(self.app.user, 'check', self)
+        self.checked = False
+        self.app.r.oset(self.id, self)
 
     def do_edit(self, **attrs):
         if 'title' in attrs and str_or_none(attrs['title']) is None:
@@ -150,5 +228,12 @@ class Item(Object, Editable, Trashable):
             **Trashable.json(self, restricted, include),
             'list_id': self._list_id,
             'title': self.title,
-            'text': self.text
+            'text': self.text,
+            'checked': self.checked
         }
+
+def _check_feature(user, feature, item):
+    if feature not in item.list.features:
+        raise micro.ValueError('feature_disabled')
+    if not user:
+        raise PermissionError()

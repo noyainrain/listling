@@ -38,14 +38,16 @@
                         <h1 data-content="useCase.title"></h1>
                         <div>
                             <p>
-                                <a
+                                <button
+                                    is="micro-button"
+                                    type="button"
                                     class="listling-start-create-list action"
-                                    href="/lists/new"
                                     title="⌨ S"
+                                    data-run="bind createList useCase"
                                     data-onfocus="bind selectUseCase useCase"
                                 >
                                     <i class="fa fa-paper-plane"></i> Start
-                                </a>
+                                </button>
                             </p>
                             <p class="listling-start-create-example">
                                 or view
@@ -202,6 +204,37 @@
                 </span>
             </p>
 
+            <div class="listling-list-settings listling-list-mode-edit"
+                 data-class-listling-list-settings-expanded="settingsExpanded">
+                <p class="listling-detail">
+                    <button is="micro-button" type="button" class="link" title="⌨ S"
+                            data-run="toggleSettings">
+                        <i class="fa fa-search-plus"></i> More settings
+                    </button>
+                </p>
+                <section>
+                    <header>
+                        <h1>Settings</h1>
+                        <ul is="micro-menu">
+                            <li>
+                                <button is="micro-button" type="button" class="link" title="⌨ S"
+                                        data-run="toggleSettings">
+                                    <i class="fa fa-fw fa-search-minus"></i>
+                                </button>
+                            </li>
+                        </ul>
+                    </header>
+                    <fieldset>
+                        <legend>Features</legend>
+                        <label>
+                            <input type="checkbox" name="features" value="check"
+                                   data-checked="includes lst.features 'check'" />
+                            Check items
+                        </label>
+                    </fieldset>
+                </section>
+            </div>
+
             <ul is="micro-menu" class="listling-list-mode-edit">
                 <li>
                     <button is="micro-button" class="action" title="⌨ Enter" data-run="edit">
@@ -236,7 +269,7 @@
                 <span
                     data-content="formatPlural 'There is one trashed item.' 'There are {n} trashed items.' 'n' trashedItemsCount">
                 </span>
-                <button is="micro-button" type="button" class="link" title="Show (⌨ S)"
+                <button is="micro-button" type="button" class="link" title="Show (⌨ B)"
                         data-run="toggleTrash">
                     <i class="fa fa-search-plus"></i>
                 </button>
@@ -244,7 +277,7 @@
             <div>
                 <header>
                     <h1>Trashed items</h1>
-                    <button is="micro-button" type="button" class="link" title="Hide (⌨ S)"
+                    <button is="micro-button" type="button" class="link" title="Hide (⌨ B)"
                             data-run="toggleTrash">
                         <i class="fa fa-search-minus"></i>
                     </button>
@@ -287,7 +320,9 @@
         .listling-list-trash.listling-list-trash-expanded > p,
         .listling-list-trash:not(.listling-list-trash-expanded) > div,
         .listling-list-create-item.listling-list-creating-item > p,
-        .listling-list-create-item:not(.listling-list-creating-item) > li {
+        .listling-list-create-item:not(.listling-list-creating-item) > li,
+        .listling-list-settings.listling-list-settings-expanded > p,
+        .listling-list-settings:not(.listling-list-settings-expanded) > section {
             display: none;
         }
     </style>
@@ -298,6 +333,40 @@
                 <div class="micro-ol-handle listling-item-mode-view"
                      title="Move (⌨ Alt + ↑ / Alt + ↓)" tabindex="0">
                 </div>
+
+                <ul is="micro-menu" class="micro-secondary listling-item-mode-view"
+                    data-content="switch item.checked"
+                >
+                    <template>
+                        <li class="listling-item-uncheck">
+                            <button
+                                is="micro-button"
+                                type="button"
+                                class="action"
+                                data-run="uncheck"
+                                data-disabled="item.trashed"
+                                data-shortcut="new Shortcut 'X' 'Uncheck'"
+                            >
+                                <i class="fa fa-fw fa-check-square-o"></i>
+                            </button>
+                        </li>
+                    </template>
+                    <template>
+                        <li class="listling-item-check">
+                            <button
+                                is="micro-button"
+                                type="button"
+                                class="action"
+                                data-run="check"
+                                data-disabled="item.trashed"
+                                data-shortcut="new Shortcut 'X' 'Check'"
+                            >
+                                <i class="fa fa-fw fa-square-o"></i>
+                            </button>
+                        </li>
+                    </template>
+                </ul>
+
                 <h1>
                     <span class="listling-item-mode-view" data-content="item.title"></span>
                     <label class="listling-item-mode-edit">
@@ -305,7 +374,9 @@
                                autocomplete="off" data-value="or item.title ''" />
                     </label>
                 </h1>
-                <ul is="micro-menu" class="micro-secondary listling-item-mode-view">
+                <ul is="micro-menu"
+                    class="listling-item-menu micro-secondary listling-item-mode-view"
+                >
                     <li>
                         <button is="micro-button" type="button" class="listling-item-restore action"
                                 data-run="restore" data-shortcut="new Shortcut 'R'">
@@ -314,7 +385,7 @@
                     </li>
                     <li>
                         <button is="micro-button" type="button" class="link">
-                            <i class="fa fa-bars"></i>
+                            <i class="fa fa-fw fa-bars"></i>
                         </button>
                         <ul is="micro-menu">
                             <li>
@@ -400,17 +471,31 @@
                         content-box 0 0 / calc(1.5rem / 4) calc(1.5rem / 4);
         }
 
+        [is=micro-menu].micro-secondary > li.listling-item-check > .action,
+        [is=listling-item].listling-item-trashed [is=micro-menu].micro-secondary > li.listling-item-uncheck > .action {
+            color: var(--micro-color-border);
+        }
+
+        [is=micro-menu].micro-secondary > li.listling-item-uncheck > .action {
+            color: forestgreen;
+        }
+
         [is=listling-item] h1 {
             font-size: 1em;
             padding: calc(1.5em / 4) 0;
         }
 
-        [is=listling-item].listling-item-trashed h1 {
-            padding-left: calc(1.5rem / 4);
+        listling-list-page:not(.listling-list-feature-check) [is=listling-item].listling-item-trashed h1,
+        [is=listling-item].listling-item-mode-edit h1 {
+            padding-left: calc(1.5em / 4);
+        }
+
+        [is=listling-item].listling-item-mode-edit h1 {
+            padding-right: calc(1.5em / 4);
         }
 
         [is=listling-item] h1 > label {
-            margin: 0 calc(1.5rem / 4);
+            margin-bottom: 0;
         }
 
         .listling-item-content {
@@ -426,8 +511,10 @@
         [is=listling-item]:not(.listling-item-mode-view) .listling-item-mode-view,
         [is=listling-item]:not(.listling-item-mode-edit) .listling-item-mode-edit,
         [is=listling-item].listling-item-trashed .micro-ol-handle,
+        listling-list-page:not(.listling-list-feature-check) .listling-item-check,
+        listling-list-page:not(.listling-list-feature-check) .listling-item-uncheck,
         [is=listling-item]:not(.listling-item-trashed) .listling-item-restore,
-        [is=listling-item].listling-item-trashed [is=micro-menu] li:last-child {
+        [is=listling-item].listling-item-trashed .listling-item-menu li:last-child {
             display: none;
         }
     </style>

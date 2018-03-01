@@ -71,17 +71,13 @@ describe("UI", function() {
 
         // Create list
         await browser.findElement({css: ".listling-start-create-list"}).click();
-        form = await browser.findElement({css: "listling-list-page form"});
-        await form.findElement({name: "title"}).sendKeys("Cat colony tasks");
-        await form.findElement({name: "description"}).sendKeys("What has to be done!");
-        await form.findElement({css: "button:not([type])"}).click();
         await browser.wait(
-            untilElementTextLocated({css: "listling-list-page h1"}, "Cat colony tasks"), timeout);
+            untilElementTextLocated({css: "listling-list-page h1"}, "New to-do list"), timeout);
 
         // Create example list
         await createExampleList();
         let title = (await browser.findElement({css: "listling-list-page h1"}).getText()).trim();
-        expect(title).to.equal("Kitchen shopping list");
+        expect(title).to.equal("Project tasks");
 
         // Edit list
         await browser.findElement({css: ".listling-list-edit"}).click();
@@ -89,6 +85,7 @@ describe("UI", function() {
         input = await form.findElement({name: "title"});
         await input.clear();
         await input.sendKeys("Cat colony tasks");
+        await form.findElement({name: "description"}).sendKeys("What has to be done!");
         await form.findElement({css: "button:not([type])"}).click();
         await browser.wait(
             untilElementTextLocated({css: "listling-list-page h1"}, "Cat colony tasks"));
@@ -103,17 +100,16 @@ describe("UI", function() {
             untilElementTextLocated({css: "[is=listling-item]:last-child h1"}, "Sleep"), timeout);
 
         // Edit item
-        itemMenu =
-            await browser.findElement({css: "[is=listling-item] [is=micro-menu] li:last-child"});
+        itemMenu = await browser.findElement({css: ".listling-item-menu li:last-child"});
         await itemMenu.click();
         await browser.findElement({css: ".listling-item-edit"}).click();
         form = await browser.findElement({css: "[is=listling-item] form"});
         input = await form.findElement({name: "title"});
         await input.clear();
-        await input.sendKeys("Sweet soy sauce");
+        await input.sendKeys("Research");
         await form.findElement({css: "button:not([type])"}).click();
-        await browser.wait(
-            untilElementTextLocated({css: "[is=listling-item] h1"}, "Sweet soy sauce"), timeout);
+        await browser.wait(untilElementTextLocated({css: "[is=listling-item] h1"}, "Research"),
+                           timeout);
 
         // Trash item
         await itemMenu.click();
@@ -125,8 +121,20 @@ describe("UI", function() {
         // Restore item
         await browser.findElement({css: ".listling-list-trash button"}).click();
         await browser.findElement({css: ".listling-list-trash .listling-item-restore"}).click();
-        await browser.wait(
-            untilElementTextLocated({css: "[is=listling-item] h1"}, "Sweet soy sauce"), timeout);
+        await browser.wait(untilElementTextLocated({css: "[is=listling-item] h1"}, "Research"),
+                           timeout);
+
+        // Uncheck item
+        let checkSelector =
+            {css: ".listling-list-items > li:first-child .listling-item-check .action"};
+        let uncheckSelector =
+            {css: ".listling-list-items > li:first-child .listling-item-uncheck .action"};
+        await browser.findElement(uncheckSelector).click();
+        let checkButton = await browser.wait(until.elementLocated(checkSelector), timeout);
+
+        // Check item
+        await checkButton.click();
+        await browser.wait(until.elementLocated(uncheckSelector), timeout);
 
         // View about page
         await browser.findElement({css: ".micro-ui-header-menu"}).click();
@@ -138,7 +146,7 @@ describe("UI", function() {
 
     it("should work for staff", async function() {
         await browser.get(`${URL}/`);
-        await browser.wait(until.elementLocated({css: "listling-start-page"}));
+        await browser.wait(until.elementLocated({css: "listling-start-page"}), timeout);
         await createExampleList();
 
         // View activity page
@@ -146,7 +154,7 @@ describe("UI", function() {
         await browser.findElement({css: ".micro-ui-activity"}).click();
         await browser.wait(
             untilElementTextLocated({css: "micro-activity-page .micro-timeline li"},
-                                    "Kitchen shopping list"),
+                                    "Project tasks"),
             timeout);
     });
 });
