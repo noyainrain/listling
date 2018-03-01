@@ -30,9 +30,9 @@ class ServerTest(ServerTestCase):
 
     @gen_test
     async def test_availibility(self):
-        lst = self.app.lists.create_example('shopping')
+        lst = self.app.lists.create_example('todo')
         item = next(iter(lst.items.values()))
-        await self.request('/api/lists', method='POST', body='{"title": "Cat colony tasks"}')
+        await self.request('/api/lists', method='POST', body='{"v": 2}')
         await self.request('/api/lists/create-example', method='POST',
                            body='{"use_case": "shopping"}')
         await self.request('/api/lists/{}'.format(lst.id))
@@ -44,3 +44,7 @@ class ServerTest(ServerTestCase):
         await self.request('/api/lists/{}/items/{}'.format(lst.id, item.id))
         await self.request('/api/lists/{}/items/{}'.format(lst.id, item.id), method='POST',
                            body='{"text": "Very important!"}')
+        await self.request('/api/lists/{}/items/{}/check'.format(lst.id, item.id), method='POST',
+                           body='')
+        await self.request('/api/lists/{}/items/{}/uncheck'.format(lst.id, item.id), method='POST',
+                           body='')
