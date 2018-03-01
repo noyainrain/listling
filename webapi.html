@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>2. Web API &#8212; Open Listling 0.2.1 documentation</title>
+    <title>2. Web API &#8212; Open Listling 0.3.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.2.1',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -350,9 +350,15 @@ registered as staff member.</p>
 <dl class="post">
 <dt id="post--api-lists">
 <code class="descname">POST </code><code class="descname">/api/lists</code><a class="headerlink" href="#post--api-lists" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="docutils literal"><span class="pre">{&quot;title&quot;,</span> <span class="pre">&quot;description&quot;:</span> <span class="pre">null}</span></code></p>
-<p>Create a <a class="reference internal" href="#list"><span class="std std-ref">List</span></a> and return it.</p>
+<dd><p><code class="docutils literal"><span class="pre">{&quot;use_case&quot;,</span> <span class="pre">&quot;v&quot;}</span></code></p>
+<p>Create a <a class="reference internal" href="#list"><span class="std std-ref">List</span></a> for the given <em>use_case</em> and return it.</p>
+<p>Available <em>use_case</em> s are <code class="docutils literal"><span class="pre">simple</span></code>, <code class="docutils literal"><span class="pre">todo</span></code>, <code class="docutils literal"><span class="pre">shopping</span></code> and <code class="docutils literal"><span class="pre">meeting-agenda</span></code>. The
+endpoint version <em>v</em> must be <code class="docutils literal"><span class="pre">2</span></code>.</p>
 <p>Permission: Authenticated users.</p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.3.0: </span>The signature <code class="docutils literal"><span class="pre">{&quot;title&quot;,</span> <span class="pre">&quot;description&quot;:</span> <span class="pre">null,</span> <span class="pre">&quot;v&quot;:</span> <span class="pre">1}</span></code>. Instead, set <em>use_case</em> to
+<code class="docutils literal"><span class="pre">simple</span></code> and edit the new list to set <em>title</em> and <em>description</em>.</p>
+</div>
 </dd></dl>
 
 <dl class="post">
@@ -360,7 +366,7 @@ registered as staff member.</p>
 <code class="descname">POST </code><code class="descname">/api/lists/create-example</code><a class="headerlink" href="#post--api-lists-create-example" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="docutils literal"><span class="pre">{&quot;use_case&quot;}</span></code></p>
 <p>Create an example <a class="reference internal" href="#list"><span class="std std-ref">List</span></a> for the given <em>use_case</em> and return it.</p>
-<p>Available <em>use_case</em> s are: <code class="docutils literal"><span class="pre">shopping</span></code>, <code class="docutils literal"><span class="pre">meeting-agenda</span></code></p>
+<p>For available <em>use_cases</em> see <a class="reference internal" href="#post--api-lists" title="POST /api/lists"><code class="xref http http-post docutils literal"><span class="pre">POST</span> <span class="pre">/api/lists</span></code></a>, excluding <code class="docutils literal"><span class="pre">simple</span></code>.</p>
 <p>Permission: Authenticated users.</p>
 </dd></dl>
 
@@ -491,6 +497,13 @@ registered as staff member.</p>
 <dd><p>Description of the list. May be <code class="docutils literal"><span class="pre">null</span></code>.</p>
 </dd></dl>
 
+<dl class="describe">
+<dt>
+<code class="descname">features</code></dt>
+<dd><p>Set of features enabled for the list.</p>
+<p>Available features are <code class="docutils literal"><span class="pre">check</span></code>.</p>
+</dd></dl>
+
 <dl class="post">
 <dt id="post--api-(object-url)">
 <code class="descname">POST </code><code class="descname">/api/(object-url)</code><a class="headerlink" href="#post--api-(object-url)" title="Permalink to this definition">¶</a></dt>
@@ -583,6 +596,12 @@ registered as staff member.</p>
 <dd><p>Text content of the item. May be <code class="docutils literal"><span class="pre">null</span></code>.</p>
 </dd></dl>
 
+<dl class="describe">
+<dt>
+<code class="descname">checked</code></dt>
+<dd><p>Indicates if the item is marked as complete.</p>
+</dd></dl>
+
 <dl class="post">
 <dt id="post--api-(object-url)">
 <code class="descname">POST </code><code class="descname">/api/(object-url)</code><a class="headerlink" href="#post--api-(object-url)" title="Permalink to this definition">¶</a></dt>
@@ -606,6 +625,24 @@ registered as staff member.</p>
 <code class="descname">POST </code><code class="descname">/api/(object-url)/restore</code><a class="headerlink" href="#post--api-(object-url)-restore" title="Permalink to this definition">¶</a></dt>
 <dd><p>Restore the previously trashed (deleted) object.</p>
 <p>If the object is not trashed, nothing happens.</p>
+<p>Permission: Authenticated users.</p>
+</dd></dl>
+
+<dl class="post">
+<dt id="post--api-lists-(list-id)-items-(id)-check">
+<code class="descname">POST </code><code class="descname">/api/lists/(list-id)/items/</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><code class="descname">/check</code><a class="headerlink" href="#post--api-lists-(list-id)-items-(id)-check" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mark the item as complete.</p>
+<p>If the feature <code class="docutils literal"><span class="pre">check</span></code> is not enabled for the list, a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a> (<cite>feature_disabled</cite>) is
+returned.</p>
+<p>Permission: Authenticated users.</p>
+</dd></dl>
+
+<dl class="post">
+<dt id="post--api-lists-(list-id)-items-(id)-uncheck">
+<code class="descname">POST </code><code class="descname">/api/lists/(list-id)/items/</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><code class="descname">/uncheck</code><a class="headerlink" href="#post--api-lists-(list-id)-items-(id)-uncheck" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mark the item as incomplete.</p>
+<p>If the feature <code class="docutils literal"><span class="pre">check</span></code> is not enabled for the list, a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a> (<cite>feature_disabled</cite>) is
+returned.</p>
 <p>Permission: Authenticated users.</p>
 </dd></dl>
 

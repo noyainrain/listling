@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>3. Python API &#8212; Open Listling 0.2.1 documentation</title>
+    <title>3. Python API &#8212; Open Listling 0.3.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.2.1',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -56,7 +56,7 @@
 <dd><p>See <a class="reference internal" href="webapi.html#id11"><span class="std std-ref">Lists</span></a>.</p>
 <dl class="method">
 <dt id="listling.Listling.Lists.create">
-<code class="descname">create</code><span class="sig-paren">(</span><em>title</em>, <em>description=None</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling.Lists.create" title="Permalink to this definition">¶</a></dt>
+<code class="descname">create</code><span class="sig-paren">(</span><em>use_case=None</em>, <em>description=None</em>, <em>title=None</em>, <em>v=1</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling.Lists.create" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#post--api-lists" title="POST /api/lists"><code class="xref http http-post docutils literal"><span class="pre">POST</span> <span class="pre">/api/lists</span></code></a>.</p>
 </dd></dl>
 
@@ -72,7 +72,7 @@
 
 <dl class="class">
 <dt id="listling.List">
-<em class="property">class </em><code class="descclassname">listling.</code><code class="descname">List</code><span class="sig-paren">(</span><em>id</em>, <em>app</em>, <em>authors</em>, <em>title</em>, <em>description</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">listling.</code><code class="descname">List</code><span class="sig-paren">(</span><em>id</em>, <em>app</em>, <em>authors</em>, <em>title</em>, <em>description</em>, <em>features</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#list"><span class="std std-ref">List</span></a>.</p>
 <dl class="class">
 <dt id="listling.List.Items">
@@ -90,8 +90,20 @@
 
 <dl class="class">
 <dt id="listling.Item">
-<em class="property">class </em><code class="descclassname">listling.</code><code class="descname">Item</code><span class="sig-paren">(</span><em>id</em>, <em>app</em>, <em>authors</em>, <em>trashed</em>, <em>list_id</em>, <em>title</em>, <em>text</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">listling.</code><code class="descname">Item</code><span class="sig-paren">(</span><em>id</em>, <em>app</em>, <em>authors</em>, <em>trashed</em>, <em>list_id</em>, <em>title</em>, <em>text</em>, <em>checked</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#item"><span class="std std-ref">Item</span></a>.</p>
+<dl class="method">
+<dt id="listling.Item.check">
+<code class="descname">check</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.check" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#post--api-lists-(list-id)-items-(id)-check" title="POST /api/lists/(list-id)/items/(id)/check"><code class="xref http http-post docutils literal"><span class="pre">POST</span> <span class="pre">/api/lists/(list-id)/items/(id)/check</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="listling.Item.uncheck">
+<code class="descname">uncheck</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.uncheck" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#post--api-lists-(list-id)-items-(id)-uncheck" title="POST /api/lists/(list-id)/items/(id)/uncheck"><code class="xref http http-post docutils literal"><span class="pre">POST</span> <span class="pre">/api/lists/(list-id)/items/(id)/uncheck</span></code></a>.</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>
