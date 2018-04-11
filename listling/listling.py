@@ -137,10 +137,11 @@ class Listling(Application):
             r.set('version', 2)
 
     def create_settings(self):
+        # pylint: disable=unexpected-keyword-arg; decorated
         return Settings(
-            id='Settings', app=self, authors=[], title='My Open Listling', icon=None, favicon=None,
-            provider_name=None, provider_url=None, provider_description={}, feedback_url=None,
-            staff=[])
+            id='Settings', app=self, authors=[], title='My Open Listling', icon=None,
+            icon_small=None, icon_large=None, provider_name=None, provider_url=None,
+            provider_description={}, feedback_url=None, staff=[], v=2)
 
 class List(Object, Editable):
     """See :ref:`List`."""

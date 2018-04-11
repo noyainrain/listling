@@ -1,11 +1,11 @@
 {
     "scripts": {
-        "test-ui": "mocha '!(node_modules)/**/ui_test*.js'",
+        "test-ui": "mocha --preserve-symlinks '!(node_modules)/**/ui_test*.js'",
         "lint": "eslint .",
         "clean": "rm -rf node_modules"
     },
     "dependencies": {
-        "@noyainrain/micro": "^0.12"
+        "@noyainrain/micro": "^0.13"
     },
     "devDependencies": {
         "eslint": "^4.0",
