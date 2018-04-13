@@ -20,14 +20,7 @@
 
 "use strict";
 
-window.listling = {};
-
-listling.makeListURL = function(ctx, lst) {
-    if (lst === undefined) {
-        [ctx, lst] = [undefined, ctx];
-    }
-    return `/lists/${lst.id.split(":")[1]}${micro.util.slugify(lst.title)}`;
-};
+self.listling = self.listling || {};
 
 /**
  * Open Listling UI.
@@ -50,7 +43,7 @@ listling.UI = class extends micro.UI {
             "create-list"(event) {
                 let elem = document.importNode(
                     ui.querySelector(".listling-create-list-event-template").content, true);
-                micro.bind.bind(elem, {event, makeListURL: listling.makeListURL});
+                micro.bind.bind(elem, {event, makeListURL: listling.util.makeListURL});
                 return elem;
             }
         });
@@ -186,6 +179,25 @@ listling.ListPage = class extends micro.Page {
                 }
             },
 
+            subscribe: async() => {
+                let pushSubscription = await ui.service.pushManager.getSubscription();
+                if (!pushSubscription || !ui.user.push_subscription) {
+                    let result = await ui.enableDeviceNotifications();
+                    if (result === "error") {
+                        return;
+                    }
+                }
+                this._data.lst.activity = await micro.call(
+                    "PATCH", `/api/lists/${this._data.lst.id}/activity`, {op: "subscribe"});
+                this.list = this._data.lst;
+            },
+
+            unsubscribe: async() => {
+                this._data.lst.activity = await micro.call(
+                    "PATCH", `/api/lists/${this._data.lst.id}/activity`, {op: "unsubscribe"});
+                this.list = this._data.lst;
+            },
+
             moveItemDrag: event => {
                 // NOTE: This may be better done by micro.OL itself if some reset attribute is set
                 this.querySelector(".listling-list-items").insertBefore(event.detail.li,
@@ -237,7 +249,7 @@ listling.ListPage = class extends micro.Page {
 
     async attachedCallback() {
         ui.shortcutContext.add("B", this._data.toggleTrash);
-        ui.shortcutContext.add("S", this._data.toggleSettings);
+        ui.shortcutContext.add("C", this._data.toggleSettings);
         this._events.forEach(e => ui.addEventListener(e, this));
         if (this._data.editMode) {
             this._form.elements[0].focus();
@@ -252,7 +264,7 @@ listling.ListPage = class extends micro.Page {
 
     detachedCallback() {
         ui.shortcutContext.remove("B");
-        ui.shortcutContext.remove("S");
+        ui.shortcutContext.remove("C");
         this._events.forEach(e => ui.removeEventListener(e, this));
     }
 
@@ -264,7 +276,7 @@ listling.ListPage = class extends micro.Page {
         this._data.lst = value;
         this._data.editMode = !this._data.lst;
         this.caption = this._data.lst.title;
-        history.replaceState(null, null, listling.makeListURL(this._data.lst));
+        history.replaceState(null, null, listling.util.makeListURL(this._data.lst));
     }
 
     async handleEvent(event) {
