@@ -22,7 +22,7 @@ html_theme_options = {
     'github_button': True,
     'github_type': 'star'
 }
-html_favicon = '../client/images/favicon.png'
+html_favicon = '../client/images/icon-small.png'
 html_static_path = ['../client/images/listling.svg']
 html_sidebars = {'**': ['about.html', 'navigation.html', 'searchbox.html']}
 html_show_sourcelink = False
