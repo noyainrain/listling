@@ -20,7 +20,8 @@
 import json
 
 import micro
-from micro.server import Endpoint, Server, make_orderable_endpoints, make_trashable_endpoints
+from micro.server import (Endpoint, Server, make_activity_endpoint, make_orderable_endpoints,
+                          make_trashable_endpoints)
 
 from . import Listling
 
@@ -33,13 +34,16 @@ def make_server(port=8080, url=None, debug=False, redis_url='', smtp_url=''):
         (r'/api/lists/([^/]+)$', _ListEndpoint),
         (r'/api/lists/([^/]+)/items$', _ListItemsEndpoint),
         *make_orderable_endpoints(r'/api/lists/([^/]+)/items', lambda id: app.lists[id].items),
+        make_activity_endpoint(r'/api/lists/([^/]+)/activity',
+                               lambda id, *a: app.lists[id].activity),
         (r'/api/lists/([^/]+)/items/([^/]+)$', _ItemEndpoint),
         *make_trashable_endpoints(r'/api/lists/([^/]+)/items/([^/]+)',
                                   lambda list_id, id: app.lists[list_id].items[id]),
         (r'/api/lists/([^/]+)/items/([^/]+)/check$', _ItemCheckEndpoint),
         (r'/api/lists/([^/]+)/items/([^/]+)/uncheck$', _ItemUncheckEndpoint)
     ]
-    return Server(app, handlers, port, url, client_modules_path='node_modules', debug=debug)
+    return Server(app, handlers, port, url, client_modules_path='node_modules',
+                  client_service_path='listling/service.js', debug=debug)
 
 class _ListsEndpoint(Endpoint):
     def post(self):
