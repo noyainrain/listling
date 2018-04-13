@@ -71,9 +71,7 @@ class ListlingUpdateTest(AsyncTestCase):
         app.update()
 
         lst = next(iter(app.lists.values()))
-        item = next(iter(lst.items.values()))
-        self.assertFalse(lst.features)
-        self.assertFalse(item.checked)
+        self.assertIsNotNone(lst.activity)
 
     def test_update_db_version_first(self):
         self.setup_db('0.2.1')
@@ -85,6 +83,8 @@ class ListlingUpdateTest(AsyncTestCase):
         item = next(iter(lst.items.values()))
         self.assertFalse(lst.features)
         self.assertFalse(item.checked)
+        # Update to version 3
+        self.assertIsNotNone(lst.activity)
 
 class ListTest(ListlingTestCase):
     def test_edit(self):

@@ -7,6 +7,7 @@
 
     {% raw micro_dependencies() %}
     <link rel="stylesheet" href="{{ static_url('listling.css') }}" />
+    <script src="{{ static_url('listling/util.js') }}" defer="defer"></script>
     <script src="{{ static_url('listling/index.js') }}" defer="defer"></script>
 </head>
 
@@ -180,12 +181,41 @@
                                autocomplete="off" data-value="or lst.title ''" />
                     </label>
                 </h1>
-                <ul is="micro-menu" class="listling-list-mode-view">
+                <ul is="micro-menu" class="listling-list-menu listling-list-mode-view">
                     <li>
                         <button is="micro-button" type="button" class="listling-list-edit action"
                                 data-run="startEdit" data-shortcut="new Shortcut 'E'">
                             <i class="fa fa-pencil"></i> Edit
                         </button>
+                    </li>
+                    <li>
+                        <button type="button" class="link"><i class="fa fa-fw fa-bars"></i></button>
+                        <ul is="micro-menu">
+                            <li data-content="switch lst.activity.user_subscribed">
+                                <template>
+                                    <button
+                                        is="micro-button"
+                                        type="button"
+                                        class="listling-list-unsubscribe action"
+                                        data-run="unsubscribe"
+                                        data-shortcut="new Shortcut 'S'"
+                                    >
+                                        <i class="fa fa-fw fa-bell-slash"></i> Unsubscribe
+                                    </button>
+                                </template>
+                                <template>
+                                    <button
+                                        is="micro-button"
+                                        type="button"
+                                        class="listling-list-subscribe action"
+                                        data-run="subscribe"
+                                        data-shortcut="new Shortcut 'S'"
+                                    >
+                                        <i class="fa fa-fw fa-bell"></i> Subscribe
+                                    </button>
+                                </template>
+                            </li>
+                        </ul>
                     </li>
                 </ul>
             </header>
@@ -207,7 +237,7 @@
             <div class="listling-list-settings listling-list-mode-edit"
                  data-class-listling-list-settings-expanded="settingsExpanded">
                 <p class="listling-detail">
-                    <button is="micro-button" type="button" class="link" title="⌨ S"
+                    <button is="micro-button" type="button" class="link" title="⌨ C"
                             data-run="toggleSettings">
                         <i class="fa fa-search-plus"></i> More settings
                     </button>
@@ -302,6 +332,11 @@
         </div>
     </template>
     <style>
+        body:not(.micro-feature-push) .listling-list-edit {
+            border-top-right-radius: calc(1.5em / 4);
+            border-bottom-right-radius: calc(1.5em / 4);
+        }
+
         .listling-list-items,
         .listling-list-trashed-items {
             padding: 0;
@@ -316,6 +351,7 @@
 
         listling-list-page:not(.listling-list-mode-view) .listling-list-mode-view,
         listling-list-page:not(.listling-list-mode-edit) .listling-list-mode-edit,
+        body:not(.micro-feature-push) .listling-list-menu li:last-child,
         listling-list-page:not(.listling-list-has-trashed-items) .listling-list-trash,
         .listling-list-trash.listling-list-trash-expanded > p,
         .listling-list-trash:not(.listling-list-trash-expanded) > div,

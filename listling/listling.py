@@ -15,7 +15,8 @@
 """Open Listling core."""
 
 import micro
-from micro import Application, Collection, Editable, Object, Orderable, Trashable, Settings, Event
+from micro import (Activity, Application, Collection, Editable, Object, Orderable, Trashable,
+                   Settings, Event)
 from micro.jsonredis import JSONRedis
 from micro.util import randstr, str_or_none
 
@@ -81,8 +82,11 @@ class Listling(Application):
             if use_case not in _USE_CASES:
                 raise micro.ValueError('use_case_unknown')
             data = _USE_CASES[use_case]
-            lst = List(id='List:{}'.format(randstr()), app=self.app, authors=[self.app.user.id],
-                       title=data['title'], description=None, features=data['features'])
+            id = 'List:{}'.format(randstr())
+            lst = List(
+                id, self.app, authors=[self.app.user.id], title=data['title'], description=None,
+                features=data['features'],
+                activity=Activity('{}.activity'.format(id), self.app, subscriber_ids=[]))
             self.app.r.oset(lst.id, lst)
             self.app.r.rpush(self.map_key, lst.id)
             self.app.activity.publish(
@@ -117,7 +121,7 @@ class Listling(Application):
     def do_update(self):
         version = self.r.get('version')
         if not version:
-            self.r.set('version', 2)
+            self.r.set('version', 3)
             return
 
         version = int(version)
@@ -136,12 +140,22 @@ class Listling(Application):
             r.omset({lst['id']: lst for lst in lists})
             r.set('version', 2)
 
+        # Deprecated since 0.5.0
+        if version < 3:
+            lists = r.omget(r.lrange('lists', 0, -1))
+            for lst in lists:
+                lst['activity'] = (
+                    Activity('{}.activity'.format(lst['id']), app=self, subscriber_ids=[]).json())
+            r.omset({lst['id']: lst for lst in lists})
+            r.set('version', 3)
+
     def create_settings(self):
         # pylint: disable=unexpected-keyword-arg; decorated
         return Settings(
             id='Settings', app=self, authors=[], title='My Open Listling', icon=None,
             icon_small=None, icon_large=None, provider_name=None, provider_url=None,
-            provider_description={}, feedback_url=None, staff=[], v=2)
+            provider_description={}, feedback_url=None, staff=[], push_vapid_private_key=None,
+            push_vapid_public_key=None, v=2)
 
 class List(Object, Editable):
     """See :ref:`List`."""
@@ -159,15 +173,19 @@ class List(Object, Editable):
                 checked=False)
             self.app.r.oset(item.id, item)
             self.app.r.rpush(self.map_key, item.id)
+            self.host[0].activity.publish(
+                Event.create('list-create-item', self.host[0], {'item': item}, self.app))
             return item
 
-    def __init__(self, id, app, authors, title, description, features):
+    def __init__(self, id, app, authors, title, description, features, activity):
         super().__init__(id, app)
-        Editable.__init__(self, authors)
+        Editable.__init__(self, authors, activity)
         self.title = title
         self.description = description
         self.features = features
         self.items = List.Items((self, 'items'))
+        self.activity = activity
+        self.activity.host = self
 
     def do_edit(self, **attrs):
         if 'title' in attrs and str_or_none(attrs['title']) is None:
@@ -182,16 +200,22 @@ class List(Object, Editable):
             self.features = attrs['features']
 
     def json(self, restricted=False, include=False):
-        return {**super().json(restricted, include), **Editable.json(self, restricted, include),
-                'title': self.title, 'description': self.description, 'features': self.features}
+        return {
+            **super().json(restricted, include),
+            **Editable.json(self, restricted, include),
+            'title': self.title,
+            'description': self.description,
+            'features': self.features,
+            'activity': self.activity.json(restricted)
+        }
 
 class Item(Object, Editable, Trashable):
     """See :ref:`Item`."""
 
     def __init__(self, id, app, authors, trashed, list_id, title, text, checked):
         super().__init__(id, app)
-        Editable.__init__(self, authors)
-        Trashable.__init__(self, trashed)
+        Editable.__init__(self, authors, lambda: self.list.activity)
+        Trashable.__init__(self, trashed, lambda: self.list.activity)
         self._list_id = list_id
         self.title = title
         self.text = text
@@ -207,12 +231,14 @@ class Item(Object, Editable, Trashable):
         _check_feature(self.app.user, 'check', self)
         self.checked = True
         self.app.r.oset(self.id, self)
+        self.list.activity.publish(Event.create('item-check', self, app=self.app))
 
     def uncheck(self):
         """See :http:post:`/api/lists/(list-id)/items/(id)/uncheck`."""
         _check_feature(self.app.user, 'check', self)
         self.checked = False
         self.app.r.oset(self.id, self)
+        self.list.activity.publish(Event.create('item-uncheck', self, app=self.app))
 
     def do_edit(self, **attrs):
         if 'title' in attrs and str_or_none(attrs['title']) is None:
