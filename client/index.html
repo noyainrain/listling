@@ -332,6 +332,8 @@
         </div>
     </template>
     <style>
+        body:not(.micro-feature-es6-typed-array) .listling-list-edit,
+        body:not(.micro-feature-service-workers) .listling-list-edit,
         body:not(.micro-feature-push) .listling-list-edit {
             border-top-right-radius: calc(1.5em / 4);
             border-bottom-right-radius: calc(1.5em / 4);
@@ -351,6 +353,8 @@
 
         listling-list-page:not(.listling-list-mode-view) .listling-list-mode-view,
         listling-list-page:not(.listling-list-mode-edit) .listling-list-mode-edit,
+        body:not(.micro-feature-es6-typed-array) .listling-list-menu li:last-child,
+        body:not(.micro-feature-service-workers) .listling-list-menu li:last-child,
         body:not(.micro-feature-push) .listling-list-menu li:last-child,
         listling-list-page:not(.listling-list-has-trashed-items) .listling-list-trash,
         .listling-list-trash.listling-list-trash-expanded > p,
