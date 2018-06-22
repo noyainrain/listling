@@ -22,7 +22,7 @@
 
 // Chrome does not yet update the service worker if imports change (see
 // https://bugs.chromium.org/p/chromium/issues/detail?id=648295)
-// micro 0.14.0
+// micro 0.16.0
 importScripts("/static/node_modules/@noyainrain/micro/util.js",
               "/static/node_modules/@noyainrain/micro/service.js", "/static/listling/util.js");
 
