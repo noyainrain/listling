@@ -127,7 +127,7 @@
 
         .listling-start-use-cases li > i {
             display: block;
-            font-size: calc(2 * 0.875em);
+            font-size: 2em;
             color: #888;
         }
 
@@ -185,7 +185,7 @@
                     <li>
                         <button is="micro-button" type="button" class="listling-list-edit action"
                                 data-run="startEdit" data-shortcut="new Shortcut 'E'">
-                            <i class="fa fa-pencil"></i> Edit
+                            <i class="fa fa-pencil-alt"></i> Edit
                         </button>
                     </li>
                     <li>
@@ -228,7 +228,7 @@
             </label>
 
             <p class="listling-detail listling-list-mode-view" title="Edited by">
-                <i class="fa fa-pencil"></i>
+                <i class="fa fa-pencil-alt"></i>
                 <span data-content="join lst.authors 'user'">
                     <template><micro-user data-user="user"></micro-user></template>
                 </span>
@@ -387,7 +387,7 @@
                                 data-disabled="item.trashed"
                                 data-shortcut="new Shortcut 'X' 'Uncheck'"
                             >
-                                <i class="fa fa-fw fa-check-square-o"></i>
+                                <i class="fa fa-fw fa-check-square"></i>
                             </button>
                         </li>
                     </template>
@@ -401,7 +401,7 @@
                                 data-disabled="item.trashed"
                                 data-shortcut="new Shortcut 'X' 'Check'"
                             >
-                                <i class="fa fa-fw fa-square-o"></i>
+                                <i class="far fa-fw fa-square"></i>
                             </button>
                         </li>
                     </template>
@@ -436,7 +436,7 @@
                                     data-run="startEdit"
                                     data-shortcut="new Shortcut 'E'"
                                 >
-                                    <i class="fa fa-pencil"></i> Edit
+                                    <i class="fa fa-pencil-alt"></i> Edit
                                 </button>
                             </li>
                             <li>
@@ -464,7 +464,7 @@
                 </label>
 
                 <p class="listling-detail listling-item-mode-view" title="Edited by">
-                    <i class="fa fa-pencil"></i>
+                    <i class="fa fa-pencil-alt"></i>
                     <span data-content="join item.authors 'user'">
                         <template><micro-user data-user="user"></micro-user></template>
                     </span>
@@ -522,7 +522,12 @@
 
         [is=listling-item] h1 {
             font-size: 1em;
+            font-weight: bold;
             padding: calc(1.5em / 4) 0;
+        }
+
+        [is=listling-item].listling-item-trashed h1 {
+            color: inherit;
         }
 
         listling-list-page:not(.listling-list-feature-check) [is=listling-item].listling-item-trashed h1,

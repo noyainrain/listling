@@ -58,7 +58,7 @@ listling.StartPage = class extends micro.Page {
         const USE_CASES = [
             {id: "todo", title: "To-Do list", icon: "check"},
             {id: "shopping", title: "Shopping list", icon: "shopping-cart"},
-            {id: "meeting-agenda", title: "Meeting agenda", icon: "handshake-o"},
+            {id: "meeting-agenda", title: "Meeting agenda", icon: "handshake"},
             {id: "simple", title: "Simple list", icon: "list"}
         ];
 
@@ -214,7 +214,7 @@ listling.ListPage = class extends micro.Page {
 
             moveItemKey: event => {
                 let ol = event.target.parentElement;
-                let item = event.target.item;
+                let {item} = event.target;
                 let i = this._data.presentItems.findIndex(other => other.id === item.id);
 
                 let j = i + (event.detail.dir === "up" ? -2 : 1);
@@ -279,7 +279,7 @@ listling.ListPage = class extends micro.Page {
         history.replaceState(null, null, listling.util.makeListURL(this._data.lst));
     }
 
-    async handleEvent(event) {
+    handleEvent(event) {
         if (event.type === "list-items-create") {
             this._items.push(event.detail.item);
         } else if (event.type === "list-items-move") {
