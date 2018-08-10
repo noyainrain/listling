@@ -73,7 +73,7 @@ class Listling(Application):
                 lst = self.create('simple', v=2)
                 lst.edit(title=title, description=description)
                 return lst
-            elif v == 2:
+            if v == 2:
                 # create(use_case='simple')
                 use_case = use_case or 'simple'
             else:
