@@ -17,8 +17,8 @@ VERSION=${VERSION:?}
 git checkout master
 git fetch
 git merge
-git merge --no-ff --no-commit $FEATURE
-[ -f .git/MERGE_HEAD ]
+git merge --squash $FEATURE
+git diff --cached --quiet && false
 
 # Bump version
 bump_version doc/conf.py "^\(version = release = '\)\(.*\)\('\)$"

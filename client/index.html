@@ -220,6 +220,12 @@
                 </ul>
             </header>
 
+            <div class="listling-list-mode-view" data-content="switch locationEnabled">
+                <template>
+                    <micro-map data-locations="locations"></micro-map>
+                </template>
+            </div>
+
             <p class="listling-list-mode-view micro-multiline" data-content="lst.description"></p>
             <label class="listling-list-mode-edit">
                 <textarea name="description" placeholder="Description (optional)"
@@ -260,6 +266,13 @@
                             <input type="checkbox" name="features" value="check"
                                    data-checked="includes lst.features 'check'" />
                             Check items
+                        </label>
+                        <label class="listling-list-features-location">
+                            <input
+                                type="checkbox" name="features" value="location"
+                                data-checked="includes lst.features 'location'"
+                            />
+                            Item location
                         </label>
                     </fieldset>
                 </section>
@@ -356,6 +369,7 @@
         body:not(.micro-feature-es6-typed-array) .listling-list-menu li:last-child,
         body:not(.micro-feature-service-workers) .listling-list-menu li:last-child,
         body:not(.micro-feature-push) .listling-list-menu li:last-child,
+        body:not(.micro-ui-map-service-enabled) .listling-list-features-location,
         listling-list-page:not(.listling-list-has-trashed-items) .listling-list-trash,
         .listling-list-trash.listling-list-trash-expanded > p,
         .listling-list-trash:not(.listling-list-trash-expanded) > div,
@@ -456,6 +470,25 @@
             </header>
 
             <div class="listling-item-content">
+                <dl class="listling-item-meta">
+                    <dt class="listling-item-location" title="Location">
+                        <i class="fa fa-fw fa-map-marker-alt"></i>
+                    </dt>
+                    <dd>
+                        <a
+                            class="link listling-item-mode-view" data-href="makeItemURL item true"
+                            data-content="item.location.name"
+                        ></a>
+                        <span class="listling-item-mode-view" data-content="item.location.name">
+                        </span>
+                        <micro-location-input
+                            class="listling-item-mode-edit" name="location"
+                            placeholder="Location (optional)" data-value="item.location"
+                        >
+                        </micro-location-input>
+                    </dd>
+                </dl>
+
                 <p class="listling-item-mode-view micro-multiline" data-content="item.text"></p>
                 <label class="listling-item-mode-edit">
                     <textarea name="text" placeholder="Text (optional)"
@@ -549,8 +582,18 @@
 
         .listling-item-content p,
         .listling-item-content ul,
+        .listling-item-content dl,
         .listling-item-content label {
             margin: calc(1.5rem / 4) 0;
+        }
+
+        .listling-item-content .micro-panel p,
+        .listling-item-content .micro-entity-list > ul {
+            margin: 0;
+        }
+
+        [is=listling-item].listling-item-mode-edit .listling-item-meta {
+            row-gap: var(--micro-size-xs);
         }
 
         [is=listling-item]:not(.listling-item-mode-view) .listling-item-mode-view,
@@ -559,7 +602,12 @@
         listling-list-page:not(.listling-list-feature-check) .listling-item-check,
         listling-list-page:not(.listling-list-feature-check) .listling-item-uncheck,
         [is=listling-item]:not(.listling-item-trashed) .listling-item-restore,
-        [is=listling-item].listling-item-trashed .listling-item-menu li:last-child {
+        [is=listling-item].listling-item-trashed .listling-item-menu li:last-child,
+        body:not(.micro-ui-map-service-enabled) .listling-item-meta,
+        listling-list-page:not(.listling-list-feature-location) .listling-item-meta,
+        [is=listling-item].listling-item-mode-view:not(.listling-item-has-location) .listling-item-meta,
+        [is=listling-item].listling-item-has-location-coords .listling-item-location + dd > span,
+        [is=listling-item]:not(.listling-item-has-location-coords) .listling-item-location + dd > a {
             display: none;
         }
     </style>

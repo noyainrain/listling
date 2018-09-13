@@ -20,12 +20,14 @@
 import json
 
 import micro
+from micro import Location
 from micro.server import (Endpoint, Server, make_activity_endpoint, make_orderable_endpoints,
                           make_trashable_endpoints)
 
 from . import Listling
 
-def make_server(port=8080, url=None, debug=False, redis_url='', smtp_url=''):
+def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='',
+                client_map_service_key=None):
     """Create an Open Listling server."""
     app = Listling(redis_url, smtp_url=smtp_url)
     handlers = [
@@ -42,8 +44,10 @@ def make_server(port=8080, url=None, debug=False, redis_url='', smtp_url=''):
         (r'/api/lists/([^/]+)/items/([^/]+)/check$', _ItemCheckEndpoint),
         (r'/api/lists/([^/]+)/items/([^/]+)/uncheck$', _ItemUncheckEndpoint)
     ]
-    return Server(app, handlers, port, url, client_modules_path='node_modules',
-                  client_service_path='listling/service.js', debug=debug)
+    return Server(
+        app, handlers, port=port, url=url, client_modules_path='node_modules',
+        client_service_path='listling/service.js', debug=debug,
+        client_map_service_key=client_map_service_key)
 
 class _ListsEndpoint(Endpoint):
     def post(self):
@@ -86,7 +90,16 @@ class _ListItemsEndpoint(Endpoint):
 
     def post(self, id):
         lst = self.app.lists[id]
-        args = self.check_args({'title': str, 'text': (str, None, 'opt')})
+        args = self.check_args({
+            'title': str,
+            'text': (str, None, 'opt'),
+            'location': (dict, None, 'opt')
+        })
+        if args.get('location') is not None:
+            try:
+                args['location'] = Location.parse(args['location'])
+            except TypeError:
+                raise micro.ValueError('bad_location_type')
         item = lst.items.create(**args)
         self.write(item.json(restricted=True, include=True))
 
@@ -97,7 +110,16 @@ class _ItemEndpoint(Endpoint):
 
     def post(self, list_id, id):
         item = self.app.lists[list_id].items[id]
-        args = self.check_args({'title': (str, 'opt'), 'text': (str, None, 'opt')})
+        args = self.check_args({
+            'title': (str, 'opt'),
+            'text': (str, None, 'opt'),
+            'location': (dict, None, 'opt')
+        })
+        if args.get('location') is not None:
+            try:
+                args['location'] = Location.parse(args['location'])
+            except TypeError:
+                raise micro.ValueError('bad_location_type')
         item.edit(**args)
         self.write(item.json(restricted=True, include=True))
 

@@ -97,6 +97,8 @@ rules:
           allowAfterThis: true
     # Mixing let and const may be less readable
     prefer-const: off
+    # No cross-browser support yet
+    prefer-object-spread: off
     # Escapes may be less readable
     quotes:
         - error

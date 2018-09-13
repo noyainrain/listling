@@ -27,3 +27,10 @@ listling.util.makeListURL = function(ctx, lst) {
     }
     return `/lists/${lst.id.split(":")[1]}${micro.util.slugify(lst.title)}`;
 };
+
+listling.util.makeItemURL = function(ctx, item, map = false) {
+    if (!item) {
+        return "";
+    }
+    return `#${map ? "map" : "items"}-${item.id.split(":")[1]}`;
+};

@@ -15,8 +15,8 @@
 """Open Listling core."""
 
 import micro
-from micro import (Activity, Application, Collection, Editable, Object, Orderable, Trashable,
-                   Settings, Event)
+from micro import (Activity, Application, Collection, Editable, Location, Object, Orderable,
+                   Trashable, Settings, Event)
 from micro.jsonredis import JSONRedis
 from micro.util import randstr, str_or_none
 
@@ -24,7 +24,8 @@ _USE_CASES = {
     'simple': {'title': 'New list', 'features': []},
     'todo': {'title': 'New to-do list', 'features': ['check']},
     'shopping': {'title': 'New shopping list', 'features': []},
-    'meeting-agenda': {'title': 'New meeting agenda', 'features': []}
+    'meeting-agenda': {'title': 'New meeting agenda', 'features': []},
+    'map': {'title': 'New map', 'features': ['location']}
 }
 
 _EXAMPLE_DATA = {
@@ -53,6 +54,30 @@ _EXAMPLE_DATA = {
             {'title': 'Round of introductions'},
             {'title': 'Lunch poll', 'text': 'What will we have for lunch today?'},
             {'title': 'Next meeting', 'text': 'When and where will our next meeting be?'}
+        ]
+    ),
+    'map': (
+        'Delicious burger places in Berlin',
+        'Hand-Picked by ourselves. Your favorite is missing? Let us know!',
+        [
+            {
+                'title': 'Glück to go',
+                'text': 'Website: http://www.glueck-to-go.de/',
+                'location': Location('Friesenstraße 26, 10965 Berlin, Germany',
+                                     (52.48866, 13.394651))
+            },
+            {
+                'title': 'L’herbivore',
+                'text': 'Website: https://lherbivore.de/',
+                'location': Location('Petersburger Straße 38, 10249 Berlin, Germany',
+                                     (52.522951, 13.449482))
+            },
+            {
+                'title': 'YELLOW SUNSHINE',
+                'text': 'Website: http://www.yellow-sunshine.de/',
+                'location': Location('Wiener Straße 19, 10999 Berlin, Germany',
+                                     (52.497561, 13.430773))
+            }
         ]
     )
 }
@@ -149,6 +174,15 @@ class Listling(Application):
             r.omset({lst['id']: lst for lst in lists})
             r.set('version', 3)
 
+        # Deprecated since 0.6.0
+        if version < 4:
+            items = r.omget([id for list_id in r.lrange('lists', 0, -1)
+                             for id in r.lrange('{}.items'.format(list_id.decode()), 0, -1)])
+            for item in items:
+                item['location'] = None
+            r.omset({item['id']: item for item in items})
+            r.set('version', 4)
+
     def create_settings(self):
         # pylint: disable=unexpected-keyword-arg; decorated
         return Settings(
@@ -163,14 +197,19 @@ class List(Object, Editable):
     class Items(Collection, Orderable):
         """See :ref:`Items`."""
 
-        def create(self, title, text=None):
-            """See :http:post:`/api/lists/(id)/items`."""
+        def create(self, title, text=None, *, location=None):
+            """See :http:post:`/api/lists/(id)/items`.
+
+            .. deprecated:: 0.6.0
+
+               *text* as positional argument. Pass as keyword argument instead.
+            """
             if str_or_none(title) is None:
                 raise micro.ValueError('title_empty')
             item = Item(
                 id='Item:{}'.format(randstr()), app=self.app, authors=[self.app.user.id],
                 trashed=False, list_id=self.host[0].id, title=title, text=str_or_none(text),
-                checked=False)
+                location=location.json() if location else None, checked=False)
             self.app.r.oset(item.id, item)
             self.app.r.rpush(self.map_key, item.id)
             self.host[0].activity.publish(
@@ -190,7 +229,7 @@ class List(Object, Editable):
     def do_edit(self, **attrs):
         if 'title' in attrs and str_or_none(attrs['title']) is None:
             raise micro.ValueError('title_empty')
-        if 'features' in attrs and not set(attrs['features']) <= {'check'}:
+        if 'features' in attrs and not set(attrs['features']) <= {'check', 'location'}:
             raise micro.ValueError('feature_unknown')
         if 'title' in attrs:
             self.title = attrs['title']
@@ -212,13 +251,15 @@ class List(Object, Editable):
 class Item(Object, Editable, Trashable):
     """See :ref:`Item`."""
 
-    def __init__(self, id, app, authors, trashed, list_id, title, text, checked):
+    def __init__(self, *, id, app, authors, trashed, list_id, title, text, location=None, checked):
+        # Compatibility for Item without location (deprecated since 0.6.0)
         super().__init__(id, app)
         Editable.__init__(self, authors, lambda: self.list.activity)
         Trashable.__init__(self, trashed, lambda: self.list.activity)
         self._list_id = list_id
         self.title = title
         self.text = text
+        self.location = Location.parse(location) if location else None
         self.checked = checked
 
     @property
@@ -247,6 +288,8 @@ class Item(Object, Editable, Trashable):
             self.title = attrs['title']
         if 'text' in attrs:
             self.text = str_or_none(attrs['text'])
+        if 'location' in attrs:
+            self.location = attrs['location']
 
     def json(self, restricted=False, include=False):
         return {
@@ -256,6 +299,7 @@ class Item(Object, Editable, Trashable):
             'list_id': self._list_id,
             'title': self.title,
             'text': self.text,
+            'location': self.location.json() if self.location else None,
             'checked': self.checked
         }
 
