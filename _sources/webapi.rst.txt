@@ -23,8 +23,8 @@ Lists
 
    Create a :ref:`List` for the given *use_case* and return it.
 
-   Available *use_case* s are ``simple``, ``todo``, ``shopping`` and ``meeting-agenda``. The
-   endpoint version *v* must be ``2``.
+   Available *use_case* s are ``simple``, ``todo``, ``shopping``, ``meeting-agenda`` and ``map``.
+   The endpoint version *v* must be ``2``.
 
    Permission: Authenticated users.
 
@@ -79,7 +79,7 @@ List
 
    Set of features enabled for the list.
 
-   Available features are ``check``.
+   Available features are ``check`` and ``location``.
 
 .. include:: micro/editable-endpoints.inc
 
@@ -94,7 +94,7 @@ Items
 
 .. http:post:: /api/lists/(id)/items
 
-   ``{"title", "text": null}``
+   ``{"title", "text": null, "location": null}``
 
    Create an :ref:`Item` and return it.
 
@@ -128,6 +128,10 @@ Item
 .. describe:: text
 
    Text content of the item. May be ``null``.
+
+.. describe:: location
+
+   :ref:`Location` of the item. May be ``null``.
 
 .. describe:: checked
 
