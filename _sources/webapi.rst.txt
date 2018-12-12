@@ -117,6 +117,8 @@ Item
 
 .. include:: micro/trashable-attributes.inc
 
+.. include:: micro/with-content-attributes.inc
+
 .. describe:: list_id
 
    ID of the list the item belongs to.
@@ -124,10 +126,6 @@ Item
 .. describe:: title
 
    Title of item.
-
-.. describe:: text
-
-   Text content of the item. May be ``null``.
 
 .. describe:: location
 

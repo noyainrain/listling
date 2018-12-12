@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>2. Web API &#8212; Open Listling 0.6.0 documentation</title>
+    <title>2. Web API &#8212; Open Listling 0.7.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -54,23 +54,18 @@
 any endpoint, a <a class="reference internal" href="#permissionerror"><span class="std std-ref">PermissionError</span></a> is returned if the current user is not allowed to perform the
 action.</p>
 </div>
-<div class="section" id="lists">
-<h2>2.3. Lists<a class="headerlink" href="#lists" title="Permalink to this headline">¶</a></h2>
-<p>For most API endpoints which return a list, a slice of the form <code class="docutils literal notranslate"><span class="pre">/(start):(stop)</span></code> may be appended
-to the URL, where <em>start</em> (inclusive) and <em>stop</em> (exclusive) are indices of the items to return.
-The maximum number of items is limited to a <em>limit</em> of <code class="docutils literal notranslate"><span class="pre">100</span></code>. Both <em>start</em> and <em>stop</em> are optional
-and default to <code class="docutils literal notranslate"><span class="pre">0</span></code> and <code class="docutils literal notranslate"><span class="pre">start</span> <span class="pre">+</span> <span class="pre">limit</span></code> respectively.</p>
-<p>Example: <code class="docutils literal notranslate"><span class="pre">/api/activity</span></code> (which is equivalent to <code class="docutils literal notranslate"><span class="pre">/api/activity/:</span></code> or <code class="docutils literal notranslate"><span class="pre">/api/activity/0:100</span></code>)
-returns the first hundred items (i.e. global events) and <code class="docutils literal notranslate"><span class="pre">/api/activity/10:20</span></code> returns the items
-from index 10 up to including 19.</p>
-</div>
 <div class="section" id="additional-types">
-<h2>2.4. Additional types<a class="headerlink" href="#additional-types" title="Permalink to this headline">¶</a></h2>
+<h2>2.3. Additional types<a class="headerlink" href="#additional-types" title="Permalink to this headline">¶</a></h2>
+<p>A <em>slice</em> represents a range of a list, as array <code class="docutils literal notranslate"><span class="pre">[start,</span> <span class="pre">stop]</span></code>, from index <em>start</em> (inclusive)
+to <em>stop</em> (exclusive). Both <em>start</em> and <em>stop</em> may be <code class="docutils literal notranslate"><span class="pre">null</span></code>, referring to the beginning (0) and
+end (list length) of the list respectively.</p>
+<p>A <em>slice string</em> has the form <code class="docutils literal notranslate"><span class="pre">{start}:{stop}</span></code>. Both <em>start</em> and <em>stop</em> may be omitted, meaning
+<code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
 <p>A <em>polyglot string</em> is an <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code> holding multiple translations of a string indexed by short
 language tag.</p>
 </div>
 <div class="section" id="usage-examples">
-<h2>2.5. Usage examples<a class="headerlink" href="#usage-examples" title="Permalink to this headline">¶</a></h2>
+<h2>2.4. Usage examples<a class="headerlink" href="#usage-examples" title="Permalink to this headline">¶</a></h2>
 <p>A new <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> is created and logged in with the following request:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ curl -d &quot;&quot; https://example.org/api/login
 {
@@ -105,8 +100,41 @@ setting the email address:</p>
 </pre></div>
 </div>
 </div>
+<div class="section" id="collection">
+<span id="id1"></span><h2>2.5. Collection<a class="headerlink" href="#collection" title="Permalink to this headline">¶</a></h2>
+<p>Collection of objects.</p>
+<dl class="describe">
+<dt>
+<code class="descname">count</code></dt>
+<dd><p>Overall number of items in the collection.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">items</code></dt>
+<dd><p>Array of queried items. May be undefined.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">slice</code></dt>
+<dd><p>Slice corresponding to the queried items. May be undefined.</p>
+</dd></dl>
+
+<dl class="get">
+<dt id="get--api-(resource-url)?slice">
+<code class="descname">GET </code><code class="descname">/api/(resource-url)?slice</code><a class="headerlink" href="#get--api-(resource-url)?slice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query the collection for a <em>slice</em> of items.</p>
+<p><em>slice</em> is a <em>slice string</em>. The maximum number of items is limited to a <em>limit</em> of 100, i.e.
+<em>stop</em> is capped at <em>start</em> + <em>limit</em>. Defaults to <code class="docutils literal notranslate"><span class="pre">:</span></code>.</p>
+<p>Example: <code class="docutils literal notranslate"><span class="pre">/api/cats</span></code> (which is equivalent to <code class="docutils literal notranslate"><span class="pre">/api/cats?slice=:</span></code> or
+<code class="docutils literal notranslate"><span class="pre">/api/cats?slice=0:100</span></code>) returns the first hundred items and <code class="docutils literal notranslate"><span class="pre">/api/cats?slice=10:20</span></code> returns
+the items from index 10 up to including 19.</p>
+</dd></dl>
+
+</div>
 <div class="section" id="authrequest">
-<span id="id1"></span><h2>2.6. AuthRequest<a class="headerlink" href="#authrequest" title="Permalink to this headline">¶</a></h2>
+<span id="id2"></span><h2>2.6. AuthRequest<a class="headerlink" href="#authrequest" title="Permalink to this headline">¶</a></h2>
 <p>Third party authentication request.</p>
 <p>To set an <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> ‘s email address, a third party authentication via the email provider is
 performed to proof ownership over the address: First an email message containing a secret
@@ -130,7 +158,7 @@ application.</p>
 
 </div>
 <div class="section" id="user">
-<span id="id2"></span><h2>2.7. User<a class="headerlink" href="#user" title="Permalink to this headline">¶</a></h2>
+<span id="id3"></span><h2>2.7. User<a class="headerlink" href="#user" title="Permalink to this headline">¶</a></h2>
 <p>User is editable by the user oneself.</p>
 <dl class="describe">
 <dt>
@@ -199,7 +227,7 @@ application.</p>
 <code class="descname">POST </code><code class="descname">/api/(object-url)</code><a class="headerlink" href="#post--api-(object-url)" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">{attrs...}</span></code></p>
 <p>Edit the attributes given by <em>attrs</em> and return the updated object.</p>
-<p>A <em>trashed</em> (deleted) object cannot be edited. In this case a <a class="reference internal" href="#valueerror"><span class="std std-ref">Location</span></a>
+<p>A <em>trashed</em> (deleted) object cannot be edited. In this case a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a>
 (<cite>object_trashed</cite>) is returned.</p>
 <p>Permission: Authenticated users.</p>
 </dd></dl>
@@ -221,8 +249,8 @@ use <a class="reference internal" href="#post--api-users-(id)-finish-set-email" 
 <dd><p>{“auth_request_id”, “auth”}</p>
 <p>Finish setting the user’s <em>email</em> address and return the user.</p>
 <p><em>auth</em> is the authentication code, resulting from the <a class="reference internal" href="#authrequest"><span class="std std-ref">AuthRequest</span></a> with <em>auth_request_id</em>,
-to be verified. If the verification fails, a <a class="reference internal" href="#valueerror"><span class="std std-ref">Location</span></a> (<code class="docutils literal notranslate"><span class="pre">auth_invalid</span></code>) is returned. If
-the given email address is already associated with another user, a <a class="reference internal" href="#valueerror"><span class="std std-ref">Location</span></a>
+to be verified. If the verification fails, a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a> (<code class="docutils literal notranslate"><span class="pre">auth_invalid</span></code>) is returned. If
+the given email address is already associated with another user, a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a>
 (<code class="docutils literal notranslate"><span class="pre">email_duplicate</span></code>) is returned.</p>
 <p>Permission: The user oneself.</p>
 </dd></dl>
@@ -231,7 +259,7 @@ the given email address is already associated with another user, a <a class="ref
 <dt id="post--api-users-(id)-remove-email">
 <code class="descname">POST </code><code class="descname">/api/users/</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><code class="descname">/remove-email</code><a class="headerlink" href="#post--api-users-(id)-remove-email" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove the user’s current <em>email</em> address and return the user.</p>
-<p>If the user’s <em>email</em> is not set, a <a class="reference internal" href="#valueerror"><span class="std std-ref">Location</span></a> (<code class="docutils literal notranslate"><span class="pre">user_no_email</span></code>) is returned.</p>
+<p>If the user’s <em>email</em> is not set, a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a> (<code class="docutils literal notranslate"><span class="pre">user_no_email</span></code>) is returned.</p>
 <p>Permission: The user oneself.</p>
 </dd></dl>
 
@@ -250,7 +278,7 @@ the given email address is already associated with another user, a <a class="ref
 
 </div>
 <div class="section" id="activity">
-<span id="id3"></span><h2>2.8. Activity<a class="headerlink" href="#activity" title="Permalink to this headline">¶</a></h2>
+<span id="id4"></span><h2>2.8. Activity<a class="headerlink" href="#activity" title="Permalink to this headline">¶</a></h2>
 <p>Activity feed (of events) around a common topic/context.</p>
 <p><em>activity-url</em> is the URL that identifies the activity feed, e.g. <code class="docutils literal notranslate"><span class="pre">/api/activity</span></code>.</p>
 <dl class="describe">
@@ -276,9 +304,15 @@ the given email address is already associated with another user, a <a class="ref
 <p>Permission: Authenticated users.</p>
 </dd></dl>
 
+<dl class="get">
+<dt id="get--api-(activity-url)-stream">
+<code class="descname">GET </code><code class="descname">/api/(activity-url)/stream</code><a class="headerlink" href="#get--api-(activity-url)-stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a live stream of <span class="xref std std-ref">Event`s as ``text/event-stream`</span>.</p>
+</dd></dl>
+
 </div>
 <div class="section" id="event">
-<span id="id4"></span><h2>2.9. Event<a class="headerlink" href="#event" title="Permalink to this headline">¶</a></h2>
+<span id="id5"></span><h2>2.9. Event<a class="headerlink" href="#event" title="Permalink to this headline">¶</a></h2>
 <p>Event about an action on an <em>object</em> by an <em>user</em>.</p>
 <dl class="describe">
 <dt>
@@ -327,7 +361,7 @@ the given email address is already associated with another user, a <a class="ref
 
 </div>
 <div class="section" id="location">
-<span id="valueerror"></span><span id="id5"></span><h2>2.10. Location<a class="headerlink" href="#location" title="Permalink to this headline">¶</a></h2>
+<span id="id6"></span><h2>2.10. Location<a class="headerlink" href="#location" title="Permalink to this headline">¶</a></h2>
 <p>Location.</p>
 <dl class="describe">
 <dt>
@@ -342,45 +376,124 @@ the given email address is already associated with another user, a <a class="ref
 </dd></dl>
 
 </div>
-<div class="section" id="id6">
-<h2>2.11. ValueError<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="resource">
+<span id="id7"></span><h2>2.11. Resource<a class="headerlink" href="#resource" title="Permalink to this headline">¶</a></h2>
+<p>Web resource description.</p>
+<dl class="describe">
+<dt>
+<code class="descname">url</code></dt>
+<dd><p>URL of the resource.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">content_type</code></dt>
+<dd><p>Media type.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">description</code></dt>
+<dd><p>Text description. May be <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">image</code></dt>
+<dd><p><a class="reference internal" href="#image"><span class="std std-ref">Image</span></a> representation. May be <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="image">
+<span id="id8"></span><h2>2.12. Image<a class="headerlink" href="#image" title="Permalink to this headline">¶</a></h2>
+<p>Image <a class="reference internal" href="#resource"><span class="std std-ref">Resource</span></a> description.</p>
+<p>Note that the <em>image</em> representation is always <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
+<dl class="describe">
+<dt>
+<code class="descname">url</code></dt>
+<dd><p>URL of the resource.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">content_type</code></dt>
+<dd><p>Media type.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">description</code></dt>
+<dd><p>Text description. May be <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">image</code></dt>
+<dd><p><a class="reference internal" href="#image"><span class="std std-ref">Image</span></a> representation. May be <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="errors">
+<h2>2.13. Errors<a class="headerlink" href="#errors" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="valueerror">
+<span id="id9"></span><h3>2.13.1. ValueError<a class="headerlink" href="#valueerror" title="Permalink to this headline">¶</a></h3>
 <p>Returned for value-related errors.</p>
 <dl class="attribute">
 <dt id="code">
 <code class="descname">code</code><a class="headerlink" href="#code" title="Permalink to this definition">¶</a></dt>
 <dd><p>Error string providing more information about the problem.</p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.27.0: </span>Use <code class="xref py py-attr docutils literal notranslate"><span class="pre">message</span></code> instead.</p>
+</div>
 </dd></dl>
 
 </div>
 <div class="section" id="inputerror">
-<span id="id7"></span><h2>2.12. InputError<a class="headerlink" href="#inputerror" title="Permalink to this headline">¶</a></h2>
+<span id="id10"></span><h3>2.13.2. InputError<a class="headerlink" href="#inputerror" title="Permalink to this headline">¶</a></h3>
 <p>Returned if the input to an endpoint contains one or more arguments with an invalid value.</p>
-<p>InputError is a <a class="reference internal" href="#valueerror"><span class="std std-ref">Location</span></a> with <em>code</em> set to <code class="docutils literal notranslate"><span class="pre">input_invalid</span></code>.</p>
+<p>InputError is a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a> with <em>code</em> set to <code class="docutils literal notranslate"><span class="pre">input_invalid</span></code>.</p>
 <dl class="attribute">
-<dt id="errors">
-<code class="descname">errors</code><a class="headerlink" href="#errors" title="Permalink to this definition">¶</a></dt>
+<dt>
+<code class="descname">errors</code></dt>
 <dd><p>Map of argument names / error strings for every problematic argument of the input.</p>
 </dd></dl>
 
 </div>
 <div class="section" id="notfounderror">
-<span id="id8"></span><h2>2.13. NotFoundError<a class="headerlink" href="#notfounderror" title="Permalink to this headline">¶</a></h2>
+<span id="id11"></span><h3>2.13.3. NotFoundError<a class="headerlink" href="#notfounderror" title="Permalink to this headline">¶</a></h3>
 <p>Returned if a requested endpoint does not exist.</p>
 </div>
 <div class="section" id="authenticationerror">
-<span id="id9"></span><h2>2.14. AuthenticationError<a class="headerlink" href="#authenticationerror" title="Permalink to this headline">¶</a></h2>
+<span id="id12"></span><h3>2.13.4. AuthenticationError<a class="headerlink" href="#authenticationerror" title="Permalink to this headline">¶</a></h3>
 <p>Returned if user authentication fails.</p>
 </div>
 <div class="section" id="permissionerror">
-<span id="id10"></span><h2>2.15. PermissionError<a class="headerlink" href="#permissionerror" title="Permalink to this headline">¶</a></h2>
+<span id="id13"></span><h3>2.13.5. PermissionError<a class="headerlink" href="#permissionerror" title="Permalink to this headline">¶</a></h3>
 <p>Returned if the current user is not allowed to perform an action.</p>
 </div>
 <div class="section" id="communicationerror">
-<span id="id11"></span><h2>2.16. CommunicationError<a class="headerlink" href="#communicationerror" title="Permalink to this headline">¶</a></h2>
+<span id="id14"></span><h3>2.13.6. CommunicationError<a class="headerlink" href="#communicationerror" title="Permalink to this headline">¶</a></h3>
 <p>Returned if communication with a third party fails.</p>
 </div>
+<div class="section" id="analysiserror">
+<span id="id15"></span><h3>2.13.7. AnalysisError<a class="headerlink" href="#analysiserror" title="Permalink to this headline">¶</a></h3>
+<p>Returned if analyzing a web resource fails.</p>
+</div>
+<div class="section" id="noresourceerror">
+<span id="id16"></span><h3>2.13.8. NoResourceError<a class="headerlink" href="#noresourceerror" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference internal" href="#analysiserror"><span class="std std-ref">AnalysisError</span></a> returned if there is no resource at the URL to analyze.</p>
+</div>
+<div class="section" id="forbiddenresourceerror">
+<span id="id17"></span><h3>2.13.9. ForbiddenResourceError<a class="headerlink" href="#forbiddenresourceerror" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference internal" href="#analysiserror"><span class="std std-ref">AnalysisError</span></a> returned if access to the resource subject to analysis is forbidden.</p>
+</div>
+<div class="section" id="brokenresourceerror">
+<span id="borkenresourceerror"></span><h3>2.13.10. BrokenResourceError<a class="headerlink" href="#brokenresourceerror" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference internal" href="#analysiserror"><span class="std std-ref">AnalysisError</span></a> returned if the resource subject to analysis is broken.</p>
+</div>
+</div>
 <div class="section" id="listling">
-<span id="id12"></span><h2>2.17. Listling<a class="headerlink" href="#listling" title="Permalink to this headline">¶</a></h2>
+<span id="id18"></span><h2>2.14. Listling<a class="headerlink" href="#listling" title="Permalink to this headline">¶</a></h2>
 <p>Listling application.</p>
 <dl class="get">
 <dt id="get--api-settings">
@@ -405,8 +518,8 @@ the given email address is already associated with another user, a <a class="ref
 registered as staff member.</p>
 </dd></dl>
 
-<div class="section" id="id13">
-<span id="id14"></span><h3>2.17.1. Lists<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="lists">
+<span id="id19"></span><h3>2.14.1. Lists<a class="headerlink" href="#lists" title="Permalink to this headline">¶</a></h3>
 <dl class="post">
 <dt id="post--api-lists">
 <code class="descname">POST </code><code class="descname">/api/lists</code><a class="headerlink" href="#post--api-lists" title="Permalink to this definition">¶</a></dt>
@@ -439,7 +552,7 @@ The endpoint version <em>v</em> must be <code class="docutils literal notranslat
 </div>
 </div>
 <div class="section" id="settings">
-<span id="id15"></span><h2>2.18. Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h2>
+<span id="id20"></span><h2>2.15. Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h2>
 <p>App settings.</p>
 <dl class="describe">
 <dt>
@@ -537,14 +650,14 @@ The endpoint version <em>v</em> must be <code class="docutils literal notranslat
 <code class="descname">POST </code><code class="descname">/api/(object-url)</code><a class="headerlink" href="#post--api-(object-url)" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">{attrs...}</span></code></p>
 <p>Edit the attributes given by <em>attrs</em> and return the updated object.</p>
-<p>A <em>trashed</em> (deleted) object cannot be edited. In this case a <a class="reference internal" href="#valueerror"><span class="std std-ref">Location</span></a>
+<p>A <em>trashed</em> (deleted) object cannot be edited. In this case a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a>
 (<cite>object_trashed</cite>) is returned.</p>
 <p>Permission: Authenticated users.</p>
 </dd></dl>
 
 </div>
 <div class="section" id="list">
-<span id="id16"></span><h2>2.19. List<a class="headerlink" href="#list" title="Permalink to this headline">¶</a></h2>
+<span id="id21"></span><h2>2.16. List<a class="headerlink" href="#list" title="Permalink to this headline">¶</a></h2>
 <dl class="describe">
 <dt>
 <code class="descname">id</code></dt>
@@ -590,13 +703,13 @@ The endpoint version <em>v</em> must be <code class="docutils literal notranslat
 <code class="descname">POST </code><code class="descname">/api/(object-url)</code><a class="headerlink" href="#post--api-(object-url)" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">{attrs...}</span></code></p>
 <p>Edit the attributes given by <em>attrs</em> and return the updated object.</p>
-<p>A <em>trashed</em> (deleted) object cannot be edited. In this case a <a class="reference internal" href="#valueerror"><span class="std std-ref">Location</span></a>
+<p>A <em>trashed</em> (deleted) object cannot be edited. In this case a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a>
 (<cite>object_trashed</cite>) is returned.</p>
 <p>Permission: Authenticated users.</p>
 </dd></dl>
 
 <div class="section" id="items">
-<span id="id17"></span><h3>2.19.1. Items<a class="headerlink" href="#items" title="Permalink to this headline">¶</a></h3>
+<span id="id22"></span><h3>2.16.1. Items<a class="headerlink" href="#items" title="Permalink to this headline">¶</a></h3>
 <dl class="get">
 <dt id="get--api-lists-(id)-items">
 <code class="descname">GET </code><code class="descname">/api/lists/</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><code class="descname">/items</code><a class="headerlink" href="#get--api-lists-(id)-items" title="Permalink to this definition">¶</a></dt>
@@ -623,7 +736,7 @@ The endpoint version <em>v</em> must be <code class="docutils literal notranslat
 <dd><p><code class="docutils literal notranslate"><span class="pre">{&quot;item_id&quot;,</span> <span class="pre">&quot;to_id&quot;}</span></code></p>
 <p>Move the item with <em>item_id</em> to the position directly after the item with <em>to_id</em>.</p>
 <p>If <em>to_id</em> is <code class="docutils literal notranslate"><span class="pre">null</span></code>, move the item to the top of the collection.</p>
-<p>If there is no item with <em>item_id</em> or <em>to_id</em> in the collection, a <a class="reference internal" href="#valueerror"><span class="std std-ref">Location</span></a>
+<p>If there is no item with <em>item_id</em> or <em>to_id</em> in the collection, a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a>
 (<code class="docutils literal notranslate"><span class="pre">item_not_found</span></code> or <code class="docutils literal notranslate"><span class="pre">to_not_found</span></code>) is returned.</p>
 <p>Permission: Authenticated users.</p>
 </dd></dl>
@@ -631,7 +744,7 @@ The endpoint version <em>v</em> must be <code class="docutils literal notranslat
 </div>
 </div>
 <div class="section" id="item">
-<span id="id18"></span><h2>2.20. Item<a class="headerlink" href="#item" title="Permalink to this headline">¶</a></h2>
+<span id="id23"></span><h2>2.17. Item<a class="headerlink" href="#item" title="Permalink to this headline">¶</a></h2>
 <dl class="describe">
 <dt>
 <code class="descname">id</code></dt>
@@ -661,6 +774,18 @@ The endpoint version <em>v</em> must be <code class="docutils literal notranslat
 
 <dl class="describe">
 <dt>
+<code class="descname">text</code></dt>
+<dd><p>Text content. May be <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">resource</code></dt>
+<dd><p>Web <a class="reference internal" href="#resource"><span class="std std-ref">Resource</span></a> content. May be <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
 <code class="descname">list_id</code></dt>
 <dd><p>ID of the list the item belongs to.</p>
 </dd></dl>
@@ -669,12 +794,6 @@ The endpoint version <em>v</em> must be <code class="docutils literal notranslat
 <dt>
 <code class="descname">title</code></dt>
 <dd><p>Title of item.</p>
-</dd></dl>
-
-<dl class="describe">
-<dt>
-<code class="descname">text</code></dt>
-<dd><p>Text content of the item. May be <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
 </dd></dl>
 
 <dl class="describe">
@@ -694,7 +813,7 @@ The endpoint version <em>v</em> must be <code class="docutils literal notranslat
 <code class="descname">POST </code><code class="descname">/api/(object-url)</code><a class="headerlink" href="#post--api-(object-url)" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">{attrs...}</span></code></p>
 <p>Edit the attributes given by <em>attrs</em> and return the updated object.</p>
-<p>A <em>trashed</em> (deleted) object cannot be edited. In this case a <a class="reference internal" href="#valueerror"><span class="std std-ref">Location</span></a>
+<p>A <em>trashed</em> (deleted) object cannot be edited. In this case a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a>
 (<cite>object_trashed</cite>) is returned.</p>
 <p>Permission: Authenticated users.</p>
 </dd></dl>
@@ -719,7 +838,7 @@ The endpoint version <em>v</em> must be <code class="docutils literal notranslat
 <dt id="post--api-lists-(list-id)-items-(id)-check">
 <code class="descname">POST </code><code class="descname">/api/lists/(list-id)/items/</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><code class="descname">/check</code><a class="headerlink" href="#post--api-lists-(list-id)-items-(id)-check" title="Permalink to this definition">¶</a></dt>
 <dd><p>Mark the item as complete.</p>
-<p>If the feature <code class="docutils literal notranslate"><span class="pre">check</span></code> is not enabled for the list, a <a class="reference internal" href="#valueerror"><span class="std std-ref">Location</span></a> (<cite>feature_disabled</cite>) is
+<p>If the feature <code class="docutils literal notranslate"><span class="pre">check</span></code> is not enabled for the list, a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a> (<cite>feature_disabled</cite>) is
 returned.</p>
 <p>Permission: Authenticated users.</p>
 </dd></dl>
@@ -728,7 +847,7 @@ returned.</p>
 <dt id="post--api-lists-(list-id)-items-(id)-uncheck">
 <code class="descname">POST </code><code class="descname">/api/lists/(list-id)/items/</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><code class="descname">/uncheck</code><a class="headerlink" href="#post--api-lists-(list-id)-items-(id)-uncheck" title="Permalink to this definition">¶</a></dt>
 <dd><p>Mark the item as incomplete.</p>
-<p>If the feature <code class="docutils literal notranslate"><span class="pre">check</span></code> is not enabled for the list, a <a class="reference internal" href="#valueerror"><span class="std std-ref">Location</span></a> (<cite>feature_disabled</cite>) is
+<p>If the feature <code class="docutils literal notranslate"><span class="pre">check</span></code> is not enabled for the list, a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a> (<cite>feature_disabled</cite>) is
 returned.</p>
 <p>Permission: Authenticated users.</p>
 </dd></dl>
@@ -774,24 +893,21 @@ returned.</p>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">2. Web API</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#introduction">2.1. Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#authentication-and-permissions">2.2. Authentication and Permissions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#lists">2.3. Lists</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#additional-types">2.4. Additional types</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#usage-examples">2.5. Usage examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#additional-types">2.3. Additional types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#usage-examples">2.4. Usage examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#collection">2.5. Collection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#authrequest">2.6. AuthRequest</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#user">2.7. User</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#activity">2.8. Activity</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#event">2.9. Event</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#location">2.10. Location</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id6">2.11. ValueError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#inputerror">2.12. InputError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#notfounderror">2.13. NotFoundError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#authenticationerror">2.14. AuthenticationError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#permissionerror">2.15. PermissionError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#communicationerror">2.16. CommunicationError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#listling">2.17. Listling</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#settings">2.18. Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#list">2.19. List</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#item">2.20. Item</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#resource">2.11. Resource</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#image">2.12. Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#errors">2.13. Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#listling">2.14. Listling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#settings">2.15. Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#list">2.16. List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#item">2.17. Item</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="pythonapi.html">3. Python API</a></li>
@@ -819,8 +935,8 @@ returned.</p>
       &copy;2018 Open Listling contributors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.9</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>
 
