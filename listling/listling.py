@@ -16,9 +16,9 @@
 
 import micro
 from micro import (Activity, Application, Collection, Editable, Location, Object, Orderable,
-                   Trashable, Settings, Event)
+                   Trashable, Settings, Event, WithContent)
 from micro.jsonredis import JSONRedis
-from micro.util import randstr, str_or_none
+from micro.util import randstr, run_instant, str_or_none, ON
 
 _USE_CASES = {
     'simple': {'title': 'New list', 'features': []},
@@ -118,8 +118,18 @@ class Listling(Application):
                 Event.create('create-list', None, {'lst': lst}, app=self.app))
             return lst
 
-        def create_example(self, use_case):
-            """See :http:post:`/api/lists/create-example`."""
+        def create_example(self, use_case, *, asynchronous=None):
+            """See :http:post:`/api/lists/create-example`.
+
+            .. deprecated:: 0.7.0
+
+               Synchronous execution. Await instead (with *asynchronous* :data:`micro.util.ON`).
+            """
+            # Compatibility for synchronous execution (deprecated since 0.7.0)
+            coro = self._create_example(use_case)
+            return coro if asynchronous is ON else run_instant(coro)
+
+        async def _create_example(self, use_case):
             if use_case not in _EXAMPLE_DATA:
                 raise micro.ValueError('use_case_unknown')
             data = _EXAMPLE_DATA[use_case]
@@ -132,7 +142,7 @@ class Listling(Application):
             for item in data[2]:
                 args = dict(item)
                 checked = args.pop('checked', False)
-                item = lst.items.create(**args)
+                item = await lst.items.create(asynchronous=ON, **args)
                 if checked:
                     item.check()
             return lst
@@ -146,7 +156,7 @@ class Listling(Application):
     def do_update(self):
         version = self.r.get('version')
         if not version:
-            self.r.set('version', 3)
+            self.r.set('version', 5)
             return
 
         version = int(version)
@@ -183,6 +193,16 @@ class Listling(Application):
             r.omset({item['id']: item for item in items})
             r.set('version', 4)
 
+        # Deprecated since 0.7.0
+        if version < 5:
+            items = r.omget(
+                [id for list_id in r.lrange('lists', 0, -1)
+                 for id in r.lrange('{}.items'.format(list_id.decode()), 0, -1)])
+            for item in items:
+                item['resource'] = None
+            r.omset({item['id']: item for item in items})
+            r.set('version', 5)
+
     def create_settings(self):
         # pylint: disable=unexpected-keyword-arg; decorated
         return Settings(
@@ -197,18 +217,30 @@ class List(Object, Editable):
     class Items(Collection, Orderable):
         """See :ref:`Items`."""
 
-        def create(self, title, text=None, *, location=None):
+        def create(self, title, text=None, *, resource=None, location=None, asynchronous=None):
             """See :http:post:`/api/lists/(id)/items`.
 
             .. deprecated:: 0.6.0
 
                *text* as positional argument. Pass as keyword argument instead.
+
+            .. deprecated:: 0.7.0
+
+               Synchronous execution. Await instead (with *asynchronous* :data:`micro.util.ON`).
             """
+            coro = self._create(title, text=text, resource=resource, location=location)
+            return coro if asynchronous is ON else run_instant(coro)
+
+        async def _create(self, title, *, text=None, resource=None, location=None):
+            attrs = await WithContent.process_attrs({'text': text, 'resource': resource},
+                                                    app=self.app)
             if str_or_none(title) is None:
                 raise micro.ValueError('title_empty')
+
             item = Item(
                 id='Item:{}'.format(randstr()), app=self.app, authors=[self.app.user.id],
-                trashed=False, list_id=self.host[0].id, title=title, text=str_or_none(text),
+                trashed=False, text=attrs['text'], resource=attrs['resource'],
+                list_id=self.host[0].id, title=title,
                 location=location.json() if location else None, checked=False)
             self.app.r.oset(item.id, item)
             self.app.r.rpush(self.map_key, item.id)
@@ -248,17 +280,18 @@ class List(Object, Editable):
             'activity': self.activity.json(restricted)
         }
 
-class Item(Object, Editable, Trashable):
+class Item(Object, Editable, Trashable, WithContent):
     """See :ref:`Item`."""
 
-    def __init__(self, *, id, app, authors, trashed, list_id, title, text, location=None, checked):
+    def __init__(self, *, id, app, authors, trashed, text, resource, list_id, title, location=None,
+                 checked):
         # Compatibility for Item without location (deprecated since 0.6.0)
         super().__init__(id, app)
         Editable.__init__(self, authors, lambda: self.list.activity)
         Trashable.__init__(self, trashed, lambda: self.list.activity)
+        WithContent.__init__(self, text=text, resource=resource)
         self._list_id = list_id
         self.title = title
-        self.text = text
         self.location = Location.parse(location) if location else None
         self.checked = checked
 
@@ -281,13 +314,14 @@ class Item(Object, Editable, Trashable):
         self.app.r.oset(self.id, self)
         self.list.activity.publish(Event.create('item-uncheck', self, app=self.app))
 
-    def do_edit(self, **attrs):
+    async def do_edit(self, **attrs):
+        attrs = await WithContent.pre_edit(self, attrs)
         if 'title' in attrs and str_or_none(attrs['title']) is None:
             raise micro.ValueError('title_empty')
+
+        WithContent.do_edit(self, **attrs)
         if 'title' in attrs:
             self.title = attrs['title']
-        if 'text' in attrs:
-            self.text = str_or_none(attrs['text'])
         if 'location' in attrs:
             self.location = attrs['location']
 
@@ -296,9 +330,9 @@ class Item(Object, Editable, Trashable):
             **super().json(restricted, include),
             **Editable.json(self, restricted, include),
             **Trashable.json(self, restricted, include),
+            **WithContent.json(self, restricted, include),
             'list_id': self._list_id,
             'title': self.title,
-            'text': self.text,
             'location': self.location.json() if self.location else None,
             'checked': self.checked
         }

@@ -23,6 +23,7 @@ import micro
 from micro import Location
 from micro.server import (Endpoint, Server, make_activity_endpoint, make_orderable_endpoints,
                           make_trashable_endpoints)
+from micro.util import ON
 
 from . import Listling
 
@@ -88,11 +89,12 @@ class _ListItemsEndpoint(Endpoint):
         lst = self.app.lists[id]
         self.write(json.dumps([i.json(True, True) for i in lst.items.values()]))
 
-    def post(self, id):
+    async def post(self, id):
         lst = self.app.lists[id]
         args = self.check_args({
-            'title': str,
             'text': (str, None, 'opt'),
+            'resource': (str, None, 'opt'),
+            'title': str,
             'location': (dict, None, 'opt')
         })
         if args.get('location') is not None:
@@ -100,7 +102,7 @@ class _ListItemsEndpoint(Endpoint):
                 args['location'] = Location.parse(args['location'])
             except TypeError:
                 raise micro.ValueError('bad_location_type')
-        item = lst.items.create(**args)
+        item = await lst.items.create(asynchronous=ON, **args)
         self.write(item.json(restricted=True, include=True))
 
 class _ItemEndpoint(Endpoint):
@@ -108,11 +110,12 @@ class _ItemEndpoint(Endpoint):
         item = self.app.lists[list_id].items[id]
         self.write(item.json(restricted=True, include=True))
 
-    def post(self, list_id, id):
+    async def post(self, list_id, id):
         item = self.app.lists[list_id].items[id]
         args = self.check_args({
-            'title': (str, 'opt'),
             'text': (str, None, 'opt'),
+            'resource': (str, None, 'opt'),
+            'title': (str, 'opt'),
             'location': (dict, None, 'opt')
         })
         if args.get('location') is not None:
@@ -120,7 +123,7 @@ class _ItemEndpoint(Endpoint):
                 args['location'] = Location.parse(args['location'])
             except TypeError:
                 raise micro.ValueError('bad_location_type')
-        item.edit(**args)
+        await item.edit(asynchronous=ON, **args)
         self.write(item.json(restricted=True, include=True))
 
 class _ItemCheckEndpoint(Endpoint):

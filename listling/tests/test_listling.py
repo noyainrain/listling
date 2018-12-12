@@ -17,7 +17,8 @@
 from subprocess import check_call
 from tempfile import mkdtemp
 
-from tornado.testing import AsyncTestCase
+from micro.util import ON
+from tornado.testing import AsyncTestCase, gen_test
 
 from listling import Listling
 
@@ -45,8 +46,9 @@ class ListlingTest(ListlingTestCase):
         self.assertEqual(lst.title, 'New list')
         self.assertIn(lst.id, self.app.lists)
 
-    def test_lists_create_example(self):
-        lst = self.app.lists.create_example('shopping')
+    @gen_test
+    async def test_lists_create_example(self):
+        lst = await self.app.lists.create_example('shopping', asynchronous=ON)
         self.assertEqual(lst.title, 'Kitchen shopping list')
         self.assertTrue(lst.items)
         self.assertIn(lst.id, self.app.lists)
@@ -66,12 +68,12 @@ class ListlingUpdateTest(AsyncTestCase):
         self.assertEqual(app.settings.title, 'My Open Listling')
 
     def test_update_db_version_previous(self):
-        self.setup_db('0.5.4')
+        self.setup_db('0.6.0')
         app = Listling(redis_url='15')
         app.update()
 
-        item = next(iter(next(iter(app.lists.values())).items.values()))
-        self.assertIsNone(item.location)
+        item = app.lists[0].items[0]
+        self.assertIsNone(item.resource)
 
     def test_update_db_version_first(self):
         self.setup_db('0.2.1')
@@ -79,14 +81,16 @@ class ListlingUpdateTest(AsyncTestCase):
         app.update()
 
         # Update to version 2
-        lst = next(iter(app.lists.values()))
-        item = next(iter(lst.items.values()))
+        lst = app.lists[0]
+        item = lst.items[0]
         self.assertFalse(lst.features)
         self.assertFalse(item.checked)
         # Update to version 3
         self.assertIsNotNone(lst.activity)
         # Update to version 4
         self.assertIsNone(item.location)
+        # Update to version 5
+        self.assertIsNone(item.resource)
 
 class ListTest(ListlingTestCase):
     def test_edit(self):
@@ -94,18 +98,20 @@ class ListTest(ListlingTestCase):
         lst.edit(description='What has to be done!')
         self.assertEqual(lst.description, 'What has to be done!')
 
-    def test_items_create(self):
+    @gen_test
+    async def test_items_create(self):
         lst = self.app.lists.create(v=2)
-        item = lst.items.create('Sleep')
+        item = await lst.items.create('Sleep', asynchronous=ON)
         self.assertIn(item.id, lst.items)
 
 class ItemTest(ListlingTestCase):
     def make_item(self, use_case='simple'):
         return self.app.lists.create(use_case, v=2).items.create('Sleep')
 
-    def test_edit(self):
+    @gen_test
+    async def test_edit(self):
         item = self.make_item()
-        item.edit(text='Very important!')
+        await item.edit(text='Very important!', asynchronous=ON)
         self.assertEqual(item.text, 'Very important!')
 
     def test_check(self):

@@ -47,8 +47,6 @@ listling.UI = class extends micro.UI {
                 return elem;
             }
         });
-
-        this.classList.toggle("micro-ui-map-service-enabled", this.mapServiceKey);
     }
 };
 
@@ -347,14 +345,35 @@ listling.ItemElement = class extends HTMLLIElement {
             },
 
             edit: async() => {
+                const text = this._form.elements.text.value;
+                const match = text.match(/^https?:\/\/\S+/u);
+                const resource = match ? match[0] : null;
                 let url = this._data.item
                     ? `/api/lists/${ui.page.list.id}/items/${this._data.item.id}`
                     : `/api/lists/${ui.page.list.id}/items`;
-                let item = await micro.call("POST", url, {
-                    title: this._form.elements.title.value,
-                    text: this._form.elements.text.value,
-                    location: this._form.elements.location.wrapper.value
-                });
+
+                let item;
+                try {
+                    item = await micro.call("POST", url, {
+                        text,
+                        resource,
+                        title: this._form.elements.title.value,
+                        location: this._form.elements.location.wrapper.value
+                    });
+                } catch (e) {
+                    if (
+                        e instanceof micro.APIError && [
+                            "CommunicationError", "NoResourceError", "ForbiddenResourceError",
+                            "BrokenResourceError"
+                        ].includes(e.error.__type__)
+                    ) {
+                        ui.notify("Oops, there was a problem opening the link. Please try again in a few moments.");
+                        return;
+                    }
+                    ui.handleCallError(e);
+                    return;
+                }
+
                 if (this._data.item) {
                     ui.dispatchEvent(new CustomEvent("item-edit", {detail: {item}}));
                 } else {

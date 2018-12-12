@@ -489,11 +489,19 @@
                     </dd>
                 </dl>
 
+                <div
+                    class="listling-item-resource listling-item-mode-view"
+                    data-content="renderResource item.resource"
+                >
+                </div>
+
                 <p class="listling-item-mode-view micro-multiline" data-content="item.text"></p>
                 <label class="listling-item-mode-edit">
                     <textarea name="text" placeholder="Text (optional)"
                               data-value="or item.text ''">
                     </textarea>
+                    <small></small>
+                    <small>Attach additional content like images, … by inserting a link.</small>
                 </label>
 
                 <p class="listling-detail listling-item-mode-view" title="Edited by">
@@ -590,6 +598,16 @@
         .listling-item-content .micro-panel p,
         .listling-item-content .micro-entity-list > ul {
             margin: 0;
+        }
+
+        .listling-item-resource {
+            --micro-link-max-height: calc((70ch - 2 * var(--micro-size-xs)) * 3 / 4);
+            --micro-image-max-height: var(--micro-link-max-height);
+            margin: var(--micro-size-xs) 0;
+        }
+
+        .listling-item-resource > * {
+            display: block;
         }
 
         [is=listling-item].listling-item-mode-edit .listling-item-meta {
