@@ -286,7 +286,8 @@ listling.ListPage = class extends micro.Page {
             if (this._data.editMode) {
                 this._form.elements[0].focus();
             } else {
-                let items = await micro.call("GET", `/api/lists/${this._data.lst.id}/items`);
+                const base = `/api/lists/${this._data.lst.id}`;
+                let items = await micro.call("GET", `${base}/items`);
                 this._items = new micro.bind.Watchable(items);
                 this._data.presentItems = micro.bind.filter(this._items, i => !i.trashed);
                 this._data.trashedItems = micro.bind.filter(this._items, i => i.trashed);
@@ -300,6 +301,11 @@ listling.ListPage = class extends micro.Page {
                         url: listling.util.makeItemURL(null, item),
                         hash: `map-${item.id.split(":")[1]}`
                     }, item.location)
+                );
+
+                this._activity = await micro.Activity.open(`${base}/activity/stream`);
+                this._activity.events.addEventListener(
+                    "list-create-item", event => this._items.push(event.detail.event.detail.item)
                 );
             }
         })().catch(micro.util.catch));
@@ -325,9 +331,7 @@ listling.ListPage = class extends micro.Page {
     }
 
     handleEvent(event) {
-        if (event.type === "list-items-create") {
-            this._items.push(event.detail.item);
-        } else if (event.type === "list-items-move") {
+        if (event.type === "list-items-move") {
             let i = this._items.findIndex(item => item.id === event.detail.item.id);
             this._items.splice(i, 1);
             let j = event.detail.to
@@ -405,7 +409,6 @@ listling.ItemElement = class extends HTMLLIElement {
                 } else {
                     this._form.reset();
                     this._form.elements.location.wrapper.value = null;
-                    ui.dispatchEvent(new CustomEvent("list-items-create", {detail: {item}}));
                 }
                 if (this.onedit) {
                     this.onedit(new CustomEvent("edit"));

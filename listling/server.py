@@ -22,7 +22,7 @@ import json
 import micro
 from micro import Location
 from micro.server import (Endpoint, Server, make_activity_endpoint, make_orderable_endpoints,
-                          make_trashable_endpoints)
+                          make_trashable_endpoints, ActivityStreamEndpoint)
 from micro.util import ON
 
 from . import Listling
@@ -35,6 +35,8 @@ def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='',
         (r'/api/lists$', _ListsEndpoint),
         (r'/api/lists/create-example$', _ListsCreateExampleEndpoint),
         (r'/api/lists/([^/]+)$', _ListEndpoint),
+        (r'/api/lists/([^/]+)/activity/stream$', ActivityStreamEndpoint,
+         {'get_activity': lambda id, *a: app.lists[id].activity}),
         (r'/api/lists/([^/]+)/items$', _ListItemsEndpoint),
         *make_orderable_endpoints(r'/api/lists/([^/]+)/items', lambda id: app.lists[id].items),
         make_activity_endpoint(r'/api/lists/([^/]+)/activity',
