@@ -16,8 +16,8 @@ install:
 script:
     - make test
     - make test-ext
-    # Skip code style checks if WIP is indicated
-    - test -z "${TRAVIS_COMMIT_MESSAGE##*WIP*}" || make lint
+    # Skip code style checks for WirVsVirus Hackathon
+    # - test -z "${TRAVIS_COMMIT_MESSAGE##*WIP*}" || make lint
 jobs:
     include:
         - &test-ui

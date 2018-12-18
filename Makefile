@@ -32,7 +32,11 @@ check: test test-ext test-ui lint
 .PHONY: deps
 deps:
 	$(PIP) install $(PIPFLAGS) -r requirements.txt
+	@# Work around npm refusing to update local path dependencies (see
+	@# https://npm.community/t/npm-update-for-local-modules-does-not-work-for-version-6-4-0/1725)
+	$(NPM) $(NPMFLAGS) install --only=prod
 	$(NPM) $(NPMFLAGS) update --only=prod
+	$(NPM) $(NPMFLAGS) dedupe
 
 .PHONY: deps-dev
 deps-dev:
