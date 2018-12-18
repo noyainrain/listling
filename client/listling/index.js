@@ -251,8 +251,29 @@ listling.ListPage = class extends micro.Page {
 
         this._items = null;
         this._form = this.querySelector("form");
-        this._events = ["list-items-create", "list-items-move", "item-edit", "item-trash",
-                        "item-restore", "item-check", "item-uncheck"];
+        this._events = [
+            "list-items-move", "item-edit", "item-trash", "item-restore", "item-check",
+            "item-uncheck"
+        ];
+
+        this.addEventListener("play", event => {
+            console.log("PLAY", event.target);
+            if (event.target !== this._currentItem) {
+                if (this._currentItem) {
+                    this._currentItem.pause();
+                }
+                this._currentItem = event.target;
+            }
+        });
+        this.addEventListener("pause", event => {
+            console.log("PAUSE", event.target);
+            if (this._currentItem.time === this._currentItem.duration) {
+                this._currentItem = this._currentItem.nextElementSibling ||
+                    this.querySelector(".listling-list-items > li");
+                this._currentItem.focus();
+                this._currentItem.play();
+            }
+        });
     }
 
     attachedCallback() {
@@ -337,7 +358,12 @@ listling.ItemElement = class extends HTMLLIElement {
         this._data = new micro.bind.Watchable({
             item: null,
             editMode: true,
+            resourceElem: null,
             makeItemURL: listling.util.makeItemURL,
+
+            play: () => {
+                this.play();
+            },
 
             startEdit: () => {
                 this._data.editMode = true;
@@ -461,6 +487,47 @@ listling.ItemElement = class extends HTMLLIElement {
         this._data.item = value;
         this._data.editMode = !this._data.item;
         this.id = this._data.item ? `items-${this._data.item.id.split(":")[1]}` : "";
+
+        this._data.resourceElem = micro.bind.transforms.renderResource(null, value.resource);
+        if (this._playable) {
+            this._data.resourceElem.addEventListener("play", () => this._play());
+            this._data.resourceElem.addEventListener("pause", () => this._pause());
+        }
+    }
+
+    play() {
+        this._playable ? this._data.resourceElem.play() : this._play();
+    }
+
+    pause() {
+        this._playable ? this._data.resourceElem.pause() : this._pause();
+    }
+
+    get time() {
+        return this._playable ? Math.min(this._data.resourceElem.time, 5 * 60)
+            : Math.min((new Date() - this._startTime) / 1000, this.duration);
+    }
+
+    get duration() {
+        return this._playable ? Math.min(this._data.resourceElem.duration, 5 * 60) : 30;
+    }
+
+    get _playable() {
+        return this._data.resourceElem && "play" in this._data.resourceElem;
+    }
+
+    _play() {
+        this._startTime = new Date();
+        this._timeout = setTimeout(() => this.pause(), this.duration * 1000);
+        this.dispatchEvent(new CustomEvent("play", {bubbles: true}));
+    }
+
+    _pause() {
+        if (this._timeout) {
+            clearTimeout(this._timeout);
+            this._timeout = null;
+        }
+        this.dispatchEvent(new CustomEvent("pause", {bubbles: true}));
     }
 };
 
