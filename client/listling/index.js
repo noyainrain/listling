@@ -256,6 +256,13 @@ listling.ListPage = class extends micro.Page {
             "item-uncheck"
         ];
 
+        function focus(elem) {
+            // window.scroll(
+            //     0, elem.offsetTop - (window.innerHeight / 2 - elem.offsetHeight / 2)
+            // );
+            window.scroll(0, elem.offsetTop - (24 + 6 + 6 + 6));
+            elem.focus();
+        }
         this.addEventListener("play", event => {
             console.log("PLAY", event.target);
             if (event.target !== this._currentItem) {
@@ -263,6 +270,7 @@ listling.ListPage = class extends micro.Page {
                     this._currentItem.pause();
                 }
                 this._currentItem = event.target;
+                focus(this._currentItem);
             }
         });
         this.addEventListener("pause", event => {
@@ -270,7 +278,7 @@ listling.ListPage = class extends micro.Page {
             if (this._currentItem.time === this._currentItem.duration) {
                 this._currentItem = this._currentItem.nextElementSibling ||
                     this.querySelector(".listling-list-items > li");
-                this._currentItem.focus();
+                focus(this._currentItem);
                 this._currentItem.play();
             }
         });
@@ -507,12 +515,12 @@ listling.ItemElement = class extends HTMLLIElement {
     }
 
     get time() {
-        return this._playable ? Math.min(this._data.resourceElem.time, 5 * 60)
+        return this._playable ? Math.min(this._data.resourceElem.time, 10)
             : Math.min((new Date() - this._startTime) / 1000, this.duration);
     }
 
     get duration() {
-        return this._playable ? Math.min(this._data.resourceElem.duration, 5 * 60) : 30;
+        return this._playable ? Math.min(this._data.resourceElem.duration, 10) : 10;
     }
 
     get _playable() {
