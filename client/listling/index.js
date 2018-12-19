@@ -488,6 +488,11 @@ listling.ItemElement = class extends HTMLLIElement {
         this.shortcutContext.add("Alt+ArrowDown", move.bind(null, "down"));
 
         this._form = this.querySelector("form");
+        this._timeout = null;
+        this._interval = null;
+
+        this.static_duration = 10;
+        this.max_duration = 20;
     }
 
     get item() {
@@ -501,44 +506,62 @@ listling.ItemElement = class extends HTMLLIElement {
 
         this._data.resourceElem = micro.bind.transforms.renderResource(null, value.resource);
         if (this._playable) {
-            this._data.resourceElem.addEventListener("play", () => this._play());
-            this._data.resourceElem.addEventListener("pause", () => this._pause());
+            this._data.resourceElem.addEventListener("play", () => {
+                if (!this._interval) {
+                    this._interval = setInterval(() => {
+                        if (this._data.resourceElem.time >= this.max_duration) {
+                            this._data.resourceElem.pause();
+                        }
+                    }, 1000);
+                    this.dispatchEvent(new CustomEvent("play", {bubbles: true}));
+                }
+            });
+            this._data.resourceElem.addEventListener("pause", () => {
+                if (this._interval) {
+                    clearInterval(this._interval);
+                    this._interval = null;
+                    this.dispatchEvent(new CustomEvent("pause", {bubbles: true}));
+                }
+            });
         }
     }
 
     play() {
-        this._playable ? this._data.resourceElem.play() : this._play();
+        if (this._playable) {
+            this._data.resourceElem.play({reset: true});
+        } else {
+            if (!this._timeout) {
+                this._startTime = new Date();
+                this._timeout = setTimeout(() => this.pause(), this.duration * 1000);
+                this.dispatchEvent(new CustomEvent("play", {bubbles: true}));
+            }
+        }
     }
 
     pause() {
-        this._playable ? this._data.resourceElem.pause() : this._pause();
+        if (this._playable) {
+            this._data.resourceElem.pause();
+        } else {
+            if (this._timeout) {
+                clearTimeout(this._timeout);
+                this._timeout = null;
+                this.dispatchEvent(new CustomEvent("pause", {bubbles: true}));
+            }
+        }
     }
 
     get time() {
-        return this._playable ? Math.min(this._data.resourceElem.time, 10)
+        return this._playable ? Math.min(this._data.resourceElem.time, this.max_duration)
             : Math.min((new Date() - this._startTime) / 1000, this.duration);
     }
 
     get duration() {
-        return this._playable ? Math.min(this._data.resourceElem.duration, 10) : 10;
+        return this._playable ? Math.min(this._data.resourceElem.duration, this.max_duration)
+            : this.static_duration;
     }
 
     get _playable() {
         return this._data.resourceElem && "play" in this._data.resourceElem;
-    }
-
-    _play() {
-        this._startTime = new Date();
-        this._timeout = setTimeout(() => this.pause(), this.duration * 1000);
-        this.dispatchEvent(new CustomEvent("play", {bubbles: true}));
-    }
-
-    _pause() {
-        if (this._timeout) {
-            clearTimeout(this._timeout);
-            this._timeout = null;
-        }
-        this.dispatchEvent(new CustomEvent("pause", {bubbles: true}));
     }
 };
 
