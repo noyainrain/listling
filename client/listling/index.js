@@ -256,13 +256,6 @@ listling.ListPage = class extends micro.Page {
             "item-uncheck"
         ];
 
-        function focus(elem) {
-            // window.scroll(
-            //     0, elem.offsetTop - (window.innerHeight / 2 - elem.offsetHeight / 2)
-            // );
-            window.scroll(0, elem.offsetTop - (24 + 6 + 6 + 6));
-            elem.focus();
-        }
         this.addEventListener("play", event => {
             console.log("PLAY", event.target);
             if (event.target !== this._currentItem) {
@@ -270,18 +263,29 @@ listling.ListPage = class extends micro.Page {
                     this._currentItem.pause();
                 }
                 this._currentItem = event.target;
-                focus(this._currentItem);
+                this._focus(this._currentItem);
             }
         });
         this.addEventListener("pause", event => {
-            console.log("PAUSE", event.target);
+            console.log("PAUSE", event.target, this._currentItem.time, this._currentItem.duration);
             if (this._currentItem.time === this._currentItem.duration) {
-                this._currentItem = this._currentItem.nextElementSibling ||
-                    this.querySelector(".listling-list-items > li");
-                focus(this._currentItem);
-                this._currentItem.play();
+                this._play(this._currentItem.nextElementSibling);
             }
         });
+    }
+
+    _focus(elem) {
+        // window.scroll(
+        //     0, elem.offsetTop - (window.innerHeight / 2 - elem.offsetHeight / 2)
+        // );
+        window.scroll(0, elem.offsetTop - (24 + 6 + 6 + 6));
+        elem.focus();
+    }
+
+    _play(item = null) {
+        this._currentItem = item || this.querySelector(".listling-list-items > li");
+        this._focus(this._currentItem);
+        this._currentItem.play();
     }
 
     attachedCallback() {
@@ -315,6 +319,10 @@ listling.ListPage = class extends micro.Page {
                 this._activity.events.addEventListener(
                     "list-create-item", event => this._items.push(event.detail.event.detail.item)
                 );
+
+                if (location.hash === "#p") {
+                    this._play();
+                }
             }
         })().catch(micro.util.catch));
     }
@@ -510,6 +518,7 @@ listling.ItemElement = class extends HTMLLIElement {
                 if (!this._interval) {
                     this._interval = setInterval(() => {
                         if (this._data.resourceElem.time >= this.max_duration) {
+                            console.log("max time reached", this._data.resourceElem.time);
                             this._data.resourceElem.pause();
                         }
                     }, 1000);
