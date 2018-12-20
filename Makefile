@@ -32,7 +32,12 @@ check: test test-ext test-ui lint
 .PHONY: deps
 deps:
 	$(PIP) install $(PIPFLAGS) -r requirements.txt
-	$(NPM) $(NPMFLAGS) update --only=prod
+	#$(NPM) $(NPMFLAGS) update --only=prod
+	# Use micro 35c3 branch (NPM does not work with subdirectory packages out of the box)
+	[ -e .35c3 ] || git clone --branch=35c3 --single-branch https://github.com/noyainrain/micro.git .35c3
+	git -C .35c3 fetch && git -C .35c3 merge
+	$(NPM) $(NPMFLAGS) install "file:.35c3/client"
+	$(NPM) $(NPMFLAGS) dedupe
 
 .PHONY: deps-dev
 deps-dev:
