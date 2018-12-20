@@ -147,6 +147,19 @@ class Listling(Application):
                     item.check()
             return lst
 
+        def shorten(self, lst):
+            short = 'Short:{}'.format(randstr(4))
+            self.app.r.set(short, lst.id)
+            self.app.r.expire(short, 24 * 60 * 60)
+            return short
+
+        def __getitem__(self, key):
+            if isinstance(key, str) and len(key) == 4:
+                id = self.app.r.get(key)
+                if id is not None:
+                    key = id.decode()
+            return super().__getitem__(key)
+
     def __init__(self, redis_url='', email='bot@localhost', smtp_url='',
                  render_email_auth_message=None):
         super().__init__(redis_url, email, smtp_url, render_email_auth_message)
