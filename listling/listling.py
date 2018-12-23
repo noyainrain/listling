@@ -154,7 +154,7 @@ class Listling(Application):
             return short
 
         def __getitem__(self, key):
-            if isinstance(key, str) and len(key) == 4:
+            if isinstance(key, str) and len(key) == 10:
                 id = self.app.r.get(key)
                 if id is not None:
                     key = id.decode()
