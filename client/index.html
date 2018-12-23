@@ -238,6 +238,14 @@
                                     </button>
                                 </template>
                             </li>
+                            <li>
+                                <button
+                                    is="micro-button" type="button" class="link"
+                                    data-run="showPresentation"
+                                >
+                                    <i class="fa fa-fw fa-chalkboard"></i> Presentation
+                                </button>
+                            </li>
                         </ul>
                     </li>
                 </ul>
@@ -369,7 +377,10 @@
 
         <footer>
             <div class="micro-panel micro-ui-inside">
-                <p data-content="lst.title"></p>
+                <p data-content="switch shortUrl">
+                    <template>Join at <span data-content="shortUrl"></span></template>
+                    <template><span data-content="lst.title"></span></template>
+                </p>
                 <button
                     is="micro-button" class="action" data-run="play"
                     data-shortcut="new Shortcut 'P' 'Play'"

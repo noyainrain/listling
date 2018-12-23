@@ -36,7 +36,8 @@ listling.UI = class extends micro.UI {
         this.pages = this.pages.concat([
             {url: "^/$", page: "listling-start-page"},
             {url: "^/about$", page: makeAboutPage},
-            {url: "^/lists/([^/]+)(?:/[^/]+)?$", page: listling.ListPage.make}
+            {url: "^/lists/([^/]+)(?:/[^/]+)?$", page: listling.ListPage.make},
+            {url: "^/l/([^/]+)$", page: listling.ListPage.make}
         ]);
 
         Object.assign(this.renderEvent, {
@@ -119,10 +120,9 @@ listling.StartPage = class extends micro.Page {
 
 listling.ListPage = class extends micro.Page {
     static async make(url, id) {
-        let page = document.createElement("listling-list-page");
-        if (id !== "new") {
-            page.list = await micro.call("GET", `/api/lists/List:${id}`);
-        }
+        const page = document.createElement("listling-list-page");
+        id = id.length === 4 ? `Short:${id}` : `List:${id}`;
+        page.list = await micro.call("GET", `/api/lists/${id}`);
         return page;
     }
 
@@ -141,6 +141,7 @@ listling.ListPage = class extends micro.Page {
             trashExpanded: false,
             creatingItem: false,
             settingsExpanded: false,
+            shortUrl: null,
             toggleTrash: () => {
                 this._data.trashExpanded = !this._data.trashExpanded;
             },
@@ -163,6 +164,14 @@ listling.ListPage = class extends micro.Page {
                 notification.content.querySelector("input").value =
                     `${location.origin}${listling.util.makeListURL(this._data.lst)}`;
                 ui.notify(notification);
+            },
+
+            showPresentation: async() => {
+                document.documentElement.requestFullscreen();
+                const {short} = await micro.call(
+                    "POST", "/api/lists/shorts", {list_id: this._data.lst.id}
+                );
+                this._data.shortUrl = `${location.origin}/l/${short.split(":")[1]}`;
             },
 
             startEdit: () => {
