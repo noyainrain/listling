@@ -230,6 +230,10 @@ listling.ListPage = class extends micro.Page {
                 // Move, then refocus
                 this._moveItem(item, to);
                 ol.children[i + (event.detail.dir === "up" ? -1 : 1)].focus();
+            },
+
+            play: () => {
+                this._play();
             }
         });
         micro.bind.bind(this.children, this._data);

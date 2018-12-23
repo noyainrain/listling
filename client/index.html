@@ -343,6 +343,18 @@
             </p>
             <li is="listling-item" data-onedit="stopCreateItem" data-oncancel="stopCreateItem"></li>
         </div>
+
+        <footer>
+            <div class="micro-panel micro-ui-inside">
+                <p data-content="lst.title"></p>
+                <button
+                    is="micro-button" class="action" data-run="play"
+                    data-shortcut="new Shortcut 'P' 'Play'"
+                >
+                    <i class="fas fa-fw fa-play"></i>
+                </button>
+            </div>
+        </footer>
     </template>
     <style>
         body:not(.micro-feature-es6-typed-array) .listling-list-edit,
@@ -362,6 +374,23 @@
             font-size: 1em;
             font-weight: bold;
             color: #888;
+        }
+
+        listling-list-page > footer {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: white;
+            box-shadow: 0 -2px 2px rgba(0, 0, 0, 0.33);
+        }
+
+        listling-list-page > footer div {
+            display: flex;
+        }
+
+        listling-list-page > footer p {
+            flex: auto;
         }
 
         listling-list-page:not(.listling-list-mode-view) .listling-list-mode-view,
