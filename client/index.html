@@ -305,6 +305,13 @@
                             />
                             Item location
                         </label>
+                        <label>
+                            <input
+                                type="checkbox" name="features" value="playlist"
+                                data-checked="includes lst.features 'playlist'"
+                            />
+                            Playlist
+                        </label>
                     </fieldset>
                 </section>
             </div>
@@ -442,7 +449,8 @@
         .listling-list-create-item.listling-list-creating-item > p,
         .listling-list-create-item:not(.listling-list-creating-item) > li,
         .listling-list-settings.listling-list-settings-expanded > p,
-        .listling-list-settings:not(.listling-list-settings-expanded) > section {
+        .listling-list-settings:not(.listling-list-settings-expanded) > section,
+        listling-list-page:not(.listling-list-feature-playlist) > footer {
             display: none;
         }
     </style>
@@ -508,7 +516,7 @@
                             <i class="fa fa-fw fa-bars"></i>
                         </button>
                         <ul is="micro-menu">
-                            <li>
+                            <li class="listling-item-play">
                                 <button
                                     is="micro-button"
                                     type="button"
@@ -709,6 +717,7 @@
         [is=listling-item].listling-item-trashed .micro-ol-handle,
         listling-list-page:not(.listling-list-feature-check) .listling-item-check,
         listling-list-page:not(.listling-list-feature-check) .listling-item-uncheck,
+        listling-list-page:not(.listling-list-feature-playlist) .listling-item-play,
         [is=listling-item]:not(.listling-item-trashed) .listling-item-restore,
         [is=listling-item].listling-item-trashed .listling-item-menu li:last-child,
         body:not(.micro-ui-map-service-enabled) .listling-item-meta,

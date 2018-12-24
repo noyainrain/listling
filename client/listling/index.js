@@ -298,7 +298,7 @@ listling.ListPage = class extends micro.Page {
             this.classList.toggle("listling-list-mode-view", !this._data.editMode);
             this.classList.toggle("listling-list-mode-edit", this._data.editMode);
             this.classList.toggle("listling-list-presentation", this._data.presentation);
-            for (let feature of ["check", "location"]) {
+            for (let feature of ["check", "location", "playlist"]) {
                 this.classList.toggle(
                     `listling-list-feature-${feature}`,
                     this._data.lst && this._data.lst.features.includes(feature)

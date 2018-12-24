@@ -274,7 +274,7 @@ class List(Object, Editable):
     def do_edit(self, **attrs):
         if 'title' in attrs and str_or_none(attrs['title']) is None:
             raise micro.ValueError('title_empty')
-        if 'features' in attrs and not set(attrs['features']) <= {'check', 'location'}:
+        if 'features' in attrs and not set(attrs['features']) <= {'check', 'location', 'playlist'}:
             raise micro.ValueError('feature_unknown')
         if 'title' in attrs:
             self.title = attrs['title']
