@@ -142,6 +142,7 @@ listling.ListPage = class extends micro.Page {
             creatingItem: false,
             settingsExpanded: false,
             shortUrl: null,
+            presentation: false,
             toggleTrash: () => {
                 this._data.trashExpanded = !this._data.trashExpanded;
             },
@@ -167,7 +168,42 @@ listling.ListPage = class extends micro.Page {
             },
 
             showPresentation: async() => {
-                document.documentElement.requestFullscreen();
+                try {
+                    await Promise.resolve(document.documentElement.requestFullscreen());
+                } catch {
+                    // TODO: handle specific error
+                }
+
+                const div = document.createElement("div");
+                div.style.width = "70ch";
+                this.appendChild(div);
+                const em = parseFloat(getComputedStyle(div).fontSize);
+                const maxWidth = parseFloat(getComputedStyle(div).width);
+                div.remove();
+                const xs = 1.5 * em / 4;
+                const height =
+                    1.5 * em + 2 * xs + // UI header
+                    xs +
+                    1.5 * em + 2 * xs + // Item header
+                    2 * xs + // Item padding
+                    (maxWidth - 2 * xs) * 9 / 16 + // Web content
+                    xs +
+                    1.5 * em + // Item detail
+                    xs +
+                    1.5 * em + 2 * xs; // UI footer
+                const width =
+                    2 * 1.5 * em + // UI padding
+                    2 * xs + // Item padding
+                    maxWidth; // Item
+                const ratio = Math.min(
+                    document.documentElement.clientHeight / height,
+                    document.documentElement.clientWidth / width
+                );
+                document.documentElement.style.fontSize = `${ratio * em}px`;
+
+                this._data.presentation = true;
+                this._focus(this.querySelector(".listling-list-items > li"));
+
                 const {short} = await micro.call(
                     "POST", "/api/lists/shorts", {list_id: this._data.lst.id}
                 );
@@ -261,6 +297,7 @@ listling.ListPage = class extends micro.Page {
             this.classList.toggle("listling-list-has-trashed-items", this._data.trashedItemsCount);
             this.classList.toggle("listling-list-mode-view", !this._data.editMode);
             this.classList.toggle("listling-list-mode-edit", this._data.editMode);
+            this.classList.toggle("listling-list-presentation", this._data.presentation);
             for (let feature of ["check", "location"]) {
                 this.classList.toggle(
                     `listling-list-feature-${feature}`,
@@ -268,7 +305,7 @@ listling.ListPage = class extends micro.Page {
                 );
             }
         };
-        ["lst", "editMode", "trashedItemsCount"].forEach(
+        ["lst", "editMode", "trashedItemsCount", "presentation"].forEach(
             prop => this._data.watch(prop, updateClass));
         updateClass();
 
@@ -301,7 +338,9 @@ listling.ListPage = class extends micro.Page {
         // window.scroll(
         //     0, elem.offsetTop - (window.innerHeight / 2 - elem.offsetHeight / 2)
         // );
-        window.scroll(0, elem.offsetTop - (24 + 6 + 6 + 6));
+        const em = parseFloat(getComputedStyle(this).fontSize);
+        const xs = 1.5 * em / 4;
+        window.scroll(0, elem.offsetTop - (1.5 * em + 3 * xs));
         elem.focus();
     }
 
@@ -344,6 +383,7 @@ listling.ListPage = class extends micro.Page {
                 );
 
                 if (location.hash === "#p") {
+                    this._data.showPresentation();
                     this._play();
                 }
             }

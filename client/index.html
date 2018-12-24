@@ -378,7 +378,7 @@
         <footer>
             <div class="micro-panel micro-ui-inside">
                 <p data-content="switch shortUrl">
-                    <template>Join at <span data-content="shortUrl"></span></template>
+                    <template><strong>Join at <span data-content="shortUrl"></span></strong></template>
                     <template><span data-content="lst.title"></span></template>
                 </p>
                 <button
@@ -429,6 +429,9 @@
 
         listling-list-page:not(.listling-list-mode-view) .listling-list-mode-view,
         listling-list-page:not(.listling-list-mode-edit) .listling-list-mode-edit,
+        listling-list-page.listling-list-presentation .listling-list-menu,
+        listling-list-page.listling-list-presentation .listling-list-trash,
+        listling-list-page.listling-list-presentation .listling-list-create-item,
         body:not(.micro-feature-es6-typed-array) .listling-list-subscribe,
         body:not(.micro-feature-service-workers) .listling-list-subscribe,
         body:not(.micro-feature-push) .listling-list-subscribe,
@@ -612,6 +615,16 @@
             color: #888;
         }
 
+        listling-list-page.listling-list-presentation [is="listling-item"] {
+            margin: var(--micro-size-xs) 0;
+            opacity: 0.10;
+        }
+
+        listling-list-page.listling-list-presentation [is="listling-item"]:focus {
+            box-shadow: none;
+            opacity: 1;
+        }
+
         [is=listling-item] header {
             border-bottom: 1px solid var(--micro-color-delimiter);
             margin: 0;
@@ -645,7 +658,8 @@
         }
 
         listling-list-page:not(.listling-list-feature-check) [is=listling-item].listling-item-trashed h1,
-        [is=listling-item].listling-item-mode-edit h1 {
+        [is=listling-item].listling-item-mode-edit h1,
+        listling-list-page.listling-list-presentation [is=listling-item] h1 {
             padding-left: calc(1.5em / 4);
         }
 
@@ -690,6 +704,8 @@
 
         [is=listling-item]:not(.listling-item-mode-view) .listling-item-mode-view,
         [is=listling-item]:not(.listling-item-mode-edit) .listling-item-mode-edit,
+        listling-list-page.listling-list-presentation .listling-item-menu,
+        listling-list-page.listling-list-presentation [is=listling-item] .micro-ol-handle,
         [is=listling-item].listling-item-trashed .micro-ol-handle,
         listling-list-page:not(.listling-list-feature-check) .listling-item-check,
         listling-list-page:not(.listling-list-feature-check) .listling-item-uncheck,
