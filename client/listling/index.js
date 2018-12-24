@@ -311,10 +311,7 @@ listling.ListPage = class extends micro.Page {
 
         this._items = null;
         this._form = this.querySelector("form");
-        this._events = [
-            "list-items-move", "item-edit", "item-trash", "item-restore", "item-check",
-            "item-uncheck"
-        ];
+        this._events = ["list-items-move"];
 
         this.addEventListener("play", event => {
             console.log("PLAY", event.target);
@@ -381,6 +378,21 @@ listling.ListPage = class extends micro.Page {
                 this._activity.events.addEventListener(
                     "list-create-item", event => this._items.push(event.detail.event.detail.item)
                 );
+                const events = [
+                    "editable-edit", "trashable-trash", "trashable-restore", "item-check",
+                    "item-uncheck"
+                ];
+                events.forEach(
+                    type => this._activity.events.addEventListener(type, event => {
+                        const object = event.detail.event.object;
+                        if (!(object && object.__type__ === "Item")) {
+                            return;
+                        }
+                        let i = this._items.findIndex(item => item.id === object.id);
+                        this._items[i] = object;
+                        this._data.trashedItemsCount = this._data.trashedItems.length;
+                    })
+                );
 
                 if (location.hash === "#p") {
                     this._data.showPresentation();
@@ -416,12 +428,6 @@ listling.ListPage = class extends micro.Page {
             let j = event.detail.to
                 ? this._items.findIndex(item => item.id === event.detail.to.id) + 1 : 0;
             this._items.splice(j, 0, event.detail.item);
-        } else if (
-            ["item-edit", "item-trash", "item-restore", "item-check", "item-uncheck"]
-                .includes(event.type)) {
-            let i = this._items.findIndex(item => item.id === event.detail.item.id);
-            this._items[i] = event.detail.item;
-            this._data.trashedItemsCount = this._data.trashedItems.length;
         }
     }
 
@@ -483,9 +489,7 @@ listling.ItemElement = class extends HTMLLIElement {
                     return;
                 }
 
-                if (this._data.item) {
-                    ui.dispatchEvent(new CustomEvent("item-edit", {detail: {item}}));
-                } else {
+                if (!this._data.item) {
                     this._form.reset();
                     this._form.elements.location.wrapper.value = null;
                 }
@@ -507,27 +511,23 @@ listling.ItemElement = class extends HTMLLIElement {
             },
 
             trash: async() => {
-                let item = await micro.call(
+                await micro.call(
                     "POST", `/api/lists/${ui.page.list.id}/items/${this._data.item.id}/trash`);
-                ui.dispatchEvent(new CustomEvent("item-trash", {detail: {item}}));
             },
 
             restore: async() => {
-                let item = await micro.call(
+                await micro.call(
                     "POST", `/api/lists/${ui.page.list.id}/items/${this._data.item.id}/restore`);
-                ui.dispatchEvent(new CustomEvent("item-restore", {detail: {item}}));
             },
 
             check: async() => {
-                let item = await micro.call(
+                await micro.call(
                     "POST", `/api/lists/${ui.page.list.id}/items/${this._data.item.id}/check`);
-                ui.dispatchEvent(new CustomEvent("item-check", {detail: {item}}));
             },
 
             uncheck: async() => {
-                let item = await micro.call(
+                item = await micro.call(
                     "POST", `/api/lists/${ui.page.list.id}/items/${this._data.item.id}/uncheck`);
-                ui.dispatchEvent(new CustomEvent("item-uncheck", {detail: {item}}));
             }
         });
         micro.bind.bind(this.children, this._data);
