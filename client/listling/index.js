@@ -526,7 +526,7 @@ listling.ItemElement = class extends HTMLLIElement {
             },
 
             uncheck: async() => {
-                item = await micro.call(
+                await micro.call(
                     "POST", `/api/lists/${ui.page.list.id}/items/${this._data.item.id}/uncheck`);
             }
         });
