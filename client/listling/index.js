@@ -562,8 +562,8 @@ listling.ItemElement = class extends HTMLLIElement {
         this._timeout = null;
         this._interval = null;
 
-        this.static_duration = 10;
-        this.max_duration = 20;
+        this.static_duration = 30;
+        this.max_duration = 5 * 60;
     }
 
     get item() {
