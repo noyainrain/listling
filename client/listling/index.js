@@ -170,7 +170,7 @@ listling.ListPage = class extends micro.Page {
             showPresentation: async() => {
                 try {
                     await Promise.resolve(document.documentElement.requestFullscreen());
-                } catch {
+                } catch (e) {
                     // TODO: handle specific error
                 }
 
