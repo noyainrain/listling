@@ -13,8 +13,8 @@ install:
 script:
     - make test
     - make test-ext
-    # Skip code style checks if WIP is indicated
-    - test -z "${TRAVIS_COMMIT_MESSAGE##*WIP*}" || make lint
+    # Skip code style checks for 35c3
+    # - test -z "${TRAVIS_COMMIT_MESSAGE##*WIP*}" || make lint
 jobs:
     include:
         - &test-ui
