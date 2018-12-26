@@ -259,6 +259,10 @@ listling.ListPage = class extends micro.Page {
 
             may: (ctx, op, mode) => {
                 // eslint-disable-next-line no-underscore-dangle
+                // XXX all playlists are in contribution mode
+                if (this._data.lst && this._data.lst.features.includes("play")) {
+                    mode = "contribution";
+                }
                 const permissions = listling.ListPage._PERMISSIONS[mode || "view"];
                 return (
                     permissions.user.has(op) ||
@@ -281,6 +285,10 @@ listling.ListPage = class extends micro.Page {
             this.classList.toggle(
                 "listling-list-may-modify",
                 this._data.may(null, "list-modify", this._data.lst && this._data.lst.mode)
+            );
+            this.classList.toggle(
+                "listling-list-may-items-create",
+                this._data.may(null, "list-items-create", this._data.lst && this._data.lst.mode)
             );
         };
         ["lst", "editMode", "trashedItemsCount"].forEach(
@@ -409,8 +417,18 @@ listling.ListPage = class extends micro.Page {
 
 // eslint-disable-next-line no-underscore-dangle
 listling.ListPage._PERMISSIONS = {
-    collaborate: {user: new Set(["list-modify", "item-modify"])},
-    view: {user: new Set()}
+    collaborate: {
+        "item-owner": new Set([                                    "item-modify"]),
+        user:         new Set(["list-modify", "list-items-create", "item-modify"])
+    },
+    contribution: {
+        "item-owner": new Set([                                    "item-modify"]),
+        user:         new Set([               "list-items-create"               ])
+    },
+    view: {
+        "item-owner": new Set(),
+        user:         new Set()
+    }
 };
 
 listling.ItemElement = class extends HTMLLIElement {
@@ -572,9 +590,14 @@ listling.ItemElement = class extends HTMLLIElement {
 
             may: (ctx, op, mode) => {
                 // eslint-disable-next-line no-underscore-dangle
+                // XXX all playlists are in contribution mode
+                if (this._data.lst && this._data.lst.features.includes("play")) {
+                    mode = "contribution";
+                }
                 const permissions = listling.ListPage._PERMISSIONS[mode || "view"];
                 return (
                     permissions.user.has(op) ||
+                    ui.user.id === (this._data.item && this._data.item.authors[0].id) && permissions["item-owner"].has(op) ||
                     this._data.lst && ui.user.id === this._data.lst.authors[0].id
                 );
             }
