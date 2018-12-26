@@ -143,6 +143,7 @@ listling.ListPage = class extends micro.Page {
             settingsExpanded: false,
             shortUrl: null,
             presentation: false,
+            idle: false,
             toggleTrash: () => {
                 this._data.trashExpanded = !this._data.trashExpanded;
             },
@@ -298,6 +299,7 @@ listling.ListPage = class extends micro.Page {
             this.classList.toggle("listling-list-mode-view", !this._data.editMode);
             this.classList.toggle("listling-list-mode-edit", this._data.editMode);
             this.classList.toggle("listling-list-presentation", this._data.presentation);
+            this.classList.toggle("listling-list-idle", this._data.idle);
             this.classList.toggle(
                 "listling-list-can-modify",
                 micro.bind.transforms.can(null, "list-modify", this._data.lst)
@@ -309,7 +311,7 @@ listling.ListPage = class extends micro.Page {
                 );
             }
         };
-        ["lst", "editMode", "trashedItemsCount", "presentation"].forEach(
+        ["lst", "editMode", "trashedItemsCount", "presentation", "idle"].forEach(
             prop => this._data.watch(prop, updateClass));
         updateClass();
 
@@ -327,12 +329,6 @@ listling.ListPage = class extends micro.Page {
                 this._focus(this._currentItem);
             }
         });
-        this.addEventListener("pause", event => {
-            console.log("PAUSE", event.target, this._currentItem.time, this._currentItem.duration);
-            if (this._currentItem.time === this._currentItem.duration) {
-                this._play(this._currentItem.nextElementSibling);
-            }
-        });
     }
 
     _focus(elem) {
@@ -346,9 +342,8 @@ listling.ListPage = class extends micro.Page {
     }
 
     _play(item = null) {
-        this._currentItem = item || this.querySelector(".listling-list-items > li");
-        this._focus(this._currentItem);
-        this._currentItem.play();
+        item = item || this.querySelector(".listling-list-items > li");
+        item.play();
     }
 
     attachedCallback() {
@@ -423,6 +418,8 @@ listling.ListPage = class extends micro.Page {
         this._data.editMode = !this._data.lst;
         this.caption = this._data.lst.title;
         ui.url = listling.util.makeListURL(this._data.lst) + location.hash;
+        this._playlist =
+            this._data.lst.features.includes("playlist") ? new listling.Playlist(this) : null;
     }
 
     handleEvent(event) {
@@ -440,6 +437,34 @@ listling.ListPage = class extends micro.Page {
         await micro.call("POST", `/api/lists/${this._data.lst.id}/items/move`, {
             item_id: item.id,
             to_id: to && to.id
+        });
+    }
+};
+
+listling.Playlist = class {
+    constructor(page) {
+        this.page = page;
+        this._data = this.page._data;
+
+        this.page.addEventListener("pause", event => {
+            console.log("PAUSE", event.target, this.page._currentItem.time, this.page._currentItem.duration);
+            if (this.page._currentItem.time === this.page._currentItem.duration) {
+                if (this.page._currentItem.nextElementSibling === null) {
+                    this._data.idle = true;
+                }
+                this.page._play(this.page._currentItem.nextElementSibling);
+            }
+        });
+
+        this.page.ready.then(() => {
+            this.page._activity.events.addEventListener("list-create-item", () => {
+                if (this._data.idle) {
+                    this._data.idle = false;
+                    this.page._play(
+                        this.page.querySelector(".listling-list-items > li:last-child")
+                    );
+                }
+            });
         });
     }
 };

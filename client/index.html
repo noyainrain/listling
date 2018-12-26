@@ -388,6 +388,9 @@
                     <template><strong>Join at <span data-content="shortUrl"></span></strong></template>
                     <template><span data-content="lst.title"></span></template>
                 </p>
+                <p class="listling-list-idle-info">
+                    <i class="fas fa-fw fa-retweet"></i>
+                </p>
                 <button
                     is="micro-button" class="action" data-run="play"
                     data-shortcut="new Shortcut 'P' 'Play'"
@@ -430,8 +433,12 @@
             display: flex;
         }
 
-        listling-list-page > footer p {
+        listling-list-page > footer p:first-child {
             flex: auto;
+        }
+
+        .listling-list-idle-info {
+            color: var(--micro-color-text-subtle);
         }
 
         listling-list-page:not(.listling-list-mode-view) .listling-list-mode-view,
@@ -451,7 +458,8 @@
         .listling-list-create-item:not(.listling-list-creating-item) > li,
         .listling-list-settings.listling-list-settings-expanded > p,
         .listling-list-settings:not(.listling-list-settings-expanded) > section,
-        listling-list-page:not(.listling-list-feature-playlist) > footer {
+        listling-list-page:not(.listling-list-feature-playlist) > footer,
+        listling-list-page:not(.listling-list-idle) .listling-list-idle-info {
             display: none;
         }
     </style>
