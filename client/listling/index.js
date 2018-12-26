@@ -298,6 +298,10 @@ listling.ListPage = class extends micro.Page {
             this.classList.toggle("listling-list-mode-view", !this._data.editMode);
             this.classList.toggle("listling-list-mode-edit", this._data.editMode);
             this.classList.toggle("listling-list-presentation", this._data.presentation);
+            this.classList.toggle(
+                "listling-list-can-modify",
+                micro.bind.transforms.can(null, "list-modify", this._data.lst)
+            );
             for (let feature of ["check", "location", "playlist"]) {
                 this.classList.toggle(
                     `listling-list-feature-${feature}`,
@@ -440,6 +444,28 @@ listling.ListPage = class extends micro.Page {
     }
 };
 
+micro.bind.transforms.can = function(ctx, op, list, item = null) {
+    const PERMISSIONS = {
+        collaboration: {
+            "list-modify": "user",
+            "item-modify": "user"
+        },
+        contribution: {
+            "list-modify": "list-owner",
+            "item-modify": "item-owner"
+        }
+    };
+
+    const mode = list && list.features.includes("playlist") ? "contribution" : "collaboration";
+    const permission = PERMISSIONS[mode][op];
+    return (
+        permission === "user" ||
+        (permission === "item-owner" && item && item.authors[0].id === ui.user.id) ||
+        list && list.authors[0].id === ui.user.id ||
+        ui.staff
+    );
+};
+
 listling.ItemElement = class extends HTMLLIElement {
     createdCallback() {
         this.appendChild(
@@ -547,6 +573,12 @@ listling.ItemElement = class extends HTMLLIElement {
                                   this._data.item && this._data.item.checked);
             this.classList.toggle("listling-item-mode-view", !this._data.editMode);
             this.classList.toggle("listling-item-mode-edit", this._data.editMode);
+            this.classList.toggle(
+                "listling-item-can-modify",
+                micro.bind.transforms.can(
+                    null, "item-modify", ui.page && ui.page.list, this._data.item
+                )
+            );
         };
         this._data.watch("item", updateClass);
         this._data.watch("editMode", updateClass);
