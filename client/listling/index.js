@@ -48,6 +48,15 @@ listling.UI = class extends micro.UI {
                 return elem;
             }
         });
+
+        this.addEventListener("focusin", event => {
+            // TODO: rather check if not on screen completly
+            if (event.target instanceof listling.ItemElement) {
+                const em = parseFloat(getComputedStyle(this).fontSize);
+                const xs = 1.5 * em / 4;
+                window.scroll(0, event.target.offsetTop - (1.5 * em + 3 * xs));
+            }
+        });
     }
 };
 
@@ -149,7 +158,7 @@ listling.ListPage = class extends micro.Page {
             },
             startCreateItem: () => {
                 this._data.creatingItem = true;
-                this.querySelector(".listling-list-create-item form").elements[1].focus();
+                this.querySelector(".listling-list-create-item li").focus();
             },
             stopCreateItem: () => {
                 this._data.creatingItem = false;
@@ -203,7 +212,7 @@ listling.ListPage = class extends micro.Page {
                 document.documentElement.style.fontSize = `${ratio * em}px`;
 
                 this._data.presentation = true;
-                this._focus(this.querySelector(".listling-list-items > li"));
+                this.querySelector(".listling-list-items > li").focus();
 
                 const {short} = await micro.call(
                     "POST", "/api/lists/shorts", {list_id: this._data.lst.id}
@@ -213,7 +222,6 @@ listling.ListPage = class extends micro.Page {
 
             startEdit: () => {
                 this._data.editMode = true;
-                this._form.elements[0].focus();
             },
 
             edit: async() => {
@@ -326,19 +334,9 @@ listling.ListPage = class extends micro.Page {
                     this._currentItem.pause();
                 }
                 this._currentItem = event.target;
-                this._focus(this._currentItem);
+                this._currentItem.focus();
             }
         });
-    }
-
-    _focus(elem) {
-        // window.scroll(
-        //     0, elem.offsetTop - (window.innerHeight / 2 - elem.offsetHeight / 2)
-        // );
-        const em = parseFloat(getComputedStyle(this).fontSize);
-        const xs = 1.5 * em / 4;
-        window.scroll(0, elem.offsetTop - (1.5 * em + 3 * xs));
-        elem.focus();
     }
 
     _play(item = null) {
@@ -353,9 +351,7 @@ listling.ListPage = class extends micro.Page {
         this._events.forEach(e => ui.addEventListener(e, this));
 
         this.ready.when((async() => {
-            if (this._data.editMode) {
-                this._form.elements[0].focus();
-            } else {
+            if (!this._data.editMode) {
                 const base = `/api/lists/${this._data.lst.id}`;
                 let items = await micro.call("GET", `${base}/items`);
                 this._items = new micro.bind.Watchable(items);
@@ -507,7 +503,6 @@ listling.ItemElement = class extends HTMLLIElement {
 
             startEdit: () => {
                 this._data.editMode = true;
-                this._form.elements[0].focus();
             },
 
             edit: async() => {
