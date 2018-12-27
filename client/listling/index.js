@@ -59,6 +59,7 @@ listling.StartPage = class extends micro.Page {
         const USE_CASES = [
             {id: "todo", title: "To-Do list", icon: "check"},
             {id: "shopping", title: "Shopping list", icon: "shopping-cart"},
+            {id: "playlist", title: "Playlist", icon: "play"},
             {id: "meeting-agenda", title: "Meeting agenda", icon: "handshake"},
             ...ui.mapServiceKey ? [{id: "map", title: "Map", icon: "map"}] : [],
             {id: "simple", title: "Simple list", icon: "list"}
@@ -403,6 +404,7 @@ listling.ListPage = class extends micro.Page {
                 if (location.hash === "#p") {
                     this._data.showPresentation();
                     this._play();
+                    //this._play(this.page.querySelector(".listling-list-items > li:last-child"));
                 }
             }
         })().catch(micro.util.catch));

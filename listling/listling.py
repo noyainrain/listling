@@ -24,6 +24,7 @@ _USE_CASES = {
     'simple': {'title': 'New list', 'features': []},
     'todo': {'title': 'New to-do list', 'features': ['check']},
     'shopping': {'title': 'New shopping list', 'features': []},
+    'playlist': {'title': 'New playlist', 'features': ['playlist']},
     'meeting-agenda': {'title': 'New meeting agenda', 'features': []},
     'map': {'title': 'New map', 'features': ['location']}
 }
@@ -45,6 +46,15 @@ _EXAMPLE_DATA = {
             {'title': 'Soy sauce'},
             {'title': 'Vegetables', 'text': 'Especially tomatoes'},
             {'title': 'Chocolate (vegan)'}
+        ]
+    ),
+    'playlist': (
+        'Party playlist',
+        'Add songs you want to hear on the dance floor.',
+        [
+            {'title': 'Whitney Houston - How Will I Know', 'resource': 'https://www.youtube.com/watch?v=m3-hY-hlhBg'},
+            {'title': 'Rick Astley - Never Gonna Give You Up', 'resource': 'https://www.youtube.com/watch?v=DLzxrzFCyOs'},
+            {'title': 'Radiohead - Karma Police', 'resource': 'https://www.youtube.com/watch?v=1uYWYWPc9HU'}
         ]
     ),
     'meeting-agenda': (
