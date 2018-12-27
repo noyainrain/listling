@@ -517,10 +517,16 @@ listling.ItemElement = class extends HTMLLIElement {
                 this._form.elements[0].focus();
             },
 
-            edit: async() => {
+            onBlur: () => {
                 const text = this._form.elements.text.value;
                 const match = text.match(/^https?:\/\/\S+/u);
-                const resource = match ? match[0] : null;
+                this._resource = match ? match[0] : null;
+                if (this._resource && !this._form.elements.title.value) {
+                    this._form.elements.title.value = "Link";
+                }
+            },
+
+            edit: async() => {
                 let url = this._data.item
                     ? `/api/lists/${ui.page.list.id}/items/${this._data.item.id}`
                     : `/api/lists/${ui.page.list.id}/items`;
@@ -528,8 +534,8 @@ listling.ItemElement = class extends HTMLLIElement {
                 let item;
                 try {
                     item = await micro.call("POST", url, {
-                        text,
-                        resource,
+                        text: this._form.elements.text.value,
+                        resource: this._resource,
                         title: this._form.elements.title.value,
                         location: this._form.elements.location.wrapper.value
                     });
