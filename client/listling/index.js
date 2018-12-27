@@ -59,6 +59,7 @@ listling.StartPage = class extends micro.Page {
         const USE_CASES = [
             {id: "todo", title: "To-Do list", icon: "check"},
             {id: "shopping", title: "Shopping list", icon: "shopping-cart"},
+            {id: "collection", title: "Collection", icon: "archive"},
             {id: "playlist", title: "Playlist", icon: "play"},
             {id: "meeting-agenda", title: "Meeting agenda", icon: "handshake"},
             ...ui.mapServiceKey ? [{id: "map", title: "Map", icon: "map"}] : [],

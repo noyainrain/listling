@@ -24,6 +24,7 @@ _USE_CASES = {
     'simple': {'title': 'New list', 'features': []},
     'todo': {'title': 'New to-do list', 'features': ['check']},
     'shopping': {'title': 'New shopping list', 'features': []},
+    'collection': {'title': 'New collection', 'features': []},
     'playlist': {'title': 'New playlist', 'features': ['playlist']},
     'meeting-agenda': {'title': 'New meeting agenda', 'features': []},
     'map': {'title': 'New map', 'features': ['location']}
@@ -46,6 +47,15 @@ _EXAMPLE_DATA = {
             {'title': 'Soy sauce'},
             {'title': 'Vegetables', 'text': 'Especially tomatoes'},
             {'title': 'Chocolate (vegan)'}
+        ]
+    ),
+    'collection': (
+        'Team members',
+        'Our lovely team. If something is wrong or missing, please feel free to correct it.',
+        [
+            {'title': 'Rosa', 'text': 'Email: rosa@example.org'},
+            {'title': 'Sven', 'text': 'Website: https://noyainrain.github.io/', 'resource': 'https://noyainrain.github.io/'},
+            {'title': 'Robin'},
         ]
     ),
     'playlist': (
