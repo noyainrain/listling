@@ -30,6 +30,8 @@ To run Open Listling, type:
 python3 -m listling
 ```
 
+Then you can reach your local Listling instance at http://localhost:8080/ in your browser.
+
 ## Browser support
 
 Open Listling supports the latest version of popular browsers (i.e. Chrome, Edge, Firefox and
