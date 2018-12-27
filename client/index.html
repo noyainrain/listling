@@ -331,6 +331,15 @@
             </ul>
         </form>
 
+        <div class="listling-list-create-item-top listling-list-mode-view"
+             data-class-listling-list-creating-item="creatingItem">
+            <p>
+                <button is="micro-button" type="button" class="action" data-run="startCreateItem">
+                    <i class="fa fa-plus-circle"></i> Add item
+                </button>
+            </p>
+        </div>
+
         <ol
             is="micro-ol"
             class="listling-list-items listling-list-mode-view"
@@ -446,6 +455,7 @@
         listling-list-page.listling-list-presentation .listling-list-menu,
         listling-list-page.listling-list-presentation .listling-list-trash,
         listling-list-page.listling-list-presentation .listling-list-create-item,
+        listling-list-page:not(.listling-list-has-present-items) .listling-list-create-item-top,
         listling-list-page:not(.listling-list-can-modify) .listling-list-edit,
         body:not(.micro-feature-es6-typed-array) .listling-list-subscribe,
         body:not(.micro-feature-service-workers) .listling-list-subscribe,

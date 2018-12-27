@@ -133,6 +133,7 @@ listling.ListPage = class extends micro.Page {
         this._data = new micro.bind.Watchable({
             lst: null,
             presentItems: null,
+            presentItemsCount: 0,
             trashedItems: null,
             trashedItemsCount: 0,
             locations: null,
@@ -295,6 +296,7 @@ listling.ListPage = class extends micro.Page {
         micro.bind.bind(this.children, this._data);
 
         let updateClass = () => {
+            this.classList.toggle("listling-list-has-present-items", this._data.presentItemsCount);
             this.classList.toggle("listling-list-has-trashed-items", this._data.trashedItemsCount);
             this.classList.toggle("listling-list-mode-view", !this._data.editMode);
             this.classList.toggle("listling-list-mode-edit", this._data.editMode);
@@ -311,7 +313,7 @@ listling.ListPage = class extends micro.Page {
                 );
             }
         };
-        ["lst", "editMode", "trashedItemsCount", "presentation", "idle"].forEach(
+        ["lst", "editMode", "presentItemsCount", "trashedItemsCount", "presentation", "idle"].forEach(
             prop => this._data.watch(prop, updateClass));
         updateClass();
 
@@ -360,6 +362,7 @@ listling.ListPage = class extends micro.Page {
                 let items = await micro.call("GET", `${base}/items`);
                 this._items = new micro.bind.Watchable(items);
                 this._data.presentItems = micro.bind.filter(this._items, i => !i.trashed);
+                this._data.presentItemsCount = this._data.presentItems.length;
                 this._data.trashedItems = micro.bind.filter(this._items, i => i.trashed);
                 this._data.trashedItemsCount = this._data.trashedItems.length;
 
@@ -375,7 +378,10 @@ listling.ListPage = class extends micro.Page {
 
                 this._activity = await micro.Activity.open(`${base}/activity/stream`);
                 this._activity.events.addEventListener(
-                    "list-create-item", event => this._items.push(event.detail.event.detail.item)
+                    "list-create-item", event => {
+                        this._items.push(event.detail.event.detail.item);
+                        this._data.presentItemsCount = this._data.presentItems.length;
+                    }
                 );
                 const events = [
                     "editable-edit", "trashable-trash", "trashable-restore", "item-check",
@@ -396,6 +402,7 @@ listling.ListPage = class extends micro.Page {
 
                         let i = this._items.findIndex(item => item.id === object.id);
                         this._items[i] = object;
+                        this._data.presentItemsCount = this._data.presentItems.length;
                         this._data.trashedItemsCount = this._data.trashedItems.length;
                     })
                 );
