@@ -150,7 +150,8 @@ listling.ListPage = class extends micro.Page {
             },
             startCreateItem: () => {
                 this._data.creatingItem = true;
-                this.querySelector(".listling-list-create-item form").elements[1].focus();
+                this.querySelector(".listling-list-create-item li").focus();
+                this.querySelector(".listling-list-create-item form").scrollIntoView(false);
             },
             stopCreateItem: () => {
                 this._data.creatingItem = false;
