@@ -387,6 +387,13 @@ listling.ListPage = class extends micro.Page {
                         if (!(object && object.__type__ === "Item")) {
                             return;
                         }
+
+                        if (["editable-edit", "trashable-trash"].includes(type)) {
+                            if (this._currentItem && this._currentItem.item.id === object.id) {
+                                this._play(this._currentItem.nextElementSibling);
+                            }
+                        }
+
                         let i = this._items.findIndex(item => item.id === object.id);
                         this._items[i] = object;
                         this._data.trashedItemsCount = this._data.trashedItems.length;
