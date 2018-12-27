@@ -409,14 +409,16 @@ listling.ListPage = class extends micro.Page {
                         this._data.trashedItemsCount = this._data.trashedItems.length;
                     })
                 );
-
-                if (location.hash === "#p") {
-                    this._data.showPresentation();
-                    this._play();
-                    //this._play(this.page.querySelector(".listling-list-items > li:last-child"));
-                }
             }
         })().catch(micro.util.catch));
+
+        (async() => {
+            if (location.hash === "#p") {
+                await this.ready;
+                await this._data.showPresentation();
+                this._play(this.querySelector(".listling-list-items > li:last-child"));
+            }
+        })().catch(micro.util.catch);
     }
 
     detachedCallback() {
