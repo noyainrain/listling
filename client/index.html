@@ -573,6 +573,10 @@
             </header>
 
             <div class="listling-item-content">
+                <div class="listling-item-progress listling-item-mode-view">
+                    <div></div>
+                </div>
+
                 <dl class="listling-item-meta">
                     <dt class="listling-item-location" title="Location">
                         <i class="fa fa-fw fa-map-marker-alt"></i>
@@ -697,6 +701,16 @@
 
         [is=listling-item] h1 > label {
             margin-bottom: 0;
+        }
+
+        .listling-item-progress {
+            background: var(--micro-color-delimiter);
+            display: none;
+        }
+
+        .listling-item-progress div {
+            height: var(--micro-size-xs);
+            background: var(--micro-color-primary);
         }
 
         .listling-item-content {

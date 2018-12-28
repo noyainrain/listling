@@ -191,9 +191,10 @@ listling.ListPage = class extends micro.Page {
                     xs +
                     1.5 * em + 2 * xs + // Item header
                     2 * xs + // Item padding
+                    xs + // progress bar
                     (maxWidth - 2 * xs) * 9 / 16 + // Web content
-                    xs +
-                    1.5 * em + // Item detail
+                    //xs +
+                    //1.5 * em + // Item detail
                     xs +
                     1.5 * em + 2 * xs; // UI footer
                 const width =
@@ -668,6 +669,7 @@ listling.ItemElement = class extends HTMLLIElement {
                             this._data.resourceElem.pause();
                         }
                     }, 1000);
+                    this._startP();
                     this.dispatchEvent(new CustomEvent("play", {bubbles: true}));
                 }
             });
@@ -675,10 +677,28 @@ listling.ItemElement = class extends HTMLLIElement {
                 if (this._interval) {
                     clearInterval(this._interval);
                     this._interval = null;
+                    this._stopP();
                     this.dispatchEvent(new CustomEvent("pause", {bubbles: true}));
                 }
             });
         }
+    }
+
+    _startP() {
+        const div = this.querySelector(".listling-item-progress > div");
+        const paint = () => {
+            const p = this.duration ? this.time / this.duration : 0;
+            div.style.width = `${p * 100}%`;
+            this._frameReq = requestAnimationFrame(paint);
+        };
+        this.querySelector(".listling-item-progress").style.display = "block";
+        this._frameReq = requestAnimationFrame(paint);
+    }
+
+    _stopP() {
+        cancelAnimationFrame(this._frameReq);
+        this._frameReq = null;
+        this.querySelector(".listling-item-progress").style.display = "none";
     }
 
     play() {
@@ -688,6 +708,7 @@ listling.ItemElement = class extends HTMLLIElement {
             if (!this._timeout) {
                 this._startTime = new Date();
                 this._timeout = setTimeout(() => this.pause(), this.duration * 1000);
+                this._startP();
                 this.dispatchEvent(new CustomEvent("play", {bubbles: true}));
             }
         }
@@ -700,6 +721,7 @@ listling.ItemElement = class extends HTMLLIElement {
             if (this._timeout) {
                 clearTimeout(this._timeout);
                 this._timeout = null;
+                this._stopP();
                 this.dispatchEvent(new CustomEvent("pause", {bubbles: true}));
             }
         }
