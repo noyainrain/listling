@@ -562,6 +562,9 @@ listling.ItemElement = class extends HTMLLIElement {
                     ) {
                         ui.notify("Oops, there was a problem opening the link. Please try again in a few moments.");
                         return;
+                    } else if (e instanceof micro.APIError && e.error.__type__ === "RateLimitError") {
+                        ui.notify("Oops, not so fast. Please wait a few minutes.");
+                        return;
                     }
                     ui.handleCallError(e);
                     return;

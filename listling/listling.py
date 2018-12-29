@@ -265,6 +265,9 @@ class List(Object, Editable):
             return coro if asynchronous is ON else run_instant(coro)
 
         async def _create(self, title, *, text=None, resource=None, location=None):
+            if not (self.app.user.id == self.host[0]._authors[0] or self.app.user.id in self.app.settings._staff):
+                self.app.rate_limiter.count(self.app.user.ip)
+
             attrs = await WithContent.process_attrs({'text': text, 'resource': resource},
                                                     app=self.app)
             if str_or_none(title) is None:
