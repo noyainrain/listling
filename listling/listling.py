@@ -281,7 +281,12 @@ class List(Object, Editable):
         async def create(self, title, *, text=None, resource=None, location=None):
             """See :http:post:`/api/lists/(id)/items`."""
             # pylint: disable=protected-access; List is a friend
+            # XXX all playlists have a rate limit
+            if 'play' in self.host[0].features:
+                if not (self.app.user.id == self.host[0]._authors[0] or self.app.user.id in self.app.settings._staff):
+                    self.app.rate_limiter.count(self.app.user.ip)
             self.host[0]._check_permission(self.app.user, 'list-modify')
+
             attrs = await WithContent.process_attrs({'text': text, 'resource': resource},
                                                     app=self.app)
             if str_or_none(title) is None:
