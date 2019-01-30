@@ -148,8 +148,9 @@ class Listling(Application):
             return lst
 
     def __init__(self, redis_url='', email='bot@localhost', smtp_url='',
-                 render_email_auth_message=None):
-        super().__init__(redis_url, email, smtp_url, render_email_auth_message)
+                 render_email_auth_message=None, *, video_service_keys={}):
+        super().__init__(redis_url, email, smtp_url, render_email_auth_message,
+                         video_service_keys=video_service_keys)
         self.types.update({'List': List, 'Item': Item})
         self.lists = Listling.Lists((self, 'lists'))
 

@@ -28,9 +28,9 @@ from micro.util import ON
 from . import Listling
 
 def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='',
-                client_map_service_key=None):
+                video_service_keys={}, client_map_service_key=None):
     """Create an Open Listling server."""
-    app = Listling(redis_url, smtp_url=smtp_url)
+    app = Listling(redis_url, smtp_url=smtp_url, video_service_keys=video_service_keys)
     handlers = [
         (r'/api/lists$', _ListsEndpoint),
         (r'/api/lists/create-example$', _ListsCreateExampleEndpoint),

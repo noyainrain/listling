@@ -23,6 +23,9 @@ from .server import make_server
 def main(args):
     """Run Open Listling with the given list of command line *args*."""
     args = make_command_line_parser().parse_args(args[1:])
+    if 'video_service_keys' in args:
+        values = iter(args.video_service_keys)
+        args.video_service_keys = dict(zip(values, values))
     setup_logging(getattr(args, 'debug', False))
     make_server(**vars(args)).run()
     return 0
