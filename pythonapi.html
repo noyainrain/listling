@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>3. Python API &#8212; Open Listling 0.7.0 documentation</title>
+    <title>3. Python API &#8212; Open Listling 0.8.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -41,7 +41,7 @@
 <p>Web app for collaboratively composing lists.</p>
 <dl class="class">
 <dt id="listling.Listling">
-<em class="property">class </em><code class="descclassname">listling.</code><code class="descname">Listling</code><span class="sig-paren">(</span><em>redis_url=''</em>, <em>email='bot&#64;localhost'</em>, <em>smtp_url=''</em>, <em>render_email_auth_message=None</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">listling.</code><code class="descname">Listling</code><span class="sig-paren">(</span><em>redis_url=''</em>, <em>email='bot&#64;localhost'</em>, <em>smtp_url=''</em>, <em>render_email_auth_message=None</em>, <em>*</em>, <em>video_service_keys={}</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#listling"><span class="std std-ref">Listling</span></a>.</p>
 <dl class="class">
 <dt id="listling.Listling.Lists">
@@ -164,7 +164,7 @@ checking, managing <em>authors</em> and storing the updated object in the databa
 <p>Open Listling server.</p>
 <dl class="function">
 <dt id="listling.server.make_server">
-<code class="descclassname">listling.server.</code><code class="descname">make_server</code><span class="sig-paren">(</span><em>*</em>, <em>port=8080</em>, <em>url=None</em>, <em>debug=False</em>, <em>redis_url=''</em>, <em>smtp_url=''</em>, <em>client_map_service_key=None</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.server.make_server" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">listling.server.</code><code class="descname">make_server</code><span class="sig-paren">(</span><em>*</em>, <em>port=8080</em>, <em>url=None</em>, <em>debug=False</em>, <em>redis_url=''</em>, <em>smtp_url=''</em>, <em>video_service_keys={}</em>, <em>client_map_service_key=None</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.server.make_server" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create an Open Listling server.</p>
 </dd></dl>
 
