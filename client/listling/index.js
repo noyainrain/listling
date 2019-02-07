@@ -85,14 +85,23 @@ listling.StartPage = class extends micro.Page {
             },
 
             createList: async useCase => {
-                let list = await micro.call("POST", "/api/lists", {use_case: useCase.id, v: 2});
-                ui.navigate(`/lists/${list.id.split(":")[1]}`);
+                try {
+                    const list = await ui.call("POST", "/api/lists", {use_case: useCase.id, v: 2});
+                    ui.navigate(`/lists/${list.id.split(":")[1]}`).catch(micro.util.catch);
+                } catch (e) {
+                    ui.handleCallError(e);
+                }
             },
 
             createExample: async useCase => {
-                let list = await micro.call("POST", "/api/lists/create-example",
-                                            {use_case: useCase.id});
-                ui.navigate(`/lists/${list.id.split(":")[1]}`);
+                try {
+                    const list = await ui.call(
+                        "POST", "/api/lists/create-example", {use_case: useCase.id}
+                    );
+                    ui.navigate(`/lists/${list.id.split(":")[1]}`).catch(micro.util.catch);
+                } catch (e) {
+                    ui.handleCallError(e);
+                }
             }
         });
         micro.bind.bind(this.children, this._data);
@@ -121,7 +130,7 @@ listling.ListPage = class extends micro.Page {
     static async make(url, id) {
         let page = document.createElement("listling-list-page");
         if (id !== "new") {
-            page.list = await micro.call("GET", `/api/lists/List:${id}`);
+            page.list = await ui.call("GET", `/api/lists/List:${id}`);
         }
         return page;
     }
@@ -161,17 +170,22 @@ listling.ListPage = class extends micro.Page {
             },
 
             edit: async() => {
-                let url = this._data.lst ? `/api/lists/${this._data.lst.id}` : "/api/lists";
-                let list = await micro.call("POST", url, {
-                    title: this._form.elements.title.value,
-                    description: this._form.elements.description.value,
-                    features: Array.from(this._form.elements.features, e => e.checked && e.value)
-                        .filter(feature => feature)
-                });
-                if (this._data.lst) {
-                    this.list = list;
-                } else {
-                    ui.navigate(`/lists/${list.id.split(":")[1]}`);
+                try {
+                    const url = this._data.lst ? `/api/lists/${this._data.lst.id}` : "/api/lists";
+                    const list = await ui.call("POST", url, {
+                        title: this._form.elements.title.value,
+                        description: this._form.elements.description.value,
+                        features:
+                            Array.from(this._form.elements.features, e => e.checked && e.value)
+                                .filter(feature => feature)
+                    });
+                    if (this._data.lst) {
+                        this.list = list;
+                    } else {
+                        ui.navigate(`/lists/${list.id.split(":")[1]}`).catch(micro.util.catch);
+                    }
+                } catch (e) {
+                    ui.handleCallError(e);
                 }
             },
 
@@ -191,15 +205,26 @@ listling.ListPage = class extends micro.Page {
                         return;
                     }
                 }
-                this._data.lst.activity = await micro.call(
-                    "PATCH", `/api/lists/${this._data.lst.id}/activity`, {op: "subscribe"});
-                this.list = this._data.lst;
+
+                try {
+                    this._data.lst.activity = await ui.call(
+                        "PATCH", `/api/lists/${this._data.lst.id}/activity`, {op: "subscribe"}
+                    );
+                    this.list = this._data.lst;
+                } catch (e) {
+                    ui.handleCallError(e);
+                }
             },
 
             unsubscribe: async() => {
-                this._data.lst.activity = await micro.call(
-                    "PATCH", `/api/lists/${this._data.lst.id}/activity`, {op: "unsubscribe"});
-                this.list = this._data.lst;
+                try {
+                    this._data.lst.activity = await ui.call(
+                        "PATCH", `/api/lists/${this._data.lst.id}/activity`, {op: "unsubscribe"}
+                    );
+                    this.list = this._data.lst;
+                } catch (e) {
+                    ui.handleCallError(e);
+                }
             },
 
             moveItemDrag: event => {
@@ -265,8 +290,14 @@ listling.ListPage = class extends micro.Page {
             if (this._data.editMode) {
                 this._form.elements[0].focus();
             } else {
-                let items = await micro.call("GET", `/api/lists/${this._data.lst.id}/items`);
-                this._items = new micro.bind.Watchable(items);
+                try {
+                    const items = await ui.call("GET", `/api/lists/${this._data.lst.id}/items`);
+                    this._items = new micro.bind.Watchable(items);
+                } catch (e) {
+                    ui.handleCallError(e);
+                    return;
+                }
+
                 this._data.presentItems = micro.bind.filter(this._items, i => !i.trashed);
                 this._data.trashedItems = micro.bind.filter(this._items, i => i.trashed);
                 this._data.trashedItemsCount = this._data.trashedItems.length;
@@ -323,10 +354,14 @@ listling.ListPage = class extends micro.Page {
 
     async _moveItem(item, to) {
         ui.dispatchEvent(new CustomEvent("list-items-move", {detail: {item, to}}));
-        await micro.call("POST", `/api/lists/${this._data.lst.id}/items/move`, {
-            item_id: item.id,
-            to_id: to && to.id
-        });
+        try {
+            await ui.call("POST", `/api/lists/${this._data.lst.id}/items/move`, {
+                item_id: item.id,
+                to_id: to && to.id
+            });
+        } catch (e) {
+            ui.handleCallError(e);
+        }
     }
 };
 
@@ -354,7 +389,7 @@ listling.ItemElement = class extends HTMLLIElement {
 
                 let item;
                 try {
-                    item = await micro.call("POST", url, {
+                    item = await ui.call("POST", url, {
                         text,
                         resource,
                         title: this._form.elements.title.value,
@@ -368,9 +403,9 @@ listling.ItemElement = class extends HTMLLIElement {
                         ].includes(e.error.__type__)
                     ) {
                         ui.notify("Oops, there was a problem opening the link. Please try again in a few moments.");
-                        return;
+                    } else {
+                        ui.handleCallError(e);
                     }
-                    ui.handleCallError(e);
                     return;
                 }
 
@@ -399,27 +434,47 @@ listling.ItemElement = class extends HTMLLIElement {
             },
 
             trash: async() => {
-                let item = await micro.call(
-                    "POST", `/api/lists/${ui.page.list.id}/items/${this._data.item.id}/trash`);
-                ui.dispatchEvent(new CustomEvent("item-trash", {detail: {item}}));
+                try {
+                    const item = await ui.call(
+                        "POST", `/api/lists/${ui.page.list.id}/items/${this._data.item.id}/trash`
+                    );
+                    ui.dispatchEvent(new CustomEvent("item-trash", {detail: {item}}));
+                } catch (e) {
+                    ui.handleCallError(e);
+                }
             },
 
             restore: async() => {
-                let item = await micro.call(
-                    "POST", `/api/lists/${ui.page.list.id}/items/${this._data.item.id}/restore`);
-                ui.dispatchEvent(new CustomEvent("item-restore", {detail: {item}}));
+                try {
+                    const item = await ui.call(
+                        "POST", `/api/lists/${ui.page.list.id}/items/${this._data.item.id}/restore`
+                    );
+                    ui.dispatchEvent(new CustomEvent("item-restore", {detail: {item}}));
+                } catch (e) {
+                    ui.handleCallError(e);
+                }
             },
 
             check: async() => {
-                let item = await micro.call(
-                    "POST", `/api/lists/${ui.page.list.id}/items/${this._data.item.id}/check`);
-                ui.dispatchEvent(new CustomEvent("item-check", {detail: {item}}));
+                try {
+                    const item = await ui.call(
+                        "POST", `/api/lists/${ui.page.list.id}/items/${this._data.item.id}/check`
+                    );
+                    ui.dispatchEvent(new CustomEvent("item-check", {detail: {item}}));
+                } catch (e) {
+                    ui.handleCallError(e);
+                }
             },
 
             uncheck: async() => {
-                let item = await micro.call(
-                    "POST", `/api/lists/${ui.page.list.id}/items/${this._data.item.id}/uncheck`);
-                ui.dispatchEvent(new CustomEvent("item-uncheck", {detail: {item}}));
+                try {
+                    const item = await ui.call(
+                        "POST", `/api/lists/${ui.page.list.id}/items/${this._data.item.id}/uncheck`
+                    );
+                    ui.dispatchEvent(new CustomEvent("item-uncheck", {detail: {item}}));
+                } catch (e) {
+                    ui.handleCallError(e);
+                }
             }
         });
         micro.bind.bind(this.children, this._data);
