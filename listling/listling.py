@@ -301,6 +301,10 @@ class Item(Object, Editable, Trashable, WithContent):
         # pylint: disable=missing-docstring; already documented
         return self.app.lists[self._list_id]
 
+    def delete(self):
+        self.app.r.lrem(self.list.items.ids.key, 1, self.id.encode())
+        self.app.r.delete(self.id)
+
     def check(self):
         """See :http:post:`/api/lists/(list-id)/items/(id)/check`."""
         _check_feature(self.app.user, 'check', self)
