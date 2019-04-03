@@ -72,8 +72,8 @@ class ListlingUpdateTest(AsyncTestCase):
         app = Listling(redis_url='15')
         app.update()
 
-        item = app.lists[0].items[0]
-        self.assertIsNone(item.resource)
+        lst = app.lists[0]
+        self.assertEqual(lst.mode, 'collaborate')
 
     def test_update_db_version_first(self):
         self.setup_db('0.2.1')
@@ -91,12 +91,28 @@ class ListlingUpdateTest(AsyncTestCase):
         self.assertIsNone(item.location)
         # Update to version 5
         self.assertIsNone(item.resource)
+        # Update to version 6
+        self.assertEqual(lst.mode, 'collaborate')
 
 class ListTest(ListlingTestCase):
     def test_edit(self):
         lst = self.app.lists.create(v=2)
+        lst.edit(description='What has to be done!', mode='view')
+        self.assertEqual(lst.description, 'What has to be done!')
+        self.assertEqual(lst.mode, 'view')
+
+    def test_edit_as_user(self):
+        lst = self.app.lists.create(v=2)
+        self.app.login()
         lst.edit(description='What has to be done!')
         self.assertEqual(lst.description, 'What has to be done!')
+
+    def test_edit_view_mode_as_user(self):
+        lst = self.app.lists.create(v=2)
+        lst.edit(mode='view')
+        self.app.login()
+        with self.assertRaises(PermissionError):
+            lst.edit(description='What has to be done!')
 
     @gen_test
     async def test_items_create(self):
@@ -105,8 +121,11 @@ class ListTest(ListlingTestCase):
         self.assertIn(item.id, lst.items)
 
 class ItemTest(ListlingTestCase):
-    def make_item(self, use_case='simple'):
-        return self.app.lists.create(use_case, v=2).items.create('Sleep')
+    def make_item(self, *, use_case='simple', mode=None):
+        lst = self.app.lists.create(use_case, v=2)
+        if mode:
+            lst.edit(mode=mode)
+        return lst.items.create('Sleep')
 
     @gen_test
     async def test_edit(self):
@@ -115,7 +134,7 @@ class ItemTest(ListlingTestCase):
         self.assertEqual(item.text, 'Very important!')
 
     def test_check(self):
-        item = self.make_item('todo')
+        item = self.make_item(use_case='todo')
         item.check()
         self.assertTrue(item.checked)
 
@@ -125,8 +144,20 @@ class ItemTest(ListlingTestCase):
             item.check()
         self.assertFalse(item.checked)
 
+    def test_check_as_user(self):
+        item = self.make_item(use_case='todo')
+        self.app.login()
+        item.check()
+        self.assertTrue(item.checked)
+
+    def test_check_view_mode_as_user(self):
+        item = self.make_item(use_case='todo', mode='view')
+        self.app.login()
+        with self.assertRaises(PermissionError):
+            item.check()
+
     def test_uncheck(self):
-        item = self.make_item('todo')
+        item = self.make_item(use_case='todo')
         item.check()
         item.uncheck()
         self.assertFalse(item.checked)

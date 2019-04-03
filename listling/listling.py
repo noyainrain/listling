@@ -104,13 +104,16 @@ class Listling(Application):
             else:
                 raise NotImplementedError()
 
+            if not self.app.user:
+                raise PermissionError()
             if use_case not in _USE_CASES:
                 raise micro.ValueError('use_case_unknown')
+
             data = _USE_CASES[use_case]
             id = 'List:{}'.format(randstr())
             lst = List(
-                id, self.app, authors=[self.app.user.id], title=data['title'], description=None,
-                features=data['features'],
+                id=id, app=self.app, authors=[self.app.user.id], title=data['title'],
+                description=None, features=data['features'], mode='collaborate',
                 activity=Activity('{}.activity'.format(id), self.app, subscriber_ids=[]))
             self.app.r.oset(lst.id, lst)
             self.app.r.rpush(self.map_key, lst.id)
@@ -157,7 +160,7 @@ class Listling(Application):
     def do_update(self):
         version = self.r.get('version')
         if not version:
-            self.r.set('version', 5)
+            self.r.set('version', 6)
             return
 
         version = int(version)
@@ -204,6 +207,14 @@ class Listling(Application):
             r.omset({item['id']: item for item in items})
             r.set('version', 5)
 
+        # Deprecated since 0.11.0
+        if version < 6:
+            lists = r.omget(r.lrange('lists', 0, -1))
+            for lst in lists:
+                lst['mode'] = 'collaborate'
+            r.omset({lst['id']: lst for lst in lists})
+            r.set('version', 6)
+
     def create_settings(self):
         # pylint: disable=unexpected-keyword-arg; decorated
         return Settings(
@@ -214,6 +225,11 @@ class Listling(Application):
 
 class List(Object, Editable):
     """See :ref:`List`."""
+
+    _PERMISSIONS = {
+        'collaborate': {'user': {'list-modify', 'item-modify'}},
+        'view':        {'user': set()}
+    }
 
     class Items(Collection, Orderable):
         """See :ref:`Items`."""
@@ -233,6 +249,8 @@ class List(Object, Editable):
             return coro if asynchronous is ON else run_instant(coro)
 
         async def _create(self, title, *, text=None, resource=None, location=None):
+            # pylint: disable=protected-access; List is a friend
+            self.host[0]._check_permission(self.app.user, 'list-modify')
             attrs = await WithContent.process_attrs({'text': text, 'resource': resource},
                                                     app=self.app)
             if str_or_none(title) is None:
@@ -249,27 +267,39 @@ class List(Object, Editable):
                 Event.create('list-create-item', self.host[0], {'item': item}, self.app))
             return item
 
-    def __init__(self, id, app, authors, title, description, features, activity):
-        super().__init__(id, app)
-        Editable.__init__(self, authors, activity)
+        def move(self, item, to):
+            # pylint: disable=protected-access; List is a friend
+            self.host[0]._check_permission(self.app.user, 'list-modify')
+            super().move(item, to)
+
+    def __init__(self, *, id, app, authors, title, description, features, mode, activity):
+        super().__init__(id=id, app=app)
+        Editable.__init__(self, authors=authors, activity=activity)
         self.title = title
         self.description = description
         self.features = features
+        self.mode = mode
         self.items = List.Items((self, 'items'))
         self.activity = activity
         self.activity.host = self
 
     def do_edit(self, **attrs):
+        self._check_permission(self.app.user, 'list-modify')
         if 'title' in attrs and str_or_none(attrs['title']) is None:
             raise micro.ValueError('title_empty')
         if 'features' in attrs and not set(attrs['features']) <= {'check', 'location'}:
             raise micro.ValueError('feature_unknown')
+        if 'mode' in attrs and attrs['mode'] not in {'collaborate', 'view'}:
+            raise micro.ValueError('Unknown mode')
+
         if 'title' in attrs:
             self.title = attrs['title']
         if 'description' in attrs:
             self.description = str_or_none(attrs['description'])
         if 'features' in attrs:
             self.features = attrs['features']
+        if 'mode' in attrs:
+            self.mode = attrs['mode']
 
     def json(self, restricted=False, include=False):
         return {
@@ -278,8 +308,17 @@ class List(Object, Editable):
             'title': self.title,
             'description': self.description,
             'features': self.features,
+            'mode': self.mode,
             'activity': self.activity.json(restricted)
         }
+
+    def _check_permission(self, user, op):
+        permissions = List._PERMISSIONS[self.mode]
+        if not (user and (
+                op in permissions['user'] or
+                user == self.authors[0] or
+                user in self.app.settings.staff)):
+            raise PermissionError()
 
 class Item(Object, Editable, Trashable, WithContent):
     """See :ref:`Item`."""
@@ -308,6 +347,7 @@ class Item(Object, Editable, Trashable, WithContent):
     def check(self):
         """See :http:post:`/api/lists/(list-id)/items/(id)/check`."""
         _check_feature(self.app.user, 'check', self)
+        self._check_permission(self.app.user, 'item-modify')
         self.checked = True
         self.app.r.oset(self.id, self)
         self.list.activity.publish(Event.create('item-check', self, app=self.app))
@@ -315,11 +355,13 @@ class Item(Object, Editable, Trashable, WithContent):
     def uncheck(self):
         """See :http:post:`/api/lists/(list-id)/items/(id)/uncheck`."""
         _check_feature(self.app.user, 'check', self)
+        self._check_permission(self.app.user, 'item-modify')
         self.checked = False
         self.app.r.oset(self.id, self)
         self.list.activity.publish(Event.create('item-uncheck', self, app=self.app))
 
     async def do_edit(self, **attrs):
+        self._check_permission(self.app.user, 'item-modify')
         attrs = await WithContent.pre_edit(self, attrs)
         if 'title' in attrs and str_or_none(attrs['title']) is None:
             raise micro.ValueError('title_empty')
@@ -329,6 +371,14 @@ class Item(Object, Editable, Trashable, WithContent):
             self.title = attrs['title']
         if 'location' in attrs:
             self.location = attrs['location']
+
+    def trash(self):
+        self._check_permission(self.app.user, 'item-modify')
+        super().trash()
+
+    def restore(self):
+        self._check_permission(self.app.user, 'item-modify')
+        super().restore()
 
     def json(self, restricted=False, include=False):
         return {
@@ -341,6 +391,16 @@ class Item(Object, Editable, Trashable, WithContent):
             'location': self.location.json() if self.location else None,
             'checked': self.checked
         }
+
+    def _check_permission(self, user, op):
+        lst = self.list
+        # pylint: disable=protected-access; List is a friend
+        permissions = List._PERMISSIONS[lst.mode]
+        if not (user and (
+                op in permissions['user'] or
+                user == lst.authors[0] or
+                user in self.app.settings.staff)):
+            raise PermissionError()
 
 def _check_feature(user, feature, item):
     if feature not in item.list.features:

@@ -80,6 +80,7 @@ describe("UI", function() {
         expect(title).to.equal("Project tasks");
 
         // Edit list
+        await browser.findElement({css: ".listling-list-menu"}).click();
         await browser.findElement({css: ".listling-list-edit"}).click();
         form = await browser.findElement({css: "listling-list-page form"});
         input = await form.findElement({name: "title"});
@@ -125,10 +126,10 @@ describe("UI", function() {
                            timeout);
 
         // Uncheck item
-        let checkSelector =
-            {css: ".listling-list-items > li:first-child .listling-item-check .action"};
-        let uncheckSelector =
-            {css: ".listling-list-items > li:first-child .listling-item-uncheck .action"};
+        const checkSelector = {css: ".listling-list-items > li:first-child .listling-item-check"};
+        const uncheckSelector = {
+            css: ".listling-list-items > li:first-child .listling-item-uncheck"
+        };
         await browser.findElement(uncheckSelector).click();
         let checkButton = await browser.wait(until.elementLocated(checkSelector), timeout);
 

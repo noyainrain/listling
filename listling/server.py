@@ -80,7 +80,8 @@ class _ListEndpoint(Endpoint):
         args = self.check_args({
             'title': (str, 'opt'),
             'description': (str, None, 'opt'),
-            'features': (list, 'opt')
+            'features': (list, 'opt'),
+            'mode': (str, 'opt')
         })
         lst.edit(**args)
         self.write(lst.json(restricted=True, include=True))

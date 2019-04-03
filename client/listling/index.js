@@ -141,6 +141,8 @@ listling.ListPage = class extends micro.Page {
             document.importNode(ui.querySelector(".listling-list-page-template").content, true));
         this._data = new micro.bind.Watchable({
             lst: null,
+            modes: ["collaborate", "view"],
+            modeToText: (ctx, mode) => ({collaborate: "Collaborate", view: "View"}[mode]),
             presentItems: null,
             trashedItems: null,
             trashedItemsCount: 0,
@@ -155,7 +157,7 @@ listling.ListPage = class extends micro.Page {
             },
             startCreateItem: () => {
                 this._data.creatingItem = true;
-                this.querySelector(".listling-list-create-item form").elements[1].focus();
+                this.querySelector(".listling-list-create-item [is=listling-item]").focus();
             },
             stopCreateItem: () => {
                 this._data.creatingItem = false;
@@ -166,7 +168,6 @@ listling.ListPage = class extends micro.Page {
 
             startEdit: () => {
                 this._data.editMode = true;
-                this._form.elements[0].focus();
             },
 
             edit: async() => {
@@ -177,7 +178,8 @@ listling.ListPage = class extends micro.Page {
                         description: this._form.elements.description.value,
                         features:
                             Array.from(this._form.elements.features, e => e.checked && e.value)
-                                .filter(feature => feature)
+                                .filter(feature => feature),
+                        mode: this._form.elements.mode.valueAsObject
                     });
                     if (this._data.lst) {
                         this.list = list;
@@ -255,6 +257,15 @@ listling.ListPage = class extends micro.Page {
                 // Move, then refocus
                 this._moveItem(item, to);
                 ol.children[i + (event.detail.dir === "up" ? -1 : 1)].focus();
+            },
+
+            may: (ctx, op, mode) => {
+                // eslint-disable-next-line no-underscore-dangle
+                const permissions = listling.ListPage._PERMISSIONS[mode || "view"];
+                return (
+                    permissions.user.has(op) ||
+                    this._data.lst && ui.user.id === this._data.lst.authors[0].id
+                );
             }
         });
         micro.bind.bind(this.children, this._data);
@@ -269,6 +280,10 @@ listling.ListPage = class extends micro.Page {
                     this._data.lst && this._data.lst.features.includes(feature)
                 );
             }
+            this.classList.toggle(
+                "listling-list-may-modify",
+                this._data.may(null, "list-modify", this._data.lst && this._data.lst.mode)
+            );
         };
         ["lst", "editMode", "trashedItemsCount"].forEach(
             prop => this._data.watch(prop, updateClass));
@@ -365,18 +380,27 @@ listling.ListPage = class extends micro.Page {
     }
 };
 
+// eslint-disable-next-line no-underscore-dangle
+listling.ListPage._PERMISSIONS = {
+    collaborate: {user: new Set(["list-modify", "item-modify"])},
+    view: {user: new Set()}
+};
+
 listling.ItemElement = class extends HTMLLIElement {
     createdCallback() {
         this.appendChild(
             document.importNode(ui.querySelector(".listling-item-template").content, true));
         this._data = new micro.bind.Watchable({
             item: null,
+            lst: null,
             editMode: true,
+            isCheckDisabled:
+                (ctx, trashed, mode) => trashed || !this._data.may(ctx, "item-modify", mode),
             makeItemURL: listling.util.makeItemURL,
 
             startEdit: () => {
                 this._data.editMode = true;
-                this._form.elements[0].focus();
+                this.focus();
             },
 
             edit: async() => {
@@ -475,6 +499,15 @@ listling.ItemElement = class extends HTMLLIElement {
                 } catch (e) {
                     ui.handleCallError(e);
                 }
+            },
+
+            may: (ctx, op, mode) => {
+                // eslint-disable-next-line no-underscore-dangle
+                const permissions = listling.ListPage._PERMISSIONS[mode || "view"];
+                return (
+                    permissions.user.has(op) ||
+                    this._data.lst && ui.user.id === this._data.lst.authors[0].id
+                );
             }
         });
         micro.bind.bind(this.children, this._data);
@@ -494,8 +527,13 @@ listling.ItemElement = class extends HTMLLIElement {
                                   this._data.item && this._data.item.checked);
             this.classList.toggle("listling-item-mode-view", !this._data.editMode);
             this.classList.toggle("listling-item-mode-edit", this._data.editMode);
+            this.classList.toggle(
+                "listling-item-may-modify",
+                this._data.may(null, "item-modify", this._data.lst && this._data.lst.mode)
+            );
         };
         this._data.watch("item", updateClass);
+        this._data.watch("lst", updateClass);
         this._data.watch("editMode", updateClass);
         updateClass();
 
@@ -514,6 +552,7 @@ listling.ItemElement = class extends HTMLLIElement {
 
     set item(value) {
         this._data.item = value;
+        this._data.lst = ui.page.list;
         this._data.editMode = !this._data.item;
         this.id = this._data.item ? `items-${this._data.item.id.split(":")[1]}` : "";
     }
