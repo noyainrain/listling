@@ -81,6 +81,21 @@ List
 
    Available features are ``check`` and ``location``.
 
+.. describe:: mode
+
+   List mode, describing how users work with the list. In ``collaborate`` mode, users collaborate on
+   the list. In ``view`` mode, users only view the list.
+
+   The following permissions apply:
+
+   * ``collaborate``: Authenticated users may modify [1]_ the list and modify [2]_ items
+   * ``view``: None
+
+   List owners always have full permissions.
+
+   .. [1] Edit the list and create and move items
+   .. [2] Edit, trash, restore, check and uncheck items
+
 .. include:: micro/editable-endpoints.inc
 
 .. _Items:
