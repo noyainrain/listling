@@ -49,6 +49,7 @@ def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='',
     return Server(
         app, handlers, port=port, url=url, client_modules_path='node_modules',
         client_service_path='listling/service.js', debug=debug,
+        client_shell=['listling.css', 'listling', 'images'],
         client_map_service_key=client_map_service_key)
 
 class _ListsEndpoint(Endpoint):

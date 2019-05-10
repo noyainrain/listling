@@ -25,7 +25,8 @@ let {promisify} = require("util");
 let {expect} = require("chai");
 let {until} = require("selenium-webdriver");
 
-let {startBrowser, untilElementTextLocated} = require("@noyainrain/micro/test");
+const {getWithServiceWorker, startBrowser, untilElementTextLocated} =
+    require("@noyainrain/micro/test");
 
 const URL = "http://localhost:8081";
 
@@ -65,7 +66,7 @@ describe("UI", function() {
         let itemMenu;
 
         // View start page
-        await browser.get(`${URL}/`);
+        await getWithServiceWorker(browser, `${URL}/`);
         await browser.wait(
             untilElementTextLocated({css: ".micro-logo"}, "My Open Listling"), timeout);
 
