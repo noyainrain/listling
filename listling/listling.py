@@ -14,11 +14,15 @@
 
 """Open Listling core."""
 
+from time import time
+
 import micro
 from micro import (Activity, Application, Collection, Editable, Location, Object, Orderable,
                    Trashable, Settings, Event, WithContent)
 from micro.jsonredis import JSONRedis
 from micro.util import randstr, run_instant, str_or_none, ON
+
+from micro.jsonredis import RedisSortedSet
 
 _USE_CASES = {
     'simple': {'title': 'New list', 'features': []},
@@ -117,6 +121,7 @@ class Listling(Application):
                 activity=Activity('{}.activity'.format(id), self.app, subscriber_ids=[]))
             self.app.r.oset(lst.id, lst)
             self.app.r.rpush(self.map_key, lst.id)
+            self.app.user.lists.add(lst, user=self.app.user)
             self.app.activity.publish(
                 Event.create('create-list', None, {'lst': lst}, app=self.app))
             return lst
@@ -154,13 +159,13 @@ class Listling(Application):
                  render_email_auth_message=None, *, video_service_keys={}):
         super().__init__(redis_url, email, smtp_url, render_email_auth_message,
                          video_service_keys=video_service_keys)
-        self.types.update({'List': List, 'Item': Item})
+        self.types.update({'User': User, 'List': List, 'Item': Item})
         self.lists = Listling.Lists((self, 'lists'))
 
     def do_update(self):
         version = self.r.get('version')
         if not version:
-            self.r.set('version', 6)
+            self.r.set('version', 7)
             return
 
         version = int(version)
@@ -215,6 +220,17 @@ class Listling(Application):
             r.omset({lst['id']: lst for lst in lists})
             r.set('version', 6)
 
+        # Deprecated since 0.14.0
+        if version < 7:
+            now = time()
+            lists = r.omget(r.lrange('lists', 0, -1))
+            for lst in lists:
+                r.zadd('{}.lists'.format(lst['authors'][0]), {lst['id']: -now})
+            r.set('version', 7)
+
+    def create_user(self, data):
+        return User(**data)
+
     def create_settings(self):
         # pylint: disable=unexpected-keyword-arg; decorated
         return Settings(
@@ -222,6 +238,55 @@ class Listling(Application):
             icon_small=None, icon_large=None, provider_name=None, provider_url=None,
             provider_description={}, feedback_url=None, staff=[], push_vapid_private_key=None,
             push_vapid_public_key=None, v=2)
+
+class User(micro.User):
+    """See :ref:`User`."""
+
+    class Lists(Collection):
+        """See :ref:`UserLists`."""
+        # We use setattr / getattr to work around a Pylint error for Generic classes (see
+        # https://github.com/PyCQA/pylint/issues/2443)
+
+        def __init__(self, user):
+            super().__init__(RedisSortedSet('{}.lists'.format(user.id), user.app.r), app=user.app)
+            setattr(self, 'user', user)
+
+        def add(self, lst, *, user):
+            """See: :http:post:`/users/(id)/lists`."""
+            if user != getattr(self, 'user'):
+                raise PermissionError()
+            self.app.r.zadd(self.ids.key, {lst.id: -time()})
+
+        def remove(self, lst, *, user):
+            """See :http:delete:`/users/(id)/lists/(list-id)`.
+
+            If *lst* is not in the collection, a :exc:`micro.error.ValueError` is raised.
+            """
+            if user != getattr(self, 'user'):
+                raise PermissionError()
+            if lst.authors[0] == getattr(self, 'user'):
+                raise micro.ValueError(
+                    'user {} is owner of lst {}'.format(getattr(self, 'user').id, lst.id))
+            if self.app.r.zrem(self.ids.key, lst.id) == 0:
+                raise micro.ValueError(
+                    'No lst {} in lists of user {}'.format(lst.id, getattr(self, 'user').id))
+
+        def read(self, *, user):
+            """Return collection for reading."""
+            if user != getattr(self, 'user'):
+                raise PermissionError()
+            return self
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        self.lists = User.Lists(self)
+
+    def json(self, restricted=False, include=False):
+        return {
+            **super().json(restricted=restricted, include=include),
+            **({'lists': self.lists.json(restricted=restricted, include=include)}
+               if restricted and self.app.user == self else {})
+        }
 
 class List(Object, Editable):
     """See :ref:`List`."""
@@ -309,7 +374,9 @@ class List(Object, Editable):
             'description': self.description,
             'features': self.features,
             'mode': self.mode,
-            'activity': self.activity.json(restricted)
+            'activity': self.activity.json(restricted),
+            **({'items': self.items.json(restricted=restricted, include=include)} if restricted
+               else {}),
         }
 
     def _check_permission(self, user, op):

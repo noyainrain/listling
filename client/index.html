@@ -8,29 +8,35 @@
     {% raw micro_dependencies() %}
     <link rel="stylesheet" href="{{ static_url('listling.css') }}" />
     <script src="{{ static_url('listling/util.js') }}" defer="defer"></script>
+    <script src="{{ static_url('listling/components/start.js') }}" defer="defer"></script>
     <script src="{{ static_url('listling/index.js') }}" defer="defer"></script>
 </head>
 
 <body is="listling-ui">
+    <li class="listling-ui-intro" slot="menu">
+        <a class="link" href="/intro"><i class="fa fa-fw fa-rocket"></i> Introduction</a>
+    </li>
+
     {% raw micro_boot() %}
+
     {% raw micro_templates() %}
 
-    <template class="listling-start-page-template">
-        <div class="listling-start-intro">
+    <template class="listling-intro-page-template">
+        <div class="listling-intro-intro">
             <h1 class="micro-logo">
                 <img data-src="or settings.icon ''" /> <span data-content="settings.title"></span>
             </h1>
-            <p class="listling-start-slogan">Collaborative lists</p>
-            <p class="listling-start-keywords">Free · Simple · No registration required</p>
+            <p class="listling-intro-slogan">Collaborative lists</p>
+            <p class="listling-intro-keywords">Free · Simple · No registration required</p>
         </div>
 
-        <div class="listling-start-intro">
-            <ul class="listling-start-use-cases" data-content="list useCases 'useCase'">
+        <div class="listling-intro-intro">
+            <ul class="listling-intro-use-cases" data-content="list useCases 'useCase'">
                 <template>
                     <li
                         class="micro-quick-nav"
                         data-class-listling-selected="eq useCase selectedUseCase"
-                        data-class-listling-start-no-example="eq useCase.id 'simple'"
+                        data-class-listling-intro-no-example="eq useCase.id 'simple'"
                         tabindex="0"
                         data-onmouseenter="focusUseCase"
                         data-onfocus="bind selectUseCase useCase"
@@ -42,15 +48,15 @@
                                 <button
                                     is="micro-button"
                                     type="button"
-                                    class="listling-start-create-list action"
+                                    class="listling-intro-create-list action"
                                     title="⌨ S"
-                                    data-run="bind createList useCase"
+                                    data-run="bind createList useCase.id"
                                     data-onfocus="bind selectUseCase useCase"
                                 >
                                     <i class="fa fa-paper-plane"></i> Start
                                 </button>
                             </p>
-                            <p class="listling-start-create-example">
+                            <p class="listling-intro-create-example">
                                 or view
                                 <button
                                     is="micro-button"
@@ -67,7 +73,7 @@
                     </li>
                 </template>
             </ul>
-            <p class="listling-start-missing">
+            <p class="listling-intro-missing">
                 <small>
                     Missing a certain kind of list?
                     <a class="action action-subtle" data-href="settings.feedback_url"
@@ -83,25 +89,25 @@
         </footer>
     </template>
     <style>
-        .listling-start-intro {
+        .listling-intro-intro {
             margin: calc(1.5rem * 3) 0;
             text-align: center;
         }
 
-        .listling-start-intro .micro-logo {
+        .listling-intro-intro .micro-logo {
             font-size: 3em;
         }
 
-        .listling-start-slogan {
+        .listling-intro-slogan {
             font-size: 2em;
             font-weight: 300;
         }
 
-        .listling-start-keywords {
+        .listling-intro-keywords {
             color: #888;
         }
 
-        .listling-start-use-cases {
+        .listling-intro-use-cases {
             display: grid;
             padding: 0;
             grid-template-columns: repeat(auto-fill, calc(14ch * 1.33 + 1.5rem / 2));
@@ -110,53 +116,53 @@
             list-style: none;
         }
 
-        .listling-start-use-cases li {
+        .listling-intro-use-cases li {
             padding: calc(1.5rem / 4);
             border: 1px solid transparent;
             border-radius: calc(1.5rem / 8);
         }
 
-        .listling-start-use-cases li.listling-selected {
+        .listling-intro-use-cases li.listling-selected {
             border-color: #ddd;
         }
 
-        .listling-start-use-cases li h1,
-        .listling-start-use-cases li p {
+        .listling-intro-use-cases li h1,
+        .listling-intro-use-cases li p {
             margin: calc(1.5rem / 4) 0 0 0;
         }
 
-        .listling-start-use-cases li > i {
+        .listling-intro-use-cases li > i {
             display: block;
             font-size: 2em;
             color: #888;
         }
 
-        .listling-start-use-cases li h1 {
+        .listling-intro-use-cases li h1 {
             font-size: 1.33em;
         }
 
-        .listling-start-use-cases li:not(.listling-selected) div {
+        .listling-intro-use-cases li:not(.listling-selected) div {
             height: 0;
             overflow: hidden;
         }
 
-        .listling-start-create-example {
+        .listling-intro-create-example {
             color: #888;
         }
 
-        .listling-start-use-cases li.listling-start-no-example .listling-start-create-example {
+        .listling-intro-use-cases li.listling-intro-no-example .listling-intro-create-example {
             visibility: hidden;
         }
 
-        listling-start-page footer {
+        listling-intro-page footer {
             text-align: center;
         }
 
-        listling-start-page footer i {
+        listling-intro-page footer i {
             color: lightpink;
         }
 
-        [is="listling-ui"]:not(.micro-ui-settings-have-feedback-url) .listling-start-missing {
+        [is="listling-ui"]:not(.micro-ui-settings-have-feedback-url) .listling-intro-missing {
             display: none;
         }
     </style>
@@ -235,13 +241,6 @@
                           data-value="or lst.description ''">
                 </textarea>
             </label>
-
-            <p class="listling-detail listling-list-mode-view" title="Edited by">
-                <i class="fa fa-pencil-alt"></i>
-                <span data-content="join lst.authors 'user'">
-                    <template><micro-user data-user="user"></micro-user></template>
-                </span>
-            </p>
 
             <div class="listling-list-settings listling-list-mode-edit"
                  data-class-listling-list-settings-expanded="settingsExpanded">
@@ -335,7 +334,7 @@
 
         <div class="listling-list-trash listling-list-mode-view"
              data-class-listling-list-trash-expanded="trashExpanded">
-            <p class="listling-detail">
+            <p class="micro-small">
                 <span
                     data-content="formatPlural 'There is one trashed item.' 'There are {n} trashed items.' 'n' trashedItemsCount">
                 </span>
@@ -374,6 +373,15 @@
             </p>
             <li is="listling-item" data-onedit="stopCreateItem" data-oncancel="stopCreateItem"></li>
         </div>
+
+        <aside class="listling-list-mode-view">
+            <i class="fa fa-user-cog"></i> List by
+            <micro-user data-user="lst.authors.0"></micro-user> · <i class="fa fa-pencil-alt"></i>
+            Edited by
+            <span data-content="join lst.authors 'user'">
+                <template><micro-user data-user="user"></micro-user></template>
+            </span>
+        </aside>
     </template>
     <style>
         .listling-list-items,
@@ -653,4 +661,6 @@
         </a>
         was created by <micro-user data-user="event.user"></micro-user>
     </template>
+
+    {% include 'listling/components/start.html' %}
 </body>

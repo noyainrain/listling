@@ -22,8 +22,8 @@ import json
 
 import micro
 from micro import Location
-from micro.server import (Endpoint, Server, make_activity_endpoint, make_orderable_endpoints,
-                          make_trashable_endpoints)
+from micro.server import (Endpoint, CollectionEndpoint, Server, make_activity_endpoint,
+                          make_orderable_endpoints, make_trashable_endpoints)
 from micro.util import ON
 
 from . import Listling
@@ -33,6 +33,8 @@ def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='',
     """Create an Open Listling server."""
     app = Listling(redis_url, smtp_url=smtp_url, video_service_keys=video_service_keys)
     handlers = [
+        (r'/api/users/([^/]+)/lists$', _UserListsEndpoint),
+        (r'/api/users/([^/]+)/lists/([^/]+)$', _UserListEndpoint),
         (r'/api/lists$', _ListsEndpoint),
         (r'/api/lists/create-example$', _ListsCreateExampleEndpoint),
         (r'/api/lists/([^/]+)$', _ListEndpoint),
@@ -51,6 +53,29 @@ def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='',
         client_service_path='listling/service.js', debug=debug,
         client_shell=['listling.css', 'listling', 'images'],
         client_map_service_key=client_map_service_key)
+
+class _UserListsEndpoint(CollectionEndpoint):
+    def initialize(self):
+        super().initialize(
+            get_collection=lambda id: self.app.users[id].lists.read(user=self.current_user))
+
+    def post(self, id):
+        args = self.check_args({'list_id': str})
+        list_id = args.pop('list_id')
+        try:
+            args['lst'] = self.app.lists[list_id]
+        except KeyError:
+            raise micro.ValueError('No list {}'.format(list_id))
+        lists = self.get_collection(id)
+        lists.add(**args, user=self.current_user)
+        self.write({})
+
+class _UserListEndpoint(Endpoint):
+    def delete(self, id, list_id):
+        lists = self.app.users[id].lists
+        lst = lists[list_id]
+        lists.remove(lst, user=self.current_user)
+        self.write({})
 
 class _ListsEndpoint(Endpoint):
     def post(self):

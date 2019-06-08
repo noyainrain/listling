@@ -34,7 +34,8 @@ listling.UI = class extends micro.UI {
         }
 
         this.pages = this.pages.concat([
-            {url: "^/$", page: "listling-start-page"},
+            {url: "^/$", page: listling.components.start.StartPage.make},
+            {url: "^/intro$", page: "listling-intro-page"},
             {url: "^/about$", page: makeAboutPage},
             {url: "^/lists/([^/]+)(?:/[^/]+)?$", page: listling.ListPage.make}
         ]);
@@ -51,25 +52,19 @@ listling.UI = class extends micro.UI {
 };
 
 /**
- * Start page.
+ * Intro page.
  */
-listling.StartPage = class extends micro.Page {
+listling.IntroPage = class extends micro.Page {
     createdCallback() {
-        const USE_CASES = [
-            {id: "todo", title: "To-Do list", icon: "check"},
-            {id: "shopping", title: "Shopping list", icon: "shopping-cart"},
-            {id: "meeting-agenda", title: "Meeting agenda", icon: "handshake"},
-            ...ui.mapServiceKey ? [{id: "map", title: "Map", icon: "map"}] : [],
-            {id: "simple", title: "Simple list", icon: "list"}
-        ];
-
         super.createdCallback();
+        const useCases = listling.components.start.getUseCases();
         this.appendChild(
-            document.importNode(ui.querySelector(".listling-start-page-template").content, true));
+            document.importNode(ui.querySelector(".listling-intro-page-template").content, true));
         this._data = new micro.bind.Watchable({
             settings: ui.settings,
-            useCases: USE_CASES,
-            selectedUseCase: USE_CASES[0],
+            useCases,
+            selectedUseCase: useCases[0],
+            createList: listling.components.start.createList,
 
             focusUseCase(event) {
                 event.target.focus();
@@ -82,15 +77,6 @@ listling.StartPage = class extends micro.Page {
                 setTimeout(() => {
                     this._data.selectedUseCase = useCase;
                 }, 0);
-            },
-
-            createList: async useCase => {
-                try {
-                    const list = await ui.call("POST", "/api/lists", {use_case: useCase.id, v: 2});
-                    ui.navigate(`/lists/${list.id.split(":")[1]}`).catch(micro.util.catch);
-                } catch (e) {
-                    ui.handleCallError(e);
-                }
             },
 
             createExample: async useCase => {
@@ -110,14 +96,15 @@ listling.StartPage = class extends micro.Page {
     attachedCallback() {
         super.attachedCallback();
         ui.shortcutContext.add("S", () => {
-            this.querySelector(".listling-selected .listling-start-create-list").click();
+            this.querySelector(".listling-selected .listling-intro-create-list").click();
         });
         ui.shortcutContext.add("E", () => {
             if (this._data.selectedUseCase.id !== "simple") {
-                this.querySelector(".listling-selected .listling-start-create-example button")
+                this.querySelector(".listling-selected .listling-intro-create-example button")
                     .click();
             }
         });
+        ui.url = "/intro";
     }
 
     detachedCallback() {
@@ -328,6 +315,17 @@ listling.ListPage = class extends micro.Page {
                 );
             }
         })().catch(micro.util.catch));
+
+        // Add list to lists of user
+        (async() => {
+            try {
+                await ui.call(
+                    "POST", `/api/users/${ui.user.id}/lists`, {list_id: this._data.lst.id}
+                );
+            } catch (e) {
+                ui.handleCallError(e);
+            }
+        })().catch(micro.util.catch);
     }
 
     detachedCallback() {
@@ -559,7 +557,7 @@ listling.ItemElement = class extends HTMLLIElement {
 };
 
 document.registerElement("listling-ui", {prototype: listling.UI.prototype, extends: "body"});
-document.registerElement("listling-start-page", listling.StartPage);
+document.registerElement("listling-intro-page", listling.IntroPage);
 document.registerElement("listling-list-page", listling.ListPage);
 document.registerElement("listling-item",
                          {prototype: listling.ItemElement.prototype, extends: "li"});

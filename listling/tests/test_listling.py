@@ -27,9 +27,14 @@ from listling import Listling
 app = Listling(redis_url='15')
 app.r.flushdb()
 app.update()
+
 app.login()
 # Compatibility for missing todo use case (deprecated since 0.3.0)
 app.lists.create_example('shopping')
+# Compatibility for title (deprecated since 0.3.0)
+app.lists.create('New list')
+app.login()
+app.lists.create('New list')
 """
 
 class ListlingTestCase(AsyncTestCase):
@@ -45,6 +50,7 @@ class ListlingTest(ListlingTestCase):
         lst = self.app.lists.create(v=2)
         self.assertEqual(lst.title, 'New list')
         self.assertIn(lst.id, self.app.lists)
+        self.assertIn(lst.id, self.user.lists)
 
     @gen_test
     async def test_lists_create_example(self):
@@ -68,12 +74,12 @@ class ListlingUpdateTest(AsyncTestCase):
         self.assertEqual(app.settings.title, 'My Open Listling')
 
     def test_update_db_version_previous(self):
-        self.setup_db('0.6.0')
+        self.setup_db('0.13.0')
         app = Listling(redis_url='15')
         app.update()
 
-        lst = app.lists[0]
-        self.assertEqual(lst.mode, 'collaborate')
+        user = app.settings.staff[0]
+        self.assertEqual(set(user.lists.values()), set(app.lists[0:2]))
 
     def test_update_db_version_first(self):
         self.setup_db('0.2.1')
@@ -93,6 +99,30 @@ class ListlingUpdateTest(AsyncTestCase):
         self.assertIsNone(item.resource)
         # Update to version 6
         self.assertEqual(lst.mode, 'collaborate')
+        # Update to version 7
+        user = app.settings.staff[0]
+        self.assertEqual(set(user.lists.values()), set(app.lists[0:2]))
+
+class UserListsTest(ListlingTestCase):
+    def test_add(self):
+        shared_lst = self.app.lists.create(v=2)
+        user = self.app.login()
+        lst = self.app.lists.create(v=2)
+        user.lists.add(shared_lst, user=user)
+        self.assertEqual(list(user.lists.values()), [shared_lst, lst])
+
+    def test_remove(self):
+        shared_lst = self.app.lists.create(v=2)
+        user = self.app.login()
+        lst = self.app.lists.create(v=2)
+        user.lists.add(shared_lst, user=user)
+        user.lists.remove(shared_lst, user=user)
+        self.assertEqual(list(user.lists.values()), [lst])
+
+    def test_remove_as_list_owner(self):
+        lst = self.app.lists.create(v=2)
+        with self.assertRaisesRegex(ValueError, 'owner'):
+            self.user.lists.remove(lst, user=self.user)
 
 class ListTest(ListlingTestCase):
     def test_edit(self):

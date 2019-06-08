@@ -14,6 +14,8 @@
 
 # pylint: disable=missing-docstring; test module
 
+import json
+
 from micro.test import ServerTestCase
 from tornado.testing import gen_test
 
@@ -32,6 +34,13 @@ class ServerTest(ServerTestCase):
     async def test_availibility(self):
         lst = self.app.lists.create_example('todo')
         item = next(iter(lst.items.values()))
+        self.app.login()
+        shared_lst = self.app.lists.create(v=2)
+        await self.request('/api/users/{}/lists'.format(self.client_user.id))
+        await self.request('/api/users/{}/lists'.format(self.client_user.id), method='POST',
+                           body=json.dumps({'list_id': shared_lst.id}))
+        await self.request('/api/users/{}/lists/{}'.format(self.client_user.id, shared_lst.id),
+                           method='DELETE')
         await self.request('/api/lists', method='POST', body='{"v": 2}')
         await self.request('/api/lists/create-example', method='POST',
                            body='{"use_case": "shopping"}')

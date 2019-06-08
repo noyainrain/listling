@@ -38,8 +38,9 @@ describe("UI", function() {
     this.timeout(5 * 60 * 1000);
 
     async function createExampleList() {
-        await browser.findElement({css: ".micro-ui-logo"}).click();
-        await browser.findElement({css: ".listling-start-create-example button"}).click();
+        await browser.findElement({css: ".micro-ui-header-menu"}).click();
+        await browser.findElement({css: ".listling-ui-intro"}).click();
+        await browser.findElement({css: ".listling-intro-create-example button"}).click();
         await browser.wait(until.elementLocated({css: "listling-list-page"}));
     }
 
@@ -65,15 +66,30 @@ describe("UI", function() {
         let input;
         let itemMenu;
 
-        // View start page
+        // View intro page
         await getWithServiceWorker(browser, `${URL}/`);
         await browser.wait(
             untilElementTextLocated({css: ".micro-logo"}, "My Open Listling"), timeout);
 
         // Create list
-        await browser.findElement({css: ".listling-start-create-list"}).click();
+        await browser.findElement({css: ".listling-intro-create-list"}).click();
         await browser.wait(
-            untilElementTextLocated({css: "listling-list-page h1"}, "New to-do list"), timeout);
+            untilElementTextLocated({css: "listling-list-page h1"}, "New to-do list"), timeout
+        );
+
+        // View start page
+        await browser.findElement({css: ".micro-ui-logo"}).click();
+        await browser.wait(
+            untilElementTextLocated({css: ".listling-start-lists .link"}, "New to-do list"), timeout
+        );
+
+        // Create list
+        await browser.findElement({css: ".listling-start-create"}).click();
+        await browser.findElement({css: ".listling-start-create [is=micro-menu] li:last-child"})
+            .click();
+        await browser.wait(
+            untilElementTextLocated({css: "listling-list-page h1"}, "New list"), timeout
+        );
 
         // Create example list
         await createExampleList();
@@ -91,6 +107,8 @@ describe("UI", function() {
         await form.findElement({css: "button:not([type])"}).click();
         await browser.wait(
             untilElementTextLocated({css: "listling-list-page h1"}, "Cat colony tasks"));
+        // Work around Edge not firing blur event when a button gets disabled
+        await browser.findElement({css: ".listling-list-menu"}).click();
 
         // Create item
         await browser.findElement({css: ".listling-list-create-item button"}).click();
@@ -148,7 +166,7 @@ describe("UI", function() {
 
     it("should work for staff", async function() {
         await browser.get(`${URL}/`);
-        await browser.wait(until.elementLocated({css: "listling-start-page"}), timeout);
+        await browser.wait(until.elementLocated({css: "listling-intro-page"}), timeout);
         await createExampleList();
 
         // View activity page
