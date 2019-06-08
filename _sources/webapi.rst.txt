@@ -47,6 +47,53 @@ Lists
 
    Get the :ref:`List` given by *id*.
 
+.. _User:
+
+User
+----
+
+Listling user.
+
+.. include:: micro/user-attributes.inc
+
+.. describe:: lists
+
+   :ref:`UserLists` of the user.
+
+.. include:: micro/user-endpoints.inc
+
+.. _UserLists:
+
+Lists
+^^^^^
+
+:ref:`List` :ref:`Collection` of the user, ordered by time added, latest first.
+
+Lists created by the user are added automatically.
+
+.. include:: micro/collection-attributes.inc
+
+.. include:: micro/collection-endpoints.inc
+
+.. http:post:: /users/(id)/lists
+
+   ``{"list_id"}``
+
+   Add the list with *list_id*.
+
+   If the list is already in the collection, the associated time is updated. If there is no list
+   with *list_id*, a :ref:`ValueError` is returned.
+
+   Permission: The user oneself.
+
+.. http:delete:: /users/(id)/lists/(list-id)
+
+   Remove the list with *list-id*.
+
+   If the user is the list owner, a :ref:`ValueError` is returned.
+
+   Permission: The user oneself.
+
 .. _Settings:
 
 Settings
@@ -95,6 +142,10 @@ List
 
    .. [1] Edit the list and create and move items
    .. [2] Edit, trash, restore, check and uncheck items
+
+.. describe:: items
+
+   List :ref:`Items`.
 
 .. include:: micro/editable-endpoints.inc
 
