@@ -46,7 +46,8 @@ listling.components.start.getUseCases = function() {
 /** Start page. */
 listling.components.start.StartPage = class extends micro.Page {
     static async make() {
-        const lists = await micro.call("GET", `/api/users/${ui.user.id}/lists`);
+        const lists = new micro.Collection(`/api/users/${ui.user.id}/lists`);
+        await lists.fetch(10);
         if (lists.count === 0) {
             return document.createElement("listling-intro-page");
         }
@@ -63,6 +64,7 @@ listling.components.start.StartPage = class extends micro.Page {
         this._data = new micro.bind.Watchable({
             user: ui.user,
             lists: null,
+            listsComplete: false,
             useCases: listling.components.start.getUseCases(),
             createList: listling.components.start.createList,
             makeListURL: listling.util.makeListURL,
@@ -100,7 +102,11 @@ listling.components.start.StartPage = class extends micro.Page {
     }
 
     set lists(value) {
-        this._data.lists = Object.assign({}, value, {items: new micro.bind.Watchable(value.items)});
+        this._data.lists = value;
+        this._data.lists.events.addEventListener("fetch", () => {
+            this._data.listsComplete = this._data.lists.complete;
+        });
+        this._data.listsComplete = this._data.lists.complete;
     }
 };
 

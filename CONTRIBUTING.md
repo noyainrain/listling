@@ -50,3 +50,25 @@ tasks. To get an overview, type:
 ```sh
 make help
 ```
+
+## Architecture overview
+
+```
+╭─────────╮
+│ Server  │
+├─────────┤
+│ micro   │
+│   ↓     │
+│ Tornado │
+│   ↓     │   ╭───────╮
+│ Python  │ ⇒ │ Redis │
+╰─────────╯   ╰───────╯
+  ⇑
+╭─────────────────────╮
+│ Client              │
+├─────────────────────┤
+│ micro       bind.js │
+│   ↓           ↓     │
+│ JavaScript  HTML    │
+╰─────────────────────╯
+```
