@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>2. Web API &#8212; Open Listling 0.15.0 documentation</title>
+    <title>2. Web API &#8212; Open Listling 0.16.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -347,10 +347,47 @@ if the event is global.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="analytics">
+<h2>2.14. Analytics<a class="headerlink" href="#analytics" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="statistic">
+<span id="id10"></span><h3>2.14.1. Statistic<a class="headerlink" href="#statistic" title="Permalink to this headline">¶</a></h3>
+<p>Statistic about a topic over time.</p>
+<dl class="get">
+<dt id="get--api-analytics-statistics-(topic)">
+<code class="descname">GET </code><code class="descname">/api/analytics/statistics/</code><span class="sig-paren">(</span><em>topic</em><span class="sig-paren">)</span><a class="headerlink" href="#get--api-analytics-statistics-(topic)" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query the collection.</p>
+<p>The query result is an object <code class="docutils literal notranslate"><span class="pre">{items}</span></code> holding an array of queried <em>items</em>.</p>
+<p>Available topics are:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">users</span></code>: Count of all users</li>
+<li><code class="docutils literal notranslate"><span class="pre">users-actual</span></code>: Count of actual users, i.e. who returned at least once after the first day</li>
+<li><code class="docutils literal notranslate"><span class="pre">users-active</span></code>: Count of monthly active users, i.e. who were seen in the last 30 days</li>
+</ul>
+<p>Permission: Staff members.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="point">
+<span id="id11"></span><h3>2.14.2. Point<a class="headerlink" href="#point" title="Permalink to this headline">¶</a></h3>
+<p>Statistic data point.</p>
+<dl class="describe">
+<dt>
+<code class="descname">t</code></dt>
+<dd><p>Time the statistic was collected.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">v</code></dt>
+<dd><p>Statistic value.</p>
+</dd></dl>
+
+</div>
+</div>
 <div class="section" id="errors">
-<h2>2.14. Errors<a class="headerlink" href="#errors" title="Permalink to this headline">¶</a></h2>
+<h2>2.15. Errors<a class="headerlink" href="#errors" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="valueerror">
-<span id="id10"></span><h3>2.14.1. ValueError<a class="headerlink" href="#valueerror" title="Permalink to this headline">¶</a></h3>
+<span id="id12"></span><h3>2.15.1. ValueError<a class="headerlink" href="#valueerror" title="Permalink to this headline">¶</a></h3>
 <p>Returned for value-related errors.</p>
 <dl class="describe">
 <dt>
@@ -363,7 +400,7 @@ if the event is global.</p>
 
 </div>
 <div class="section" id="inputerror">
-<span id="id11"></span><h3>2.14.2. InputError<a class="headerlink" href="#inputerror" title="Permalink to this headline">¶</a></h3>
+<span id="id13"></span><h3>2.15.2. InputError<a class="headerlink" href="#inputerror" title="Permalink to this headline">¶</a></h3>
 <p>Returned if the input to an endpoint contains one or more arguments with an invalid value.</p>
 <p>InputError is a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a> with <em>code</em> set to <code class="docutils literal notranslate"><span class="pre">input_invalid</span></code>.</p>
 <dl class="describe">
@@ -374,40 +411,40 @@ if the event is global.</p>
 
 </div>
 <div class="section" id="notfounderror">
-<span id="id12"></span><h3>2.14.3. NotFoundError<a class="headerlink" href="#notfounderror" title="Permalink to this headline">¶</a></h3>
+<span id="id14"></span><h3>2.15.3. NotFoundError<a class="headerlink" href="#notfounderror" title="Permalink to this headline">¶</a></h3>
 <p>Returned if a requested endpoint does not exist.</p>
 </div>
 <div class="section" id="authenticationerror">
-<span id="id13"></span><h3>2.14.4. AuthenticationError<a class="headerlink" href="#authenticationerror" title="Permalink to this headline">¶</a></h3>
+<span id="id15"></span><h3>2.15.4. AuthenticationError<a class="headerlink" href="#authenticationerror" title="Permalink to this headline">¶</a></h3>
 <p>Returned if user authentication fails.</p>
 </div>
 <div class="section" id="permissionerror">
-<span id="id14"></span><h3>2.14.5. PermissionError<a class="headerlink" href="#permissionerror" title="Permalink to this headline">¶</a></h3>
+<span id="id16"></span><h3>2.15.5. PermissionError<a class="headerlink" href="#permissionerror" title="Permalink to this headline">¶</a></h3>
 <p>Returned if the current user is not allowed to perform an action.</p>
 </div>
 <div class="section" id="communicationerror">
-<span id="id15"></span><h3>2.14.6. CommunicationError<a class="headerlink" href="#communicationerror" title="Permalink to this headline">¶</a></h3>
+<span id="id17"></span><h3>2.15.6. CommunicationError<a class="headerlink" href="#communicationerror" title="Permalink to this headline">¶</a></h3>
 <p>Returned if communication with a third party fails.</p>
 </div>
 <div class="section" id="analysiserror">
-<span id="id16"></span><h3>2.14.7. AnalysisError<a class="headerlink" href="#analysiserror" title="Permalink to this headline">¶</a></h3>
+<span id="id18"></span><h3>2.15.7. AnalysisError<a class="headerlink" href="#analysiserror" title="Permalink to this headline">¶</a></h3>
 <p>Returned if analyzing a web resource fails.</p>
 </div>
 <div class="section" id="noresourceerror">
-<span id="id17"></span><h3>2.14.8. NoResourceError<a class="headerlink" href="#noresourceerror" title="Permalink to this headline">¶</a></h3>
+<span id="id19"></span><h3>2.15.8. NoResourceError<a class="headerlink" href="#noresourceerror" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="#analysiserror"><span class="std std-ref">AnalysisError</span></a> returned if there is no resource at the URL to analyze.</p>
 </div>
 <div class="section" id="forbiddenresourceerror">
-<span id="id18"></span><h3>2.14.9. ForbiddenResourceError<a class="headerlink" href="#forbiddenresourceerror" title="Permalink to this headline">¶</a></h3>
+<span id="id20"></span><h3>2.15.9. ForbiddenResourceError<a class="headerlink" href="#forbiddenresourceerror" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="#analysiserror"><span class="std std-ref">AnalysisError</span></a> returned if access to the resource subject to analysis is forbidden.</p>
 </div>
 <div class="section" id="brokenresourceerror">
-<span id="borkenresourceerror"></span><h3>2.14.10. BrokenResourceError<a class="headerlink" href="#brokenresourceerror" title="Permalink to this headline">¶</a></h3>
+<span id="borkenresourceerror"></span><h3>2.15.10. BrokenResourceError<a class="headerlink" href="#brokenresourceerror" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="#analysiserror"><span class="std std-ref">AnalysisError</span></a> returned if the resource subject to analysis is broken.</p>
 </div>
 </div>
 <div class="section" id="listling">
-<span id="id19"></span><h2>2.15. Listling<a class="headerlink" href="#listling" title="Permalink to this headline">¶</a></h2>
+<span id="id21"></span><h2>2.16. Listling<a class="headerlink" href="#listling" title="Permalink to this headline">¶</a></h2>
 <p>Listling application.</p>
 <dl class="get">
 <dt id="get--api-settings">
@@ -433,7 +470,7 @@ registered as staff member.</p>
 </dd></dl>
 
 <div class="section" id="lists">
-<span id="id20"></span><h3>2.15.1. Lists<a class="headerlink" href="#lists" title="Permalink to this headline">¶</a></h3>
+<span id="id22"></span><h3>2.16.1. Lists<a class="headerlink" href="#lists" title="Permalink to this headline">¶</a></h3>
 <dl class="post">
 <dt id="post--api-lists">
 <code class="descname">POST </code><code class="descname">/api/lists</code><a class="headerlink" href="#post--api-lists" title="Permalink to this definition">¶</a></dt>
@@ -466,7 +503,7 @@ The endpoint version <em>v</em> must be <code class="docutils literal notranslat
 </div>
 </div>
 <div class="section" id="user">
-<span id="id21"></span><h2>2.16. User<a class="headerlink" href="#user" title="Permalink to this headline">¶</a></h2>
+<span id="id23"></span><h2>2.17. User<a class="headerlink" href="#user" title="Permalink to this headline">¶</a></h2>
 <p>Listling user.</p>
 <p>User is editable by the user oneself.</p>
 <dl class="describe">
@@ -506,6 +543,18 @@ The endpoint version <em>v</em> must be <code class="docutils literal notranslat
 <dt>
 <code class="descname">auth_secret</code></dt>
 <dd><p>Secret for authentication. Visible only to the user oneself.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">create_time</code></dt>
+<dd><p>Time the user account was created. Visible only to the user oneself.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">authenticate_time</code></dt>
+<dd><p>Time the user last authenticated. Visible only to the user oneself.</p>
 </dd></dl>
 
 <dl class="describe">
@@ -592,7 +641,7 @@ the given email address is already associated with another user, a <a class="ref
 </dd></dl>
 
 <div class="section" id="userlists">
-<span id="id22"></span><h3>2.16.1. Lists<a class="headerlink" href="#userlists" title="Permalink to this headline">¶</a></h3>
+<span id="id24"></span><h3>2.17.1. Lists<a class="headerlink" href="#userlists" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="#list"><span class="std std-ref">List</span></a> <a class="reference internal" href="#collection"><span class="std std-ref">Collection</span></a> of the user, ordered by time added, latest first.</p>
 <p>Lists created by the user are added automatically.</p>
 <dl class="describe">
@@ -645,7 +694,7 @@ with <em>list_id</em>, a <a class="reference internal" href="#valueerror"><span 
 </div>
 </div>
 <div class="section" id="settings">
-<span id="id23"></span><h2>2.17. Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h2>
+<span id="id25"></span><h2>2.18. Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h2>
 <p>App settings.</p>
 <dl class="describe">
 <dt>
@@ -750,7 +799,7 @@ with <em>list_id</em>, a <a class="reference internal" href="#valueerror"><span 
 
 </div>
 <div class="section" id="list">
-<span id="id24"></span><h2>2.18. List<a class="headerlink" href="#list" title="Permalink to this headline">¶</a></h2>
+<span id="id26"></span><h2>2.19. List<a class="headerlink" href="#list" title="Permalink to this headline">¶</a></h2>
 <dl class="describe">
 <dt>
 <code class="descname">id</code></dt>
@@ -798,20 +847,20 @@ with <em>list_id</em>, a <a class="reference internal" href="#valueerror"><span 
 the list. In <code class="docutils literal notranslate"><span class="pre">view</span></code> mode, users only view the list.</p>
 <p>The following permissions apply:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">collaborate</span></code>: Authenticated users may modify <a class="footnote-reference" href="#id27" id="id25">[1]</a> the list and modify <a class="footnote-reference" href="#id28" id="id26">[2]</a> items</li>
+<li><code class="docutils literal notranslate"><span class="pre">collaborate</span></code>: Authenticated users may modify <a class="footnote-reference" href="#id29" id="id27">[1]</a> the list and modify <a class="footnote-reference" href="#id30" id="id28">[2]</a> items</li>
 <li><code class="docutils literal notranslate"><span class="pre">view</span></code>: None</li>
 </ul>
 <p>List owners always have full permissions.</p>
-<table class="docutils footnote" frame="void" id="id27" rules="none">
+<table class="docutils footnote" frame="void" id="id29" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id25">[1]</a></td><td>Edit the list and create and move items</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id27">[1]</a></td><td>Edit the list and create and move items</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id28" rules="none">
+<table class="docutils footnote" frame="void" id="id30" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id26">[2]</a></td><td>Edit, trash, restore, check and uncheck items</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id28">[2]</a></td><td>Edit, trash, restore, check and uncheck items</td></tr>
 </tbody>
 </table>
 </dd></dl>
@@ -833,7 +882,7 @@ the list. In <code class="docutils literal notranslate"><span class="pre">view</
 </dd></dl>
 
 <div class="section" id="items">
-<span id="id29"></span><h3>2.18.1. Items<a class="headerlink" href="#items" title="Permalink to this headline">¶</a></h3>
+<span id="id31"></span><h3>2.19.1. Items<a class="headerlink" href="#items" title="Permalink to this headline">¶</a></h3>
 <dl class="get">
 <dt id="get--api-lists-(id)-items">
 <code class="descname">GET </code><code class="descname">/api/lists/</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><code class="descname">/items</code><a class="headerlink" href="#get--api-lists-(id)-items" title="Permalink to this definition">¶</a></dt>
@@ -868,7 +917,7 @@ the list. In <code class="docutils literal notranslate"><span class="pre">view</
 </div>
 </div>
 <div class="section" id="item">
-<span id="id30"></span><h2>2.19. Item<a class="headerlink" href="#item" title="Permalink to this headline">¶</a></h2>
+<span id="id32"></span><h2>2.20. Item<a class="headerlink" href="#item" title="Permalink to this headline">¶</a></h2>
 <dl class="describe">
 <dt>
 <code class="descname">id</code></dt>
@@ -1029,12 +1078,13 @@ returned.</p>
 <li class="toctree-l2"><a class="reference internal" href="#resource">2.11. Resource</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#image">2.12. Image</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#video">2.13. Video</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#errors">2.14. Errors</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#listling">2.15. Listling</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user">2.16. User</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#settings">2.17. Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#list">2.18. List</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#item">2.19. Item</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#analytics">2.14. Analytics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#errors">2.15. Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#listling">2.16. Listling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user">2.17. User</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#settings">2.18. Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#list">2.19. List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#item">2.20. Item</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="pythonapi.html">3. Python API</a></li>
