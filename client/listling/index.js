@@ -33,12 +33,14 @@ listling.UI = class extends micro.UI {
                 .querySelector("micro-about-page");
         }
 
-        this.pages = this.pages.concat([
+        this.pages = [
             {url: "^/$", page: listling.components.start.StartPage.make},
             {url: "^/intro$", page: "listling-intro-page"},
             {url: "^/about$", page: makeAboutPage},
-            {url: "^/lists/([^/]+)(?:/[^/]+)?$", page: listling.ListPage.make}
-        ]);
+            {url: "^/analytics$", page: listling.components.analytics.AnalyticsPage.make},
+            {url: "^/lists/([^/]+)(?:/[^/]+)?$", page: listling.ListPage.make},
+            ...this.pages
+        ];
 
         Object.assign(this.renderEvent, {
             "create-list"(event) {

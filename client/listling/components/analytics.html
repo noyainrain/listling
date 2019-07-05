@@ -1,0 +1,15 @@
+<template id="listling-analytics-page-template">
+    <section>
+        <h1>List statistics</h1>
+        <micro-chart
+            class="listling-analytics-list-statistics" statistics="lists, lists-actual"
+            labels="Lists, Actual lists"
+        ></micro-chart>
+    </section>
+</template>
+
+<style>
+    .listling-analytics-list-statistics {
+        --micro-chart-palette: var(--micro-color-primary), var(--micro-color-primary-shade);
+    }
+</style>

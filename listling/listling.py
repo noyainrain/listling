@@ -19,6 +19,7 @@ from time import time
 import micro
 from micro import (Activity, Application, Collection, Editable, Location, Object, Orderable,
                    Trashable, Settings, Event, WithContent)
+from micro.analytics import Analytics
 from micro.jsonredis import JSONRedis
 from micro.util import randstr, run_instant, str_or_none, ON
 
@@ -160,6 +161,9 @@ class Listling(Application):
         super().__init__(redis_url, email, smtp_url, render_email_auth_message,
                          video_service_keys=video_service_keys)
         self.types.update({'User': User, 'List': List, 'Item': Item})
+        self.analytics = Analytics(
+            definitions={'lists': self._count_lists, 'lists-actual': self._count_lists_actual},
+            app=self)
         self.lists = Listling.Lists((self, 'lists'))
 
     def do_update(self):
@@ -238,6 +242,13 @@ class Listling(Application):
             icon_small=None, icon_large=None, provider_name=None, provider_url=None,
             provider_description={}, feedback_url=None, staff=[], push_vapid_private_key=None,
             push_vapid_public_key=None, v=2)
+
+    def _count_lists(self, t):
+        return len(self.lists)
+
+    def _count_lists_actual(self, t):
+        # TODO if view_time - create_time >= 1d
+        return sum(1 for lst in self.lists[:] if 'check' in lst.features)
 
 class User(micro.User):
     """See :ref:`User`."""

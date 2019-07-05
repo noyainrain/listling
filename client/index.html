@@ -8,6 +8,7 @@
     {% raw micro_dependencies() %}
     <link rel="stylesheet" href="{{ static_url('listling.css') }}" />
     <script src="{{ static_url('listling/util.js') }}" defer="defer"></script>
+    <script src="{{ static_url('listling/components/analytics.js') }}" defer="defer"></script>
     <script src="{{ static_url('listling/components/start.js') }}" defer="defer"></script>
     <script src="{{ static_url('listling/index.js') }}" defer="defer"></script>
 </head>
@@ -662,5 +663,6 @@
         was created by <micro-user data-user="event.user"></micro-user>
     </template>
 
+    {% include 'listling/components/analytics.html' %}
     {% include 'listling/components/start.html' %}
 </body>
