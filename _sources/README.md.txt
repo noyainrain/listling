@@ -1,6 +1,6 @@
 # Open Listling
 
-Web app for collaboratively composing lists.
+Web app to make and edit lists collaboratively.
 
 You can give it a try on [Listling](https://listling.org/).
 
