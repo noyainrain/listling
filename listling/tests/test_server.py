@@ -36,6 +36,8 @@ class ServerTest(ServerTestCase):
         item = next(iter(lst.items.values()))
         self.app.login()
         shared_lst = self.app.lists.create(v=2)
+
+        # API
         await self.request('/api/users/{}/lists'.format(self.client_user.id))
         await self.request('/api/users/{}/lists'.format(self.client_user.id), method='POST',
                            body=json.dumps({'list_id': shared_lst.id}))
@@ -57,3 +59,6 @@ class ServerTest(ServerTestCase):
                            body='')
         await self.request('/api/lists/{}/items/{}/uncheck'.format(lst.id, item.id), method='POST',
                            body='')
+
+        # UI
+        await self.request('/lists/{}'.format(lst.id))

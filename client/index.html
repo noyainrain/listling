@@ -3,7 +3,6 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-    <title>Open Listling</title>
 
     {% raw micro_dependencies() %}
     <link rel="stylesheet" href="{{ static_url('listling.css') }}" />
@@ -169,7 +168,7 @@
 
     <template class="listling-about-page-template">
         <micro-about-page
-            short="{title} is a service for collaboratively composing lists."
+            short="{title} is a service to make and edit lists collaboratively."
             project-title="Open Listling" project-url="https://github.com/noyainrain/listling"
             project-icon="{{ static_url('images/listling.svg') }}" project-license="AGPL"
             project-license-url="https://www.gnu.org/licenses/agpl.html"

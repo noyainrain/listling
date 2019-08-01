@@ -22,7 +22,7 @@ import json
 
 import micro
 from micro import Location
-from micro.server import (Endpoint, CollectionEndpoint, Server, make_activity_endpoint,
+from micro.server import (Endpoint, CollectionEndpoint, Server, UI, make_activity_endpoint,
                           make_orderable_endpoints, make_trashable_endpoints)
 from micro.util import ON
 
@@ -33,6 +33,7 @@ def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='',
     """Create an Open Listling server."""
     app = Listling(redis_url, smtp_url=smtp_url, video_service_keys=video_service_keys)
     handlers = [
+        # API
         (r'/api/users/([^/]+)/lists$', _UserListsEndpoint),
         (r'/api/users/([^/]+)/lists/([^/]+)$', _UserListEndpoint),
         (r'/api/lists$', _ListsEndpoint),
@@ -46,13 +47,18 @@ def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='',
         *make_trashable_endpoints(r'/api/lists/([^/]+)/items/([^/]+)',
                                   lambda list_id, id: app.lists[list_id].items[id]),
         (r'/api/lists/([^/]+)/items/([^/]+)/check$', _ItemCheckEndpoint),
-        (r'/api/lists/([^/]+)/items/([^/]+)/uncheck$', _ItemUncheckEndpoint)
+        (r'/api/lists/([^/]+)/items/([^/]+)/uncheck$', _ItemUncheckEndpoint),
+        # UI
+        (r'/lists/([^/]+)(?:/[^/]+)?$', _ListPage)
     ]
-    return Server(
-        app, handlers, port=port, url=url, client_modules_path='node_modules',
-        client_service_path='listling/service.js', debug=debug,
-        client_shell=['listling.css', 'listling', 'images'],
-        client_map_service_key=client_map_service_key)
+    return Server(app, handlers, port=port, url=url, debug=debug, client_config={
+        'modules_path': 'node_modules',
+        'service_path': 'listling/service.js',
+        'shell': ['listling.css', 'listling', 'images'],
+        'map_service_key': client_map_service_key,
+        'description': 'Service to make and edit lists collaboratively. Free, simple and no registration required.',
+        'color': '#4d8dd9'
+    })
 
 class _UserListsEndpoint(CollectionEndpoint):
     def initialize(self):
@@ -165,3 +171,18 @@ class _ItemUncheckEndpoint(Endpoint):
         item = self.app.lists[lst_id].items[id]
         item.uncheck()
         self.write(item.json(restricted=True, include=True))
+
+class _ListPage(UI):
+    def get_meta(self, *args: str):
+        try:
+            lst = self.app.lists['List:{}'.format(args[0])]
+        except KeyError:
+            return super().get_meta()
+        description = lst.description or 'Shared list'
+        return {
+            **super().get_meta(),
+            'title': '{} - {}'.format(lst.title, self.app.settings.title),
+            'description': description,
+            'og:title': lst.title,
+            'og:description': description
+        }
