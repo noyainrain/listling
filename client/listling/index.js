@@ -139,6 +139,8 @@ listling.ListPage = class extends micro.Page {
             trashExpanded: false,
             creatingItem: false,
             settingsExpanded: false,
+            share: listling.components.list.share,
+
             toggleTrash: () => {
                 this._data.trashExpanded = !this._data.trashExpanded;
             },

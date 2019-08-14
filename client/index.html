@@ -7,6 +7,7 @@
     {% raw micro_dependencies() %}
     <link rel="stylesheet" href="{{ static_url('listling.css') }}" />
     <script src="{{ static_url('listling/util.js') }}" defer="defer"></script>
+    <script src="{{ static_url('listling/components/list.js') }}" defer="defer"></script>
     <script src="{{ static_url('listling/components/start.js') }}" defer="defer"></script>
     <script src="{{ static_url('listling/index.js') }}" defer="defer"></script>
 </head>
@@ -193,7 +194,15 @@
                             <li class="listling-list-edit">
                                 <button is="micro-button" type="button" class="action"
                                         data-run="startEdit" data-shortcut="new Shortcut 'E'">
-                                    <i class="fa fa-pencil-alt"></i> Edit
+                                    <i class="fa fa-fw fa-pencil-alt"></i> Edit
+                                </button>
+                            </li>
+                            <li>
+                                <button
+                                    is="micro-button" type="button" class="action"
+                                    data-run="bind share lst" data-shortcut="new Shortcut 'S'"
+                                >
+                                    <i class="fa fa-fw fa-user-friends"></i> Share
                                 </button>
                             </li>
                             <li
@@ -202,22 +211,16 @@
                             >
                                 <template>
                                     <button
-                                        is="micro-button"
-                                        type="button"
-                                        class="listling-list-unsubscribe action"
-                                        data-run="unsubscribe"
-                                        data-shortcut="new Shortcut 'S'"
+                                        is="micro-button" type="button" class="action"
+                                        data-run="unsubscribe" data-shortcut="new Shortcut 'U'"
                                     >
                                         <i class="fa fa-fw fa-bell-slash"></i> Unsubscribe
                                     </button>
                                 </template>
                                 <template>
                                     <button
-                                        is="micro-button"
-                                        type="button"
-                                        class="listling-list-subscribe action"
-                                        data-run="subscribe"
-                                        data-shortcut="new Shortcut 'S'"
+                                        is="micro-button" type="button" class="action"
+                                        data-run="subscribe" data-shortcut="new Shortcut 'U'"
                                     >
                                         <i class="fa fa-fw fa-bell"></i> Subscribe
                                     </button>
@@ -661,5 +664,6 @@
         was created by <micro-user data-user="event.user"></micro-user>
     </template>
 
+    {% include 'listling/components/list.html' %}
     {% include 'listling/components/start.html' %}
 </body>

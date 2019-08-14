@@ -1,0 +1,42 @@
+<template id="listling-share-dialog-template">
+    <div class="micro-ui-inside">
+        <h1>Share list</h1>
+        <p>Simply pass along this link to share the list with others:</p>
+        <label>
+            <input type="url" readonly="readonly" data-value="url" data-onfocus="onFocus" />
+        </label>
+        <p>
+            <button
+                is="micro-button" type="button" class="action" data-run="close"
+                data-shortcut="new Shortcut 'Enter'"
+            >
+                <i class="fa fa-check-circle"></i> Done
+            </button>
+        </p>
+    </div>
+</template>
+
+<style>
+    listling-share-dialog {
+        display: block;
+    }
+
+    .micro-ui-header {
+        z-index: 2;
+    }
+
+    .micro-ui-notification-space > * {
+        border-top: 1px solid var(--micro-color-delimiter);
+    }
+
+    .micro-ui-notification-space h1,
+    .micro-ui-notification-space p {
+        margin: var(--micro-size-rxs) 0;
+    }
+
+    .micro-ui-notification-space h1 {
+        border: none;
+        font-size: 1em;
+        font-weight: bold;
+    }
+</style>
