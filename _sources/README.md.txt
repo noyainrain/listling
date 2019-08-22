@@ -46,5 +46,6 @@ Join the chat at [listling on Gitter](https://gitter.im/listling/community).
 ## Contributors
 
 * Sven James &lt;sven.jms AT gmail.com>
+* Rainer Müller &lt;raimue AT codingfarm.de>
 
 Copyright (C) 2018 Open Listling contributors
