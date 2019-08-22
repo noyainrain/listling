@@ -179,7 +179,7 @@
 
     <template class="listling-list-page-template">
         <form>
-            <header>
+            <header class="micro-heading micro-panel">
                 <h1>
                     <span class="listling-list-mode-view" data-content="lst.title"></span>
                     <label class="listling-list-mode-edit">
@@ -187,7 +187,7 @@
                                autocomplete="off" data-value="or lst.title ''" />
                     </label>
                 </h1>
-                <ul is="micro-menu" class="listling-list-menu listling-list-mode-view">
+                <ul is="micro-menu" class="listling-list-menu micro-secondary listling-list-mode-view">
                     <li>
                         <button type="button" class="link"><i class="fa fa-fw fa-bars"></i></button>
                         <ul is="micro-menu">
@@ -253,16 +253,14 @@
                     </button>
                 </p>
                 <section>
-                    <header>
+                    <header class="micro-heading micro-panel">
                         <h1>Settings</h1>
-                        <ul is="micro-menu">
-                            <li>
-                                <button is="micro-button" type="button" class="link" title="⌨ S"
-                                        data-run="toggleSettings">
-                                    <i class="fa fa-fw fa-search-minus"></i>
-                                </button>
-                            </li>
-                        </ul>
+                        <button
+                            is="micro-button" type="button" class="link" title="⌨ S"
+                            data-run="toggleSettings"
+                        >
+                            <i class="fa fa-fw fa-search-minus"></i>
+                        </button>
                     </header>
 
                     <fieldset>
@@ -346,11 +344,11 @@
                 </button>
             </p>
             <div>
-                <header>
+                <header class="micro-heading micro-panel">
                     <h1>Trashed items</h1>
                     <button is="micro-button" type="button" class="link" title="Hide (⌨ B)"
                             data-run="toggleTrash">
-                        <i class="fa fa-search-minus"></i>
+                        <i class="fa fa-fw fa-search-minus"></i>
                     </button>
                 </header>
                 <p class="micro-small">
@@ -391,8 +389,12 @@
             padding: 0;
         }
 
-        .listling-list-trash > div > header h1 {
+        .listling-list-trash .micro-heading {
             border: none;
+            align-items: baseline
+        }
+
+        .listling-list-trash .micro-heading > h1 {
             font-size: 1em;
             font-weight: bold;
             color: #888;
@@ -445,7 +447,7 @@
                     </template>
                 </div>
 
-                <h1>
+                <h1 class="micro-panel-main">
                     <span class="listling-item-mode-view" data-content="item.title"></span>
                     <label class="listling-item-mode-edit">
                         <input name="title" placeholder="Title" required="required"
