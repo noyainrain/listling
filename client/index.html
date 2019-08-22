@@ -187,6 +187,13 @@
                                autocomplete="off" data-value="or lst.title ''" />
                     </label>
                 </h1>
+                <button
+                    is="micro-button" type="button"
+                    class="listling-list-create-item-top action listling-list-mode-view"
+                    title="Add item (⌨ A)" data-run="startCreateItem"
+                >
+                    <i class="fa fa-fw fa-plus-circle"></i>
+                </button>
                 <ul is="micro-menu" class="listling-list-menu micro-secondary listling-list-mode-view">
                     <li>
                         <button type="button" class="link"><i class="fa fa-fw fa-bars"></i></button>
@@ -402,6 +409,7 @@
 
         listling-list-page:not(.listling-list-mode-view) .listling-list-mode-view,
         listling-list-page:not(.listling-list-mode-edit) .listling-list-mode-edit,
+        listling-list-page:not(.listling-list-may-modify) .listling-list-create-item-top,
         listling-list-page:not(.listling-list-may-modify) .listling-list-edit,
         body:not(.micro-feature-es6-typed-array) .listling-list-subscribe,
         body:not(.micro-feature-service-workers) .listling-list-subscribe,

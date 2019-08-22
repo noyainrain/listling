@@ -11,7 +11,7 @@ master_doc = 'index'
 
 project = 'Open Listling'
 copyright = '2018 Open Listling contributors'
-version = release = '0.17.2'
+version = release = '0.17.3'
 
 html_theme_options = {
     'logo': 'listling.svg',
