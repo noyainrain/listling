@@ -120,7 +120,7 @@ List
 
 .. describe:: description
 
-   Description of the list. May be ``null``.
+   Description of the list as *markup text*. May be ``null``.
 
 .. describe:: features
 
@@ -191,7 +191,7 @@ Item
 
 .. describe:: title
 
-   Title of item.
+   Title of the item as *markup text*.
 
 .. describe:: location
 
