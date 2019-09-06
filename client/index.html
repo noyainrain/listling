@@ -244,7 +244,10 @@
                 </template>
             </div>
 
-            <p class="listling-list-mode-view micro-multiline" data-content="lst.description"></p>
+            <p
+                class="listling-list-mode-view micro-multiline"
+                data-content="markup lst.description"
+            ></p>
             <label class="listling-list-mode-edit">
                 <textarea name="description" placeholder="Description (optional)"
                           data-value="or lst.description ''">
@@ -456,7 +459,7 @@
                 </div>
 
                 <h1 class="micro-panel-main">
-                    <span class="listling-item-mode-view" data-content="item.title"></span>
+                    <span class="listling-item-mode-view" data-content="markup item.title"></span>
                     <label class="listling-item-mode-edit">
                         <input name="title" placeholder="Title" required="required"
                                autocomplete="off" data-value="or item.title ''" />
@@ -529,15 +532,51 @@
                 >
                 </div>
 
-                <p class="listling-item-mode-view micro-multiline" data-content="item.text"></p>
+                <p
+                    class="listling-item-text listling-item-mode-view micro-multiline"
+                    data-content="markup item.text"
+                ></p>
                 <label class="listling-item-mode-edit">
-                    <textarea name="text" placeholder="Text (optional)"
-                              data-value="or item.text ''">
-                    </textarea>
-                    <small></small>
-                    <small>
-                        Attach additional content like images, videos, … by inserting a link.
-                    </small>
+                    <div class="micro-input-wrapper">
+                        <textarea
+                            name="text" placeholder="Text (optional)" data-value="or item.text ''"
+                        ></textarea>
+                        <div class="micro-panel">
+                            <p class="micro-panel-main micro-small">
+                                Attach additional content like images, videos, … by inserting a
+                                link.
+                            </p>
+                            <div>
+                                <button type="button" class="link">
+                                    <i class="fa fa-fw fa-info-circle"></i>
+                                </button>
+                                <micro-contextual>
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <td>You type:</td>
+                                                <td>You get:</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>*Emphasized*</td>
+                                                <td><em>Emphasized</em></td>
+                                            </tr>
+                                            <tr>
+                                                <td>**Important**</td>
+                                                <td><strong>Important</strong></td>
+                                            </tr>
+                                            <tr>
+                                                <td>* List item</td>
+                                                <td>&nbsp;• List item</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </micro-contextual>
+                            </div>
+                        </div>
+                    </div>
                 </label>
 
                 <p class="listling-detail listling-item-mode-view" title="Edited by">
@@ -549,7 +588,10 @@
 
                 <ul is="micro-menu" class="listling-item-mode-edit">
                     <li>
-                        <button is="micro-button" class="action" title="⌨ Enter" data-run="edit">
+                        <button
+                            is="micro-button" class="action" data-run="edit"
+                            data-shortcut="new Shortcut 'Control+Enter'"
+                        >
                             <i class="fa fa-check-circle"></i> Done
                         </button>
                     </li>
@@ -647,6 +689,22 @@
 
         [is=listling-item].listling-item-mode-edit .listling-item-meta {
             row-gap: var(--micro-size-xs);
+        }
+
+        .listling-item-text + label .micro-panel {
+            border-top: 1px solid var(--micro-color-delimiter);
+        }
+
+        .listling-item-text + label p {
+            align-self: end;
+        }
+
+        .listling-item-text + label table {
+            border-style: hidden;
+        }
+
+        .listling-item-text + label tbody td:first-child {
+            font: 0.875em / 1.5 monospace, monospace;
         }
 
         [is=listling-item]:not(.listling-item-mode-view) .listling-item-mode-view,

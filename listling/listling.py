@@ -142,7 +142,7 @@ class Listling(Application):
                 raise micro.ValueError('use_case_unknown')
             data = _EXAMPLE_DATA[use_case]
             description = (
-                '{}\n\nThis example was created just for you, so please feel free to play around.'
+                '{}\n\n*This example was created just for you, so please feel free to play around.*'
                 .format(data[1]))
 
             lst = self.create(use_case, v=2)

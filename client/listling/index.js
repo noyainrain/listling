@@ -405,8 +405,10 @@ listling.ItemElement = class extends HTMLLIElement {
             },
 
             edit: async() => {
+                const title = this._form.elements.title.value;
                 const text = this._form.elements.text.value;
-                const match = text.match(/^https?:\/\/\S+/u);
+                const pattern = /^https?:\/\/\S+/u;
+                const match = title.match(pattern) || text.match(pattern);
                 const resource = match ? match[0] : null;
                 let url = this._data.item
                     ? `/api/lists/${ui.page.list.id}/items/${this._data.item.id}`
@@ -417,7 +419,7 @@ listling.ItemElement = class extends HTMLLIElement {
                     item = await ui.call("POST", url, {
                         text,
                         resource,
-                        title: this._form.elements.title.value,
+                        title,
                         location: this._form.elements.location.wrapper.value
                     });
                 } catch (e) {
