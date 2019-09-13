@@ -140,6 +140,9 @@ listling.ListPage = class extends micro.Page {
             creatingItem: false,
             settingsExpanded: false,
             share: listling.components.list.share,
+            presentation: new listling.components.list.Presentation(this),
+            presentationMode: false,
+            quickNavigate: micro.keyboard.quickNavigate,
 
             toggleTrash: () => {
                 this._data.trashExpanded = !this._data.trashExpanded;
@@ -316,6 +319,10 @@ listling.ListPage = class extends micro.Page {
                         hash: `map-${item.id.split(":")[1]}`
                     }, item.location)
                 );
+
+                if (location.hash === "#presentation") {
+                    this._data.presentation.enter();
+                }
             }
         })().catch(micro.util.catch));
 

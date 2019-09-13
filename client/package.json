@@ -5,7 +5,7 @@
         "clean": "rm -rf node_modules"
     },
     "dependencies": {
-        "@noyainrain/micro": "^0.42"
+        "@noyainrain/micro": "^0.43"
     },
     "devDependencies": {
         "eslint": "~5.15",

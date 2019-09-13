@@ -179,7 +179,7 @@
 
     <template class="listling-list-page-template">
         <form>
-            <header class="micro-heading micro-panel">
+            <header class="listling-list-title micro-heading micro-panel">
                 <h1>
                     <span class="listling-list-mode-view" data-content="lst.title"></span>
                     <label class="listling-list-mode-edit">
@@ -189,12 +189,12 @@
                 </h1>
                 <button
                     is="micro-button" type="button"
-                    class="listling-list-create-item-top action listling-list-mode-view"
+                    class="listling-list-create-item-top action listling-list-mode-view micro-interactive"
                     title="Add item (⌨ A)" data-run="startCreateItem"
                 >
                     <i class="fa fa-fw fa-plus-circle"></i>
                 </button>
-                <ul is="micro-menu" class="listling-list-menu micro-secondary listling-list-mode-view">
+                <ul is="micro-menu" class="listling-list-menu micro-secondary listling-list-mode-view micro-interactive">
                     <li>
                         <button type="button" class="link"><i class="fa fa-fw fa-bars"></i></button>
                         <ul is="micro-menu">
@@ -232,6 +232,15 @@
                                         <i class="fa fa-fw fa-bell"></i> Subscribe
                                     </button>
                                 </template>
+                            </li>
+                            <li class="listling-list-enter-presentation">
+                                <button
+                                    is="micro-button" type="button" class="link"
+                                    data-run="bindThis presentation.enter presentation"
+                                    data-shortcut="new Shortcut 'P'"
+                                >
+                                    <i class="fa fa-fw fa-chalkboard"></i> Presentation
+                                </button>
                             </li>
                         </ul>
                     </li>
@@ -342,7 +351,7 @@
             </template>
         </ol>
 
-        <div class="listling-list-trash listling-list-mode-view"
+        <div class="listling-list-trash listling-list-mode-view micro-interactive"
              data-class-listling-list-trash-expanded="trashExpanded">
             <p class="micro-small">
                 <span
@@ -373,7 +382,7 @@
             </div>
         </div>
 
-        <div class="listling-list-create-item listling-list-mode-view"
+        <div class="listling-list-create-item listling-list-mode-view micro-interactive"
              data-class-listling-list-creating-item="creatingItem">
             <p>
                 <button is="micro-button" type="button" class="action" data-run="startCreateItem"
@@ -384,7 +393,7 @@
             <li is="listling-item" data-onedit="stopCreateItem" data-oncancel="stopCreateItem"></li>
         </div>
 
-        <aside class="listling-list-mode-view">
+        <aside class="listling-list-mode-view micro-interactive">
             <i class="fa fa-user-cog"></i> List by
             <micro-user data-user="lst.authors.0"></micro-user> · <i class="fa fa-pencil-alt"></i>
             Edited by
@@ -392,8 +401,59 @@
                 <template><micro-user data-user="user"></micro-user></template>
             </span>
         </aside>
+
+        <div data-content="switch presentationMode">
+            <template>
+                <footer
+                    class="listling-list-footer" data-onmousedown="presentation.onFooterMouseDown"
+                >
+                    <div class="micro-ui-inside micro-panel">
+                        <button
+                            is="micro-button" type="button" class="link"
+                            data-run="bind quickNavigate 'prev'"
+                            data-shortcut="new Shortcut 'ArrowUp' 'Previous'"
+                        >
+                            <i class="fa fa-fw fa-arrow-circle-up"></i>
+                        </button>
+                        <button
+                            is="micro-button" type="button" class="link"
+                            data-run="bind quickNavigate 'next'"
+                            data-shortcut="new Shortcut 'ArrowDown' 'Next'"
+                        >
+                            <i class="fa fa-fw fa-arrow-circle-down"></i>
+                        </button>
+                        <button
+                            is="micro-button" type="button"
+                            class="listling-list-exit-presentation link"
+                            data-run="bindThis presentation.exit presentation"
+                            data-shortcut="new Shortcut 'Escape' 'Exit'"
+                        >
+                            <i class="fa fa-fw fa-times-circle"></i>
+                        </button>
+                    </div>
+                </footer>
+            </template>
+        </div>
     </template>
     <style>
+        .listling-list-scroll-snap {
+            scroll-snap-type: block mandatory;
+        }
+
+        listling-list-page {
+            display: block;
+        }
+
+        body[noninteractive] listling-list-page {
+            /* Ensure that every item can be scrolled to top */
+            padding-bottom: 100vh;
+        }
+
+        .listling-list-title,
+        .listling-list-items [is="listling-item"] {
+            scroll-snap-align: start;
+        }
+
         .listling-list-items,
         .listling-list-trashed-items {
             padding: 0;
@@ -408,6 +468,37 @@
             font-size: 1em;
             font-weight: bold;
             color: #888;
+        }
+
+        body[noninteractive] [is="listling-item"] {
+            opacity: 0.1;
+            filter: blur(1px);
+        }
+
+        body[noninteractive] [is="listling-item"]:focus-within {
+            box-shadow: none;
+            opacity: 1;
+            filter: none;
+        }
+
+        body[noninteractive] [is="listling-item"]:focus {
+            box-shadow: none;
+            opacity: 1;
+            filter: none;
+        }
+
+        .listling-list-footer {
+            position: fixed;
+            z-index: 2;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.33);
+            background: white;
+        }
+
+        .listling-list-exit-presentation {
+            margin-left: auto;
         }
 
         listling-list-page:not(.listling-list-mode-view) .listling-list-mode-view,
@@ -431,9 +522,9 @@
     </style>
 
     <template class="listling-item-template">
-        <form>
+        <form data-class-listling-item-has-content="or item.text item.resource item.location">
             <header class="micro-panel">
-                <div class="micro-ol-handle listling-item-mode-view"
+                <div class="micro-ol-handle listling-item-mode-view micro-interactive"
                      title="Move (⌨ Alt + ↑ / Alt + ↓)" tabindex="0">
                 </div>
 
@@ -466,7 +557,7 @@
                     </label>
                 </h1>
                 <ul is="micro-menu"
-                    class="listling-item-menu micro-secondary listling-item-mode-view"
+                    class="listling-item-menu micro-secondary listling-item-mode-view micro-interactive"
                 >
                     <li class="listling-item-restore">
                         <button is="micro-button" type="button" class="action" data-run="restore"
@@ -579,29 +670,38 @@
                     </div>
                 </label>
 
-                <p class="listling-detail listling-item-mode-view" title="Edited by">
+                <p
+                    class="listling-detail listling-item-mode-view micro-interactive"
+                    title="Edited by"
+                >
                     <i class="fa fa-pencil-alt"></i>
                     <span data-content="join item.authors 'user'">
                         <template><micro-user data-user="user"></micro-user></template>
                     </span>
                 </p>
 
-                <ul is="micro-menu" class="listling-item-mode-edit">
-                    <li>
-                        <button
-                            is="micro-button" class="action" data-run="edit"
-                            data-shortcut="new Shortcut 'Control+Enter'"
-                        >
-                            <i class="fa fa-check-circle"></i> Done
-                        </button>
-                    </li>
-                    <li>
-                        <button is="micro-button" type="button" class="link" data-run="cancelEdit"
-                                data-shortcut="new Shortcut 'Escape'">
-                            Cancel
-                        </button>
-                    </li>
-                </ul>
+                <div data-content="switch editMode">
+                    <template>
+                        <ul is="micro-menu">
+                            <li>
+                                <button
+                                    is="micro-button" class="action" data-run="edit"
+                                    data-shortcut="new Shortcut 'Control+Enter'"
+                                >
+                                    <i class="fa fa-check-circle"></i> Done
+                                </button>
+                            </li>
+                            <li>
+                                <button
+                                    is="micro-button" type="button" class="link"
+                                    data-run="cancelEdit" data-shortcut="new Shortcut 'Escape'"
+                                >
+                                    Cancel
+                                </button>
+                            </li>
+                        </ul>
+                    </template>
+                </div>
             </div>
         </form>
     </template>
@@ -716,6 +816,7 @@
         [is=listling-item]:not(.listling-item-may-modify) .listling-item-menu,
         [is=listling-item]:not(.listling-item-trashed) .listling-item-restore,
         [is=listling-item].listling-item-trashed .listling-item-menu li:last-child,
+        body[noninteractive] [is=listling-item] > form:not(.listling-item-has-content) .listling-item-content,
         body:not(.micro-ui-map-service-enabled) .listling-item-meta,
         listling-list-page:not(.listling-list-feature-location) .listling-item-meta,
         [is=listling-item].listling-item-mode-view:not(.listling-item-has-location) .listling-item-meta,

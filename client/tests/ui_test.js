@@ -70,6 +70,7 @@ describe("UI", function() {
         await getWithServiceWorker(browser, `${URL}/`);
         await browser.wait(
             untilElementTextLocated({css: ".micro-logo"}, "My Open Listling"), timeout);
+        const menu = await browser.findElement({css: ".micro-ui-header-menu"});
 
         // Create list
         await browser.findElement({css: ".listling-intro-create-list"}).click();
@@ -156,8 +157,16 @@ describe("UI", function() {
         await checkButton.click();
         await browser.wait(until.elementLocated(uncheckSelector), timeout);
 
+        // View presentation mode
+        await browser.executeScript(() => scroll(0, 0));
+        await browser.findElement({css: ".listling-list-menu"}).click();
+        await browser.findElement({css: ".listling-list-enter-presentation"}).click();
+        await browser.wait(until.elementLocated({css: ".listling-list-exit-presentation"}), timeout)
+            .click();
+        await browser.wait(until.elementIsVisible(menu), timeout);
+
         // View about page
-        await browser.findElement({css: ".micro-ui-header-menu"}).click();
+        await menu.click();
         await browser.findElement({css: ".micro-ui-about"}).click();
         await browser.wait(
             untilElementTextLocated({css: "micro-about-page h1"}, "About My Open Listling"),
