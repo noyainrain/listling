@@ -186,6 +186,10 @@ listling.components.list.Presentation = class {
 
     /** Exit presentation mode. */
     async exit() {
+        if (!ui.noninteractive) {
+            return;
+        }
+
         ui.noninteractive = false;
         // eslint-disable-next-line no-underscore-dangle
         this.page._data.presentationMode = false;

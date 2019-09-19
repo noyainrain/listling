@@ -321,7 +321,7 @@ listling.ListPage = class extends micro.Page {
                 );
 
                 if (location.hash === "#presentation") {
-                    this._data.presentation.enter();
+                    this._data.presentation.enter().catch(micro.util.catch);
                 }
             }
         })().catch(micro.util.catch));
@@ -342,6 +342,7 @@ listling.ListPage = class extends micro.Page {
         ui.shortcutContext.remove("B");
         ui.shortcutContext.remove("C");
         this._events.forEach(e => ui.removeEventListener(e, this));
+        this._data.presentation.exit().catch(micro.util.catch);
     }
 
     get list() {
