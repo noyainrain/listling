@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>2. Web API &#8212; Open Listling 0.18.2 documentation</title>
+    <title>2. Web API &#8212; Open Listling 0.19.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -482,8 +482,8 @@ registered as staff member.</p>
 <code class="descname">POST </code><code class="descname">/api/lists</code><a class="headerlink" href="#post--api-lists" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">{&quot;use_case&quot;,</span> <span class="pre">&quot;v&quot;}</span></code></p>
 <p>Create a <a class="reference internal" href="#list"><span class="std std-ref">List</span></a> for the given <em>use_case</em> and return it.</p>
-<p>Available <em>use_case</em> s are <code class="docutils literal notranslate"><span class="pre">simple</span></code>, <code class="docutils literal notranslate"><span class="pre">todo</span></code>, <code class="docutils literal notranslate"><span class="pre">shopping</span></code>, <code class="docutils literal notranslate"><span class="pre">meeting-agenda</span></code> and <code class="docutils literal notranslate"><span class="pre">map</span></code>.
-The endpoint version <em>v</em> must be <code class="docutils literal notranslate"><span class="pre">2</span></code>.</p>
+<p>Available <em>use_case</em> s are <code class="docutils literal notranslate"><span class="pre">simple</span></code>, <code class="docutils literal notranslate"><span class="pre">todo</span></code>, <code class="docutils literal notranslate"><span class="pre">shopping</span></code>, <code class="docutils literal notranslate"><span class="pre">meeting-agenda</span></code>, <code class="docutils literal notranslate"><span class="pre">playlist</span></code>
+and <code class="docutils literal notranslate"><span class="pre">map</span></code>. The endpoint version <em>v</em> must be <code class="docutils literal notranslate"><span class="pre">2</span></code>.</p>
 <p>Permission: Authenticated users.</p>
 <div class="deprecated">
 <p><span class="versionmodified">Deprecated since version 0.3.0: </span>The signature <code class="docutils literal notranslate"><span class="pre">{&quot;title&quot;,</span> <span class="pre">&quot;description&quot;:</span> <span class="pre">null,</span> <span class="pre">&quot;v&quot;:</span> <span class="pre">1}</span></code>. Instead, set <em>use_case</em> to
@@ -843,7 +843,7 @@ with <em>list_id</em>, a <a class="reference internal" href="#valueerror"><span 
 <dt>
 <code class="descname">features</code></dt>
 <dd><p>Set of features enabled for the list.</p>
-<p>Available features are <code class="docutils literal notranslate"><span class="pre">check</span></code> and <code class="docutils literal notranslate"><span class="pre">location</span></code>.</p>
+<p>Available features are <code class="docutils literal notranslate"><span class="pre">check</span></code>, <code class="docutils literal notranslate"><span class="pre">location</span></code> and <code class="docutils literal notranslate"><span class="pre">play</span></code>.</p>
 </dd></dl>
 
 <dl class="describe">

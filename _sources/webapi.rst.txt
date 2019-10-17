@@ -23,8 +23,8 @@ Lists
 
    Create a :ref:`List` for the given *use_case* and return it.
 
-   Available *use_case* s are ``simple``, ``todo``, ``shopping``, ``meeting-agenda`` and ``map``.
-   The endpoint version *v* must be ``2``.
+   Available *use_case* s are ``simple``, ``todo``, ``shopping``, ``meeting-agenda``, ``playlist``
+   and ``map``. The endpoint version *v* must be ``2``.
 
    Permission: Authenticated users.
 
@@ -126,7 +126,7 @@ List
 
    Set of features enabled for the list.
 
-   Available features are ``check`` and ``location``.
+   Available features are ``check``, ``location`` and ``play``.
 
 .. describe:: mode
 
