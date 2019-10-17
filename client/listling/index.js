@@ -143,6 +143,11 @@ listling.ListPage = class extends micro.Page {
             presentation: new listling.components.list.Presentation(this),
             presentationMode: false,
             quickNavigate: micro.keyboard.quickNavigate,
+            playlist: null,
+            playlistPlaying: null,
+            playlistPlayPause: null,
+            playlistPlayNext: null,
+            playlistPlayPrevious: null,
 
             toggleTrash: () => {
                 this._data.trashExpanded = !this._data.trashExpanded;
@@ -267,7 +272,7 @@ listling.ListPage = class extends micro.Page {
             this.classList.toggle("listling-list-has-trashed-items", this._data.trashedItemsCount);
             this.classList.toggle("listling-list-mode-view", !this._data.editMode);
             this.classList.toggle("listling-list-mode-edit", this._data.editMode);
-            for (let feature of ["check", "location"]) {
+            for (let feature of ["check", "location", "play"]) {
                 this.classList.toggle(
                     `listling-list-feature-${feature}`,
                     this._data.lst && this._data.lst.features.includes(feature)
@@ -290,7 +295,7 @@ listling.ListPage = class extends micro.Page {
 
     attachedCallback() {
         super.attachedCallback();
-        ui.shortcutContext.add("B", this._data.toggleTrash);
+        ui.shortcutContext.add("G", this._data.toggleTrash);
         ui.shortcutContext.add("C", this._data.toggleSettings);
         this._events.forEach(e => ui.addEventListener(e, this));
 
@@ -339,10 +344,13 @@ listling.ListPage = class extends micro.Page {
     }
 
     detachedCallback() {
-        ui.shortcutContext.remove("B");
+        ui.shortcutContext.remove("G");
         ui.shortcutContext.remove("C");
         this._events.forEach(e => ui.removeEventListener(e, this));
         this._data.presentation.exit().catch(micro.util.catch);
+        if (this._data.playlist) {
+            this._data.playlist.dispose();
+        }
     }
 
     get list() {
@@ -350,12 +358,22 @@ listling.ListPage = class extends micro.Page {
     }
 
     set list(value) {
+        const playFeature = value.features.includes("play");
+        if (this._data.playlist && !playFeature) {
+            this._data.playlist.dispose();
+            this._data.playlist = null;
+        }
+
         this._data.lst = value;
         this._data.locationEnabled =
             Boolean(ui.mapServiceKey) && this._data.lst.features.includes("location");
         this._data.editMode = !this._data.lst;
         this.caption = this._data.lst.title;
         ui.url = listling.util.makeListURL(this._data.lst) + location.hash;
+
+        if (!this._data.playlist && playFeature) {
+            this._data.playlist = new listling.components.list.Playlist(this);
+        }
     }
 
     handleEvent(event) {
@@ -402,10 +420,14 @@ listling.ItemElement = class extends HTMLLIElement {
         this._data = new micro.bind.Watchable({
             item: null,
             lst: null,
+            resourceElem: null,
             editMode: true,
             isCheckDisabled:
                 (ctx, trashed, mode) => trashed || !this._data.may(ctx, "item-modify", mode),
             makeItemURL: listling.util.makeItemURL,
+            playable: null,
+            playablePlaying: null,
+            playablePlayPause: null,
 
             startEdit: () => {
                 this._data.editMode = true;
@@ -557,15 +579,48 @@ listling.ItemElement = class extends HTMLLIElement {
         this._form = this.querySelector("form");
     }
 
+    detachedCallback() {
+        if (this._data.playable) {
+            this._data.playable.dispose();
+        }
+    }
+
     get item() {
         return this._data.item;
     }
 
     set item(value) {
         this._data.item = value;
-        this._data.lst = ui.page.list;
+        this._data.resourceElem = micro.bind.transforms.renderResource(null, value.resource);
         this._data.editMode = !this._data.item;
         this.id = this._data.item ? `items-${this._data.item.id.split(":")[1]}` : "";
+        if (this._data.playable) {
+            this._data.playable.resourceElement = this._data.resourceElem;
+        }
+    }
+
+    get list() {
+        return this._data.lst;
+    }
+
+    set list(value) {
+        const playFeature = value.features.includes("play");
+        if (this._data.playable && !playFeature) {
+            this._data.playable.dispose();
+            this._data.playable = null;
+        }
+
+        this._data.lst = value;
+
+        if (!this._data.playable && playFeature) {
+            this._data.playable = new listling.components.list.Playable(this);
+            this._data.playable.resourceElement = this._data.resourceElem;
+        }
+    }
+
+    /** :class:`listling.components.list.Playable` extension. */
+    get playable() {
+        return this._data.playable;
     }
 };
 

@@ -44,6 +44,13 @@ describe("UI", function() {
         await browser.wait(until.elementLocated({css: "listling-list-page"}));
     }
 
+    async function readItemPlayPause(item) {
+        await item.findElement({css: ".listling-item-menu li:last-child"}).click();
+        const text = await item.findElement({css: ".listling-item-play-pause"}).getText();
+        await item.click();
+        return text.trim();
+    }
+
     beforeEach(async function() {
         await promisify(exec)("redis-cli -n 15 flushdb");
         server = spawn("python3", ["-m", "listling", "--port", "8081", "--redis-url", "15"],
@@ -100,11 +107,13 @@ describe("UI", function() {
         // Edit list
         await browser.findElement({css: ".listling-list-menu"}).click();
         await browser.findElement({css: ".listling-list-edit"}).click();
+        await browser.findElement({css: ".listling-list-settings button"}).click();
         form = await browser.findElement({css: "listling-list-page form"});
         input = await form.findElement({name: "title"});
         await input.clear();
         await input.sendKeys("Cat colony tasks");
         await form.findElement({name: "description"}).sendKeys("What has to be done!");
+        await form.findElement({css: "[name=features][value=play]"}).click();
         await form.findElement({css: "button:not([type])"}).click();
         await browser.wait(
             untilElementTextLocated({css: "listling-list-page h1"}, "Cat colony tasks"));
@@ -113,6 +122,7 @@ describe("UI", function() {
 
         // Create item
         await browser.findElement({css: ".listling-list-create-item button"}).click();
+        await browser.executeScript(() => scroll(0, document.scrollingElement.scrollHeight));
         form = await browser.findElement({css: ".listling-list-create-item form"});
         await form.findElement({name: "title"}).sendKeys("Sleep");
         await form.findElement({name: "text"}).sendKeys("Very important!");
@@ -156,6 +166,23 @@ describe("UI", function() {
         // Check item
         await checkButton.click();
         await browser.wait(until.elementLocated(uncheckSelector), timeout);
+
+        // Play list
+        await browser.findElement({css: ".listling-list-play-pause"}).click();
+        let item = await browser.findElement({css: "[is=listling-item]:nth-child(2)"});
+        let text = await readItemPlayPause(item);
+        expect(text).to.equal("Pause");
+
+        // Play next of list
+        await browser.findElement({css: ".listling-list-play-next"}).click();
+        item = await browser.findElement({css: "[is=listling-item]:nth-child(3)"});
+        text = await readItemPlayPause(item);
+        expect(text).to.equal("Pause");
+
+        // Pause list
+        await browser.findElement({css: ".listling-list-play-pause"}).click();
+        text = await readItemPlayPause(item);
+        expect(text).to.equal("Play");
 
         // View presentation mode
         await browser.executeScript(() => scroll(0, 0));

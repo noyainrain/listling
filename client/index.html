@@ -237,7 +237,7 @@
                                 <button
                                     is="micro-button" type="button" class="link"
                                     data-run="bindThis presentation.enter presentation"
-                                    data-shortcut="new Shortcut 'P'"
+                                    data-shortcut="new Shortcut 'D'"
                                 >
                                     <i class="fa fa-fw fa-chalkboard"></i> Presentation
                                 </button>
@@ -296,6 +296,13 @@
                             />
                             Item location
                         </label>
+                        <label>
+                            <input
+                                type="checkbox" name="features" value="play"
+                                data-checked="includes lst.features 'play'"
+                            />
+                            Play list
+                        </label>
                     </fieldset>
 
                     <label>
@@ -345,9 +352,10 @@
             data-content="list presentItems 'item'"
         >
             <template>
-                <li is="listling-item" class="micro-quick-nav" data-item="item"
-                    data-onmove="moveItemKey">
-                </li>
+                <li
+                    is="listling-item" class="micro-quick-nav" data-item="item" data-list="lst"
+                    data-onmove="moveItemKey"
+                ></li>
             </template>
         </ol>
 
@@ -357,7 +365,7 @@
                 <span
                     data-content="formatPlural 'There is one trashed item.' 'There are {n} trashed items.' 'n' trashedItemsCount">
                 </span>
-                <button is="micro-button" type="button" class="link" title="Show (⌨ B)"
+                <button is="micro-button" type="button" class="link" title="Show (⌨ G)"
                         data-run="toggleTrash">
                     <i class="fa fa-search-plus"></i>
                 </button>
@@ -365,7 +373,7 @@
             <div>
                 <header class="micro-heading micro-panel">
                     <h1>Trashed items</h1>
-                    <button is="micro-button" type="button" class="link" title="Hide (⌨ B)"
+                    <button is="micro-button" type="button" class="link" title="Hide (⌨ G)"
                             data-run="toggleTrash">
                         <i class="fa fa-fw fa-search-minus"></i>
                     </button>
@@ -376,7 +384,10 @@
                 </p>
                 <ul class="listling-list-trashed-items" data-content="list trashedItems 'item'">
                     <template>
-                        <li is="listling-item" class="micro-quick-nav" data-item="item"></li>
+                        <li
+                            is="listling-item" class="micro-quick-nav" data-item="item"
+                            data-list="lst"
+                        ></li>
                     </template>
                 </ul>
             </div>
@@ -402,38 +413,61 @@
             </span>
         </aside>
 
-        <div data-content="switch presentationMode">
-            <template>
-                <footer
-                    class="listling-list-footer" data-onmousedown="presentation.onFooterMouseDown"
-                >
-                    <div class="micro-ui-inside micro-panel">
+        <footer class="listling-list-footer" data-onmousedown="presentation.onFooterMouseDown">
+            <div class="micro-ui-inside micro-panel">
+                <div data-content="switch presentationMode">
+                    <template>
                         <button
-                            is="micro-button" type="button" class="link"
+                            is="micro-button" type="button" class="listling-list-previous link"
                             data-run="bind quickNavigate 'prev'"
                             data-shortcut="new Shortcut 'ArrowUp' 'Previous'"
                         >
                             <i class="fa fa-fw fa-arrow-circle-up"></i>
                         </button>
+                    </template>
+                </div>
+                <button
+                    is="micro-button" type="button" class="listling-list-play-previous action"
+                    data-run="playlistPlayPrevious" data-shortcut="new Shortcut 'B' 'Play previous'"
+                >
+                    <i class="fa fa-fw fa-step-backward"></i>
+                </button>
+                <button
+                    is="micro-button" class="listling-list-play-pause action"
+                    data-run="playlistPlayPause" data-shortcut="new Shortcut 'P' 'Play / Pause'"
+                >
+                    <i
+                        class="fa fa-fw" data-class-fa-play="not playlistPlaying"
+                        data-class-fa-pause="playlistPlaying"
+                    ></i>
+                </button>
+                <div data-content="switch presentationMode">
+                    <template>
                         <button
-                            is="micro-button" type="button" class="link"
+                            is="micro-button" type="button" class="listling-list-next link"
                             data-run="bind quickNavigate 'next'"
                             data-shortcut="new Shortcut 'ArrowDown' 'Next'"
                         >
                             <i class="fa fa-fw fa-arrow-circle-down"></i>
                         </button>
-                        <button
-                            is="micro-button" type="button"
-                            class="listling-list-exit-presentation link"
-                            data-run="bindThis presentation.exit presentation"
-                            data-shortcut="new Shortcut 'Escape' 'Exit'"
-                        >
-                            <i class="fa fa-fw fa-times-circle"></i>
-                        </button>
-                    </div>
-                </footer>
-            </template>
-        </div>
+                    </template>
+                </div>
+                <button
+                    is="micro-button" type="button" class="listling-list-play-next action"
+                    data-run="playlistPlayNext" data-shortcut="new Shortcut 'F' 'Play next'"
+                >
+                    <i class="fa fa-fw fa-step-forward"></i>
+                </button>
+                <button
+                    is="micro-button" type="button"
+                    class="listling-list-exit-presentation link"
+                    data-run="bindThis presentation.exit presentation"
+                    data-shortcut="new Shortcut 'Escape' 'Exit'"
+                >
+                    <i class="fa fa-fw fa-times-circle"></i>
+                </button>
+            </div>
+        </footer>
     </template>
     <style>
         .listling-list-scroll-snap {
@@ -442,6 +476,10 @@
 
         listling-list-page {
             display: block;
+        }
+
+        listling-list-page.listling-list-feature-play {
+            padding-bottom: calc(var(--micro-size-rm) + 2 * var(--micro-size-xs));
         }
 
         body[noninteractive] listling-list-page {
@@ -516,7 +554,14 @@
         .listling-list-create-item.listling-list-creating-item > p,
         .listling-list-create-item:not(.listling-list-creating-item) > li,
         .listling-list-settings.listling-list-settings-expanded > p,
-        .listling-list-settings:not(.listling-list-settings-expanded) > section {
+        .listling-list-settings:not(.listling-list-settings-expanded) > section,
+        body:not([noninteractive]) listling-list-page:not(.listling-list-feature-play) > footer,
+        listling-list-page.listling-list-feature-play .listling-list-previous,
+        listling-list-page.listling-list-feature-play .listling-list-next,
+        listling-list-page:not(.listling-list-feature-play) .listling-list-play-previous,
+        listling-list-page:not(.listling-list-feature-play) .listling-list-play-pause,
+        listling-list-page:not(.listling-list-feature-play) .listling-list-play-next,
+        body:not([noninteractive]) .listling-list-exit-presentation {
             display: none;
         }
     </style>
@@ -570,6 +615,20 @@
                             <i class="fa fa-fw fa-bars"></i>
                         </button>
                         <ul is="micro-menu">
+                            <li class="listling-item-play-pause">
+                                <button
+                                    is="micro-button" type="button" class="action"
+                                    data-run="playablePlayPause"
+                                    data-content="switch playablePlaying" title="⌨ P"
+                                >
+                                    <template>
+                                        <i class="fa fa-fw fa-pause"></i> Pause
+                                    </template>
+                                    <template>
+                                        <i class="fa fa-fw fa-play"></i> Play
+                                    </template>
+                                </button>
+                            </li>
                             <li class="listling-item-edit">
                                 <button
                                     is="micro-button"
@@ -578,7 +637,7 @@
                                     data-run="startEdit"
                                     data-shortcut="new Shortcut 'E'"
                                 >
-                                    <i class="fa fa-pencil-alt"></i> Edit
+                                    <i class="fa fa-fw fa-pencil-alt"></i> Edit
                                 </button>
                             </li>
                             <li class="listling-item-trash">
@@ -589,7 +648,7 @@
                                     data-run="trash"
                                     data-shortcut="new Shortcut 'T'"
                                 >
-                                    <i class="fa fa-trash"></i> Trash
+                                    <i class="fa fa-fw fa-trash"></i> Trash
                                 </button>
                             </li>
                         </ul>
@@ -619,7 +678,7 @@
 
                 <div
                     class="listling-item-resource listling-item-mode-view"
-                    data-content="renderResource item.resource"
+                    data-content="resourceElem"
                 >
                 </div>
 
@@ -708,13 +767,30 @@
     <style>
         [is=listling-item] {
             border: 1px solid var(--micro-color-delimiter);
-            border-radius: calc(1.5rem / 8);
+            border-radius: var(--micro-size-xxs);
             margin: 1.5rem 0;
             list-style: none;
         }
 
         [is=listling-item].listling-item-trashed {
             color: #888;
+        }
+
+        [is=listling-item] > form {
+            position: relative;
+            --listling-item-progress: 0%;
+        }
+
+        [is=listling-item] > form::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--micro-size-xxs);
+            border-radius: var(--micro-size-xxs) var(--micro-size-xxs) 0 0;
+            background: var(--micro-color-primary) content-box;
+            padding-right: calc(100% - var(--listling-item-progress));
         }
 
         [is=listling-item] header {
@@ -813,8 +889,12 @@
         listling-list-page:not(.listling-list-may-modify) .micro-ol-handle,
         listling-list-page:not(.listling-list-feature-check) .listling-item-check,
         listling-list-page:not(.listling-list-feature-check) .listling-item-uncheck,
-        [is=listling-item]:not(.listling-item-may-modify) .listling-item-menu,
+        listling-list-page:not(.listling-list-feature-play) [is=listling-item]:not(.listling-item-may-modify) .listling-item-menu,
         [is=listling-item]:not(.listling-item-trashed) .listling-item-restore,
+        [is=listling-item]:not(.listling-item-may-modify) .listling-item-restore,
+        listling-list-page:not(.listling-list-feature-play) .listling-item-play-pause,
+        [is=listling-item]:not(.listling-item-may-modify) .listling-item-edit,
+        [is=listling-item]:not(.listling-item-may-modify) .listling-item-trash,
         [is=listling-item].listling-item-trashed .listling-item-menu li:last-child,
         body[noninteractive] [is=listling-item] > form:not(.listling-item-has-content) .listling-item-content,
         body:not(.micro-ui-map-service-enabled) .listling-item-meta,

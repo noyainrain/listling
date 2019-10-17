@@ -29,6 +29,7 @@ _USE_CASES = {
     'todo': {'title': 'New to-do list', 'features': ['check']},
     'shopping': {'title': 'New shopping list', 'features': []},
     'meeting-agenda': {'title': 'New meeting agenda', 'features': []},
+    'playlist': {'title': 'New playlist', 'features': ['play']},
     'map': {'title': 'New map', 'features': ['location']}
 }
 
@@ -58,6 +59,26 @@ _EXAMPLE_DATA = {
             {'title': 'Round of introductions'},
             {'title': 'Lunch poll', 'text': 'What will we have for lunch today?'},
             {'title': 'Next meeting', 'text': 'When and where will our next meeting be?'}
+        ]
+    ),
+    'playlist': (
+        'Party playlist',
+        'Songs we want to hear at our get-together tonight.',
+        [
+            {
+                'title': 'Rick Astley - Never Gonna Give You Up',
+                'text': 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                'resource': 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+            },
+            {
+                'title': 'Rihanna - Diamonds',
+                'text': 'https://www.youtube.com/watch?v=lWA2pjMjpBs',
+                'resource': 'https://www.youtube.com/watch?v=lWA2pjMjpBs'
+            },
+            {
+                'title': 'Did you know?',
+                'text': "The lyrics for Rihanna's song Diamonds were written by singer-songwriter Sia in just 14 minutes."
+            }
         ]
     ),
     'map': (
@@ -352,7 +373,7 @@ class List(Object, Editable):
         self._check_permission(self.app.user, 'list-modify')
         if 'title' in attrs and str_or_none(attrs['title']) is None:
             raise micro.ValueError('title_empty')
-        if 'features' in attrs and not set(attrs['features']) <= {'check', 'location'}:
+        if 'features' in attrs and not set(attrs['features']) <= {'check', 'location', 'play'}:
             raise micro.ValueError('feature_unknown')
         if 'mode' in attrs and attrs['mode'] not in {'collaborate', 'view'}:
             raise micro.ValueError('Unknown mode')

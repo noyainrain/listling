@@ -97,9 +97,9 @@ class _ListsEndpoint(Endpoint):
         self.write(lst.json(restricted=True, include=True))
 
 class _ListsCreateExampleEndpoint(Endpoint):
-    def post(self):
+    async def post(self):
         args = self.check_args({'use_case': str})
-        lst = self.app.lists.create_example(**args)
+        lst = await self.app.lists.create_example(asynchronous=ON, **args)
         self.write(lst.json(restricted=True, include=True))
 
 class _ListEndpoint(Endpoint):
