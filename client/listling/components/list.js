@@ -284,6 +284,9 @@ listling.components.list.Playlist = class {
                     return;
                 }
                 const item = this._current.nextElementSibling || this._itemsOL.firstElementChild;
+                if (this._current.nextElementSibling === null) {
+                    this._data.playlistIdle = true;
+                }
                 item.playable.play();
             },
 
@@ -332,6 +335,7 @@ listling.components.list.Playlist = class {
             for (let record of records) {
                 for (let node of record.removedNodes) {
                     if (node === this._current) {
+                        // TODO also trigger an idle loop (i guess?)
                         this._current = record.nextSibling || this._itemsOL.firstElementChild;
                         if (this._data.playlistPlaying) {
                             this._current.playable.play();
@@ -341,12 +345,24 @@ listling.components.list.Playlist = class {
             }
         });
         this._observer.observe(this._itemsOL, {childList: true});
+
+        this.page.ready.then(() => {
+            this._onListItemsCreate = () => {
+                if (this._data.playlistIdle) {
+                    this._data.playlistIdle = false;
+                    this._itemsOL.lastElementChild.playable.play();
+                }
+            };
+            // this.page._activity.events.addEventListener(...
+            ui.addEventListener("list-items-create", this._onListItemsCreate);
+        });
     }
 
     dispose() {
         this._itemsOL.removeEventListener("play", this._onPlay);
         this._itemsOL.removeEventListener("pause", this._onPause);
         this._observer.disconnect();
+        ui.removeEventListener("list-items-create", this._onListItemsCreate);
     }
 };
 
