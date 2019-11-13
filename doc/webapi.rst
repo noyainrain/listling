@@ -23,8 +23,8 @@ Lists
 
    Create a :ref:`List` for the given *use_case* and return it.
 
-   Available *use_case* s are ``simple``, ``todo``, ``shopping``, ``meeting-agenda``, ``playlist``
-   and ``map``. The endpoint version *v* must be ``2``.
+   Available *use_case* s are ``simple``, ``todo``, ``poll``, ``shopping``, ``meeting-agenda``,
+   ``playlist`` and ``map``. The endpoint version *v* must be ``2``.
 
    Permission: Authenticated users.
 
@@ -126,7 +126,7 @@ List
 
    Set of features enabled for the list.
 
-   Available features are ``check``, ``location`` and ``play``.
+   Available features are ``check``, ``vote``, ``location`` and ``play``.
 
 .. describe:: mode
 
@@ -148,6 +148,14 @@ List
    List :ref:`Items`.
 
 .. include:: micro/editable-endpoints.inc
+
+.. describe:: item-votes-vote
+
+   Published when an item has been voted for.
+
+.. describe:: item-votes-unvote
+
+   Published when an item has been unvoted.
 
 .. _Items:
 
@@ -201,6 +209,10 @@ Item
 
    Indicates if the item is marked as complete.
 
+.. describe:: votes
+
+   :ref:`ItemVotes` for the item.
+
 .. include:: micro/editable-endpoints.inc
 
 .. include:: micro/trashable-endpoints.inc
@@ -220,5 +232,30 @@ Item
 
    If the feature ``check`` is not enabled for the list, a :ref:`ValueError` (`feature_disabled`) is
    returned.
+
+   Permission: Authenticated users.
+
+.. _ItemVotes:
+
+Votes
+^^^^^
+
+:ref:`Collection` of :ref:`User` s who voted for the item, latest first.
+
+.. describe:: user_voted
+
+   Indicates if the user voted for the item.
+
+.. include:: micro/collection-endpoints.inc
+
+.. http:post:: /api/lists/(list-id)/items/(id)/votes
+
+   Vote for the item.
+
+   Permission: Authenticated users.
+
+.. http:delete:: /api/lists/(list-id)/items/(id)/votes/user
+
+   Unvote the item, i.e. annul a previous vote.
 
    Permission: Authenticated users.

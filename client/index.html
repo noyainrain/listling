@@ -194,11 +194,11 @@
                     class="listling-list-create-item-top action listling-list-mode-view micro-interactive"
                     title="Add item (⌨ A)" data-run="startCreateItem"
                 >
-                    <i class="fa fa-fw fa-plus-circle"></i>
+                    <i class="fa fa-plus-circle"></i>
                 </button>
                 <ul is="micro-menu" class="listling-list-menu micro-secondary listling-list-mode-view micro-interactive">
                     <li>
-                        <button type="button" class="link"><i class="fa fa-fw fa-bars"></i></button>
+                        <button type="button" class="link"><i class="fa fa-bars"></i></button>
                         <ul is="micro-menu">
                             <li class="listling-list-edit">
                                 <button is="micro-button" type="button" class="action"
@@ -290,6 +290,13 @@
                             <input type="checkbox" name="features" value="check"
                                    data-checked="includes lst.features 'check'" />
                             Check items
+                        </label>
+                        <label>
+                            <input
+                                type="checkbox" name="features" value="vote"
+                                data-checked="includes lst.features 'vote'"
+                            />
+                            Vote for items
                         </label>
                         <label class="listling-list-features-location">
                             <input
@@ -569,10 +576,48 @@
     </style>
 
     <template class="listling-item-template">
-        <form data-class-listling-item-has-content="or item.text item.resource item.location">
+        <form
+            data-class-listling-item-has-content="or item.text item.resource item.location"
+            data-class-listling-item-votes-user-voted="votesMeta.user_voted"
+        >
             <header class="micro-panel">
                 <div class="micro-ol-handle listling-item-mode-view micro-interactive"
                      title="Move (⌨ Alt + ↑ / Alt + ↓)" tabindex="0">
+                </div>
+
+                <button
+                    is="micro-button" type="button"
+                    class="listling-item-vote action listling-item-mode-view" data-run="voteUnvote"
+                    data-shortcut="new Shortcut 'V' 'Vote / Unvote'"
+                >
+                    <i class="fa fa-caret-up"></i>
+                </button>
+                <div class="listling-item-votes listling-item-mode-view">
+                    <p tabindex="0" title="Votes" data-content="votesMeta.count"></p>
+                    <micro-contextual data-onactivate="onVotesActivate">
+                        <div class="micro-entity-list">
+                            <ul data-content="list votes.items 'vote'">
+                                <template>
+                                    <li class="micro-panel">
+                                        <p><micro-user data-user="vote"></micro-user></p>
+                                    </li>
+                                </template>
+                            </ul>
+                            <ul>
+                                <li class="micro-panel" data-content="switch votesComplete false">
+                                    <template>
+                                        <button
+                                            is="micro-button" type="button"
+                                            class="listling-item-more-votes link micro-panel-main"
+                                            data-run="bind fetchCollection votes 10"
+                                        >
+                                            <i class="fa fa-ellipsis-v"></i> More
+                                        </button>
+                                    </template>
+                                </li>
+                            </ul>
+                        </div>
+                    </micro-contextual>
                 </div>
 
                 <div class="listling-item-mode-view" data-content="switch item.checked">
@@ -582,7 +627,7 @@
                             data-run="uncheck" data-disabled="isCheckDisabled item.trashed lst.mode"
                             data-shortcut="new Shortcut 'X' 'Uncheck'"
                         >
-                            <i class="fa fa-fw fa-check-square"></i>
+                            <i class="fa fa-check-square"></i>
                         </button>
                     </template>
                     <template>
@@ -591,7 +636,7 @@
                             data-run="check" data-disabled="isCheckDisabled item.trashed lst.mode"
                             data-shortcut="new Shortcut 'X' 'Check'"
                         >
-                            <i class="far fa-fw fa-square"></i>
+                            <i class="far fa-square"></i>
                         </button>
                     </template>
                 </div>
@@ -609,12 +654,12 @@
                     <li class="listling-item-restore">
                         <button is="micro-button" type="button" class="action" data-run="restore"
                                 data-shortcut="new Shortcut 'R'">
-                            <i class="fa fa-undo"></i> Restore
+                            <i class="fa fa-trash-restore"></i> Restore
                         </button>
                     </li>
                     <li>
                         <button is="micro-button" type="button" class="link">
-                            <i class="fa fa-fw fa-bars"></i>
+                            <i class="fa fa-bars"></i>
                         </button>
                         <ul is="micro-menu">
                             <li class="listling-item-play-pause">
@@ -815,6 +860,29 @@
                 radial-gradient(circle closest-side, #888 0%, #888 50%, transparent 50%) content-box
                     0 0 / calc(1.5rem / 4) calc(1.5rem / 4),
                 var(--micro-color-delimiter);
+        }
+
+        listling-list-page:not(.listling-list-feature-vote) .listling-item-vote,
+        listling-list-page:not(.listling-list-feature-vote) .listling-item-votes {
+            display: none;
+        }
+
+        .micro-panel > .listling-item-vote {
+            color: var(--micro-color-text-subtle);
+        }
+
+        [is=listling-item] > form.listling-item-votes-user-voted .listling-item-vote {
+            color: forestgreen;
+        }
+
+        .listling-item-vote i {
+            width: 1em;
+            text-align: center;
+            transform: scale(1.6);
+        }
+
+        .listling-item-votes micro-contextual {
+            right: auto;
         }
 
         .micro-panel > div > .listling-item-check,

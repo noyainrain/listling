@@ -191,3 +191,24 @@ class ItemTest(ListlingTestCase):
         item.check()
         item.uncheck()
         self.assertFalse(item.checked)
+
+class ItemVotesTest(ListlingTestCase):
+    def make_item(self):
+        item = self.app.lists.create('poll', v=2).items.create('Mouse')
+        user = self.app.login()
+        item.votes.vote(user=user)
+        return item, user
+
+    def test_vote(self):
+        item, user = self.make_item()
+        item.votes.vote(user=self.user)
+        item.votes.vote(user=self.user)
+        self.assertEqual(list(item.votes.values()), [self.user, user])
+        self.assertTrue(item.votes.has_user_voted(self.user))
+
+    def test_unvote(self):
+        item, user = self.make_item()
+        item.votes.vote(user=self.user)
+        item.votes.unvote(user=self.user)
+        self.assertEqual(list(item.votes.values()), [user])
+        self.assertFalse(item.votes.has_user_voted(self.user))

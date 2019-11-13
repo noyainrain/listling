@@ -113,6 +113,7 @@ describe("UI", function() {
         await input.clear();
         await input.sendKeys("Cat colony tasks");
         await form.findElement({name: "description"}).sendKeys("What has to be done!");
+        await form.findElement({css: "[name=features][value=vote]"}).click();
         await form.findElement({css: "[name=features][value=play]"}).click();
         await form.findElement({css: "button:not([type])"}).click();
         await browser.wait(
@@ -166,6 +167,16 @@ describe("UI", function() {
         // Check item
         await checkButton.click();
         await browser.wait(until.elementLocated(uncheckSelector), timeout);
+
+        // Vote for item
+        const voteButton = await browser.findElement({css: ".listling-item-vote"});
+        const votesP = await browser.findElement({css: ".listling-item-votes > p"});
+        await voteButton.click();
+        await browser.wait(until.elementTextIs(votesP, "1"), timeout);
+
+        // Unvote item
+        await voteButton.click();
+        await browser.wait(until.elementTextIs(votesP, "0"), timeout);
 
         // Play list
         await browser.findElement({css: ".listling-list-play-pause"}).click();

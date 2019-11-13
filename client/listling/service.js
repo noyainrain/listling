@@ -69,7 +69,9 @@ listling.service.Service = class extends micro.service.Service {
             "trashable-restore+Item":
                 event => renderItemNotification(event, '{user} restored "{item}"'),
             "item-check": event => renderItemNotification(event, '{user} checked "{item}"'),
-            "item-uncheck": event => renderItemNotification(event, '{user} unchecked "{item}"')
+            "item-uncheck": event => renderItemNotification(event, '{user} unchecked "{item}"'),
+            "item-votes-vote": event => renderItemNotification(event, '{user} voted for "{item}"'),
+            "item-votes-unvote": event => renderItemNotification(event, '{user} unvoted "{item}"')
         });
     }
 };

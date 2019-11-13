@@ -18,15 +18,14 @@ from time import time
 
 import micro
 from micro import (Activity, Application, Collection, Editable, Location, Object, Orderable,
-                   Trashable, Settings, Event, WithContent)
-from micro.jsonredis import JSONRedis
+                   Trashable, Settings, Event, WithContent, error)
+from micro.jsonredis import JSONRedis, RedisSortedSet
 from micro.util import randstr, run_instant, str_or_none, ON
-
-from micro.jsonredis import RedisSortedSet
 
 _USE_CASES = {
     'simple': {'title': 'New list', 'features': []},
     'todo': {'title': 'New to-do list', 'features': ['check']},
+    'poll': {'title': 'New poll', 'features': ['vote'], 'mode': 'view'},
     'shopping': {'title': 'New shopping list', 'features': []},
     'meeting-agenda': {'title': 'New meeting agenda', 'features': []},
     'playlist': {'title': 'New playlist', 'features': ['play']},
@@ -43,13 +42,22 @@ _EXAMPLE_DATA = {
             {'title': 'Write report', 'text': 'Summary of the results'}
         ]
     ),
+    'poll': (
+        'Lunch poll',
+        'Where will we have lunch today?',
+        [
+            {'title': 'Burger place', 'user_voted': True},
+            {'title': 'Pizzeria', 'text': 'Nice vegan options available'},
+            {'title': 'Salad bar'}
+        ]
+    ),
     'shopping': (
         'Kitchen shopping list',
         'When you go shopping next time, please bring the items from this list.',
         [
             {'title': 'Soy sauce'},
             {'title': 'Vegetables', 'text': 'Especially tomatoes'},
-            {'title': 'Chocolate (vegan)'}
+            {'title': 'Chocolate'}
         ]
     ),
     'meeting-agenda': (
@@ -57,7 +65,7 @@ _EXAMPLE_DATA = {
         'We meet on Monday and discuss important issues.',
         [
             {'title': 'Round of introductions'},
-            {'title': 'Lunch poll', 'text': 'What will we have for lunch today?'},
+            {'title': 'Lunch poll', 'text': 'Where will we have lunch today?'},
             {'title': 'Next meeting', 'text': 'When and where will our next meeting be?'}
         ]
     ),
@@ -138,7 +146,7 @@ class Listling(Application):
             id = 'List:{}'.format(randstr())
             lst = List(
                 id=id, app=self.app, authors=[self.app.user.id], title=data['title'],
-                description=None, features=data['features'], mode='collaborate',
+                description=None, features=data['features'], mode=data.get('mode', 'collaborate'),
                 activity=Activity('{}.activity'.format(id), self.app, subscriber_ids=[]))
             self.app.r.oset(lst.id, lst)
             self.app.r.rpush(self.map_key, lst.id)
@@ -171,9 +179,12 @@ class Listling(Application):
             for item in data[2]:
                 args = dict(item)
                 checked = args.pop('checked', False)
+                user_voted = args.pop('user_voted', False)
                 item = await lst.items.create(asynchronous=ON, **args)
                 if checked:
                     item.check()
+                if user_voted:
+                    item.votes.vote(user=self.app.user)
             return lst
 
     def __init__(self, redis_url='', email='bot@localhost', smtp_url='',
@@ -373,7 +384,7 @@ class List(Object, Editable):
         self._check_permission(self.app.user, 'list-modify')
         if 'title' in attrs and str_or_none(attrs['title']) is None:
             raise micro.ValueError('title_empty')
-        if 'features' in attrs and not set(attrs['features']) <= {'check', 'location', 'play'}:
+        if 'features' in attrs and not set(attrs['features']) <= {'check', 'vote', 'location', 'play'}:
             raise micro.ValueError('feature_unknown')
         if 'mode' in attrs and attrs['mode'] not in {'collaborate', 'view'}:
             raise micro.ValueError('Unknown mode')
@@ -411,6 +422,43 @@ class List(Object, Editable):
 class Item(Object, Editable, Trashable, WithContent):
     """See :ref:`Item`."""
 
+    class Votes(Collection):
+        """See :ref:`ItemVotes`."""
+
+        def __init__(self, item, *, app):
+            super().__init__(RedisSortedSet('{}.votes'.format(item.id), app.r.r), app=app)
+            self.item = item
+
+        def vote(self, *, user):
+            """See :http:post:`/api/lists/(list-id)/items/(id)/votes`."""
+            if not user:
+                raise PermissionError()
+            if 'vote' not in self.item.list.features:
+                raise error.ValueError('Disabled item list features vote')
+            if self.app.r.zadd(self.ids.key, {user.id.encode(): -time()}):
+                self.item.list.activity.publish(
+                    Event.create('item-votes-vote', self.item, app=self.app))
+
+        def unvote(self, *, user):
+            """See :http:delete:`/api/lists/(list-id)/items/(id)/votes/user`."""
+            if not user:
+                raise PermissionError()
+            if 'vote' not in self.item.list.features:
+                raise error.ValueError('Disabled item list features vote')
+            if self.app.r.zrem(self.ids.key, user.id.encode()):
+                self.item.list.activity.publish(
+                    Event.create('item-votes-unvote', self.item, app=self.app))
+
+        def has_user_voted(self, user):
+            """See :ref:`ItemVotes` *user_voted*."""
+            return user and user in self
+
+        def json(self, restricted=False, include=False, *, slc=None):
+            return {
+                **super().json(restricted=restricted, include=include, slc=slc),
+                **({'user_voted': self.has_user_voted(self.app.user)} if restricted else {})
+            }
+
     def __init__(self, *, id, app, authors, trashed, text, resource, list_id, title, location=None,
                  checked):
         # Compatibility for Item without location (deprecated since 0.6.0)
@@ -422,6 +470,7 @@ class Item(Object, Editable, Trashable, WithContent):
         self.title = title
         self.location = Location.parse(location) if location else None
         self.checked = checked
+        self.votes = Item.Votes(self, app=app)
 
     @property
     def list(self):
@@ -477,7 +526,9 @@ class Item(Object, Editable, Trashable, WithContent):
             'list_id': self._list_id,
             'title': self.title,
             'location': self.location.json() if self.location else None,
-            'checked': self.checked
+            'checked': self.checked,
+            **({'votes': self.votes.json(restricted=restricted, include=include)} if include
+               else {})
         }
 
     def _check_permission(self, user, op):

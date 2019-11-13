@@ -272,7 +272,7 @@ listling.ListPage = class extends micro.Page {
             this.classList.toggle("listling-list-has-trashed-items", this._data.trashedItemsCount);
             this.classList.toggle("listling-list-mode-view", !this._data.editMode);
             this.classList.toggle("listling-list-mode-edit", this._data.editMode);
-            for (let feature of ["check", "location", "play"]) {
+            for (let feature of ["check", "vote", "location", "play"]) {
                 this.classList.toggle(
                     `listling-list-feature-${feature}`,
                     this._data.lst && this._data.lst.features.includes(feature)
@@ -421,6 +421,9 @@ listling.ItemElement = class extends HTMLLIElement {
             item: null,
             lst: null,
             resourceElem: null,
+            votes: null,
+            votesComplete: false,
+            votesMeta: null,
             editMode: true,
             isCheckDisabled:
                 (ctx, trashed, mode) => trashed || !this._data.may(ctx, "item-modify", mode),
@@ -534,6 +537,34 @@ listling.ItemElement = class extends HTMLLIElement {
                 }
             },
 
+            voteUnvote: async() => {
+                try {
+                    if (this._data.votesMeta.user_voted) {
+                        await ui.call("DELETE", `${this._data.votes.url}/user`);
+                        const item = Object.assign(
+                            {}, this._data.item,
+                            {votes: {count: this._data.votesMeta.count - 1, user_voted: false}}
+                        );
+                        ui.dispatchEvent(new CustomEvent("item-votes-unvote", {detail: {item}}));
+                    } else {
+                        await ui.call("POST", this._data.votes.url);
+                        const item = Object.assign(
+                            {}, this._data.item,
+                            {votes: {count: this._data.votesMeta.count + 1, user_voted: true}}
+                        );
+                        ui.dispatchEvent(new CustomEvent("item-votes-vote", {detail: {item}}));
+                    }
+                } catch (e) {
+                    ui.handleCallError(e);
+                }
+            },
+
+            onVotesActivate: () => {
+                if (this._data.votes.count === null) {
+                    this.querySelector(".listling-item-more-votes").trigger();
+                }
+            },
+
             may: (ctx, op, mode) => {
                 // eslint-disable-next-line no-underscore-dangle
                 const permissions = listling.ListPage._PERMISSIONS[mode || "view"];
@@ -579,7 +610,42 @@ listling.ItemElement = class extends HTMLLIElement {
         this._form = this.querySelector("form");
     }
 
+    attachedCallback() {
+        if (!this._data.item) {
+            return;
+        }
+
+        this._data.votes = new micro.Collection(
+            `/api/lists/${this._data.lst.id}/items/${this._data.item.id}/votes`
+        );
+        this._data.votes.events.addEventListener("fetch", () => {
+            this._data.votesComplete = this._data.votes.complete;
+        });
+        this._data.votesMeta = this._data.item.votes;
+
+        this._onVote = event => {
+            if (event.detail.item.id === this._data.item.id) {
+                this._data.votesMeta = event.detail.item.votes;
+                this._data.votes.items.unshift(ui.user);
+            }
+        };
+        ui.addEventListener("item-votes-vote", this._onVote);
+
+        this._onUnvote = event => {
+            if (event.detail.item.id === this._data.item.id) {
+                this._data.votesMeta = event.detail.item.votes;
+                const i = this._data.votes.items.findIndex(vote => vote.id === ui.user.id);
+                if (i !== -1) {
+                    this._data.votes.items.splice(i, 1);
+                }
+            }
+        };
+        ui.addEventListener("item-votes-unvote", this._onUnvote);
+    }
+
     detachedCallback() {
+        ui.removeEventListener("item-votes-vote", this._onVote);
+        ui.removeEventListener("item-votes-unvote", this._onUnvote);
         if (this._data.playable) {
             this._data.playable.dispose();
         }

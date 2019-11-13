@@ -18,6 +18,7 @@
 
 """Open Listling server."""
 
+from http import HTTPStatus
 import json
 
 import micro
@@ -48,6 +49,8 @@ def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='',
                                   lambda list_id, id: app.lists[list_id].items[id]),
         (r'/api/lists/([^/]+)/items/([^/]+)/check$', _ItemCheckEndpoint),
         (r'/api/lists/([^/]+)/items/([^/]+)/uncheck$', _ItemUncheckEndpoint),
+        (r'/api/lists/([^/]+)/items/([^/]+)/votes', _ItemVotesEndpoint),
+        (r'/api/lists/([^/]+)/items/([^/]+)/votes/user', _ItemVoteEndpoint),
         # UI
         (r'/lists/([^/]+)(?:/[^/]+)?$', _ListPage)
     ]
@@ -171,6 +174,23 @@ class _ItemUncheckEndpoint(Endpoint):
         item = self.app.lists[lst_id].items[id]
         item.uncheck()
         self.write(item.json(restricted=True, include=True))
+
+class _ItemVotesEndpoint(CollectionEndpoint):
+    def initialize(self):
+        super().initialize(
+            get_collection=lambda list_id, id: self.app.lists[list_id].items[id].votes)
+
+    def post(self, list_id, id):
+        votes = self.get_collection(list_id, id)
+        votes.vote(user=self.current_user)
+        self.set_status(HTTPStatus.CREATED)
+        self.write({})
+
+class _ItemVoteEndpoint(Endpoint):
+    def delete(self, list_id, id):
+        votes = self.app.lists[list_id].items[id].votes
+        votes.unvote(user=self.current_user)
+        self.write({})
 
 class _ListPage(UI):
     def get_meta(self, *args: str):
