@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>2. Web API &#8212; Open Listling 0.20.0 documentation</title>
+    <title>2. Web API &#8212; Open Listling 0.21.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -536,8 +536,8 @@ registered as staff member.</p>
 <code class="descname">POST </code><code class="descname">/api/lists</code><a class="headerlink" href="#post--api-lists" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">{&quot;use_case&quot;,</span> <span class="pre">&quot;v&quot;}</span></code></p>
 <p>Create a <a class="reference internal" href="#list"><span class="std std-ref">List</span></a> for the given <em>use_case</em> and return it.</p>
-<p>Available <em>use_case</em> s are <code class="docutils literal notranslate"><span class="pre">simple</span></code>, <code class="docutils literal notranslate"><span class="pre">todo</span></code>, <code class="docutils literal notranslate"><span class="pre">shopping</span></code>, <code class="docutils literal notranslate"><span class="pre">meeting-agenda</span></code>, <code class="docutils literal notranslate"><span class="pre">playlist</span></code>
-and <code class="docutils literal notranslate"><span class="pre">map</span></code>. The endpoint version <em>v</em> must be <code class="docutils literal notranslate"><span class="pre">2</span></code>.</p>
+<p>Available <em>use_case</em> s are <code class="docutils literal notranslate"><span class="pre">simple</span></code>, <code class="docutils literal notranslate"><span class="pre">todo</span></code>, <code class="docutils literal notranslate"><span class="pre">poll</span></code>, <code class="docutils literal notranslate"><span class="pre">shopping</span></code>, <code class="docutils literal notranslate"><span class="pre">meeting-agenda</span></code>,
+<code class="docutils literal notranslate"><span class="pre">playlist</span></code> and <code class="docutils literal notranslate"><span class="pre">map</span></code>. The endpoint version <em>v</em> must be <code class="docutils literal notranslate"><span class="pre">2</span></code>.</p>
 <p>Permission: Authenticated users.</p>
 <div class="deprecated">
 <p><span class="versionmodified">Deprecated since version 0.3.0: </span>The signature <code class="docutils literal notranslate"><span class="pre">{&quot;title&quot;,</span> <span class="pre">&quot;description&quot;:</span> <span class="pre">null,</span> <span class="pre">&quot;v&quot;:</span> <span class="pre">1}</span></code>. Instead, set <em>use_case</em> to
@@ -897,7 +897,7 @@ with <em>list_id</em>, a <a class="reference internal" href="#valueerror"><span 
 <dt>
 <code class="descname">features</code></dt>
 <dd><p>Set of features enabled for the list.</p>
-<p>Available features are <code class="docutils literal notranslate"><span class="pre">check</span></code>, <code class="docutils literal notranslate"><span class="pre">location</span></code> and <code class="docutils literal notranslate"><span class="pre">play</span></code>.</p>
+<p>Available features are <code class="docutils literal notranslate"><span class="pre">check</span></code>, <code class="docutils literal notranslate"><span class="pre">vote</span></code>, <code class="docutils literal notranslate"><span class="pre">location</span></code> and <code class="docutils literal notranslate"><span class="pre">play</span></code>.</p>
 </dd></dl>
 
 <dl class="describe">
@@ -939,6 +939,18 @@ the list. In <code class="docutils literal notranslate"><span class="pre">view</
 <p>A <em>trashed</em> (deleted) object cannot be edited. In this case a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a>
 (<cite>object_trashed</cite>) is returned.</p>
 <p>Permission: Authenticated users.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">item-votes-vote</code></dt>
+<dd><p>Published when an item has been voted for.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">item-votes-unvote</code></dt>
+<dd><p>Published when an item has been unvoted.</p>
 </dd></dl>
 
 <div class="section" id="items">
@@ -1041,6 +1053,12 @@ the list. In <code class="docutils literal notranslate"><span class="pre">view</
 <dd><p>Indicates if the item is marked as complete.</p>
 </dd></dl>
 
+<dl class="describe">
+<dt>
+<code class="descname">votes</code></dt>
+<dd><p><a class="reference internal" href="#itemvotes"><span class="std std-ref">Votes</span></a> for the item.</p>
+</dd></dl>
+
 <dl class="post">
 <dt id="post--api-(object-url)">
 <code class="descname">POST </code><code class="descname">/api/(object-url)</code><a class="headerlink" href="#post--api-(object-url)" title="Permalink to this definition">¶</a></dt>
@@ -1086,6 +1104,41 @@ returned.</p>
 <p>Permission: Authenticated users.</p>
 </dd></dl>
 
+<div class="section" id="votes">
+<span id="itemvotes"></span><h3>2.20.1. Votes<a class="headerlink" href="#votes" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference internal" href="#collection"><span class="std std-ref">Collection</span></a> of <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> s who voted for the item, latest first.</p>
+<dl class="describe">
+<dt>
+<code class="descname">user_voted</code></dt>
+<dd><p>Indicates if the user voted for the item.</p>
+</dd></dl>
+
+<dl class="get">
+<dt id="get--api-(resource-url)?slice">
+<code class="descname">GET </code><code class="descname">/api/(resource-url)?slice</code><a class="headerlink" href="#get--api-(resource-url)?slice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query the collection for a <em>slice</em> of items.</p>
+<p><em>slice</em> is a <em>slice string</em>. The maximum number of items is limited to a <em>limit</em> of 100, i.e.
+<em>stop</em> is capped at <em>start</em> + <em>limit</em>. Defaults to <code class="docutils literal notranslate"><span class="pre">:</span></code>.</p>
+<p>Example: <code class="docutils literal notranslate"><span class="pre">/api/cats</span></code> (which is equivalent to <code class="docutils literal notranslate"><span class="pre">/api/cats?slice=:</span></code> or
+<code class="docutils literal notranslate"><span class="pre">/api/cats?slice=0:100</span></code>) returns the first hundred items and <code class="docutils literal notranslate"><span class="pre">/api/cats?slice=10:20</span></code> returns
+the items from index 10 up to including 19.</p>
+</dd></dl>
+
+<dl class="post">
+<dt id="post--api-lists-(list-id)-items-(id)-votes">
+<code class="descname">POST </code><code class="descname">/api/lists/(list-id)/items/</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><code class="descname">/votes</code><a class="headerlink" href="#post--api-lists-(list-id)-items-(id)-votes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Vote for the item.</p>
+<p>Permission: Authenticated users.</p>
+</dd></dl>
+
+<dl class="delete">
+<dt id="delete--api-lists-(list-id)-items-(id)-votes-user">
+<code class="descname">DELETE </code><code class="descname">/api/lists/(list-id)/items/</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><code class="descname">/votes/user</code><a class="headerlink" href="#delete--api-lists-(list-id)-items-(id)-votes-user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unvote the item, i.e. annul a previous vote.</p>
+<p>Permission: Authenticated users.</p>
+</dd></dl>
+
+</div>
 </div>
 </div>
 

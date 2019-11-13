@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>3. Python API &#8212; Open Listling 0.20.0 documentation</title>
+    <title>3. Python API &#8212; Open Listling 0.21.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -180,6 +180,37 @@ attributes of <code class="xref py py-class docutils literal notranslate"><span 
 <dt id="listling.Item">
 <em class="property">class </em><code class="descclassname">listling.</code><code class="descname">Item</code><span class="sig-paren">(</span><em>*</em>, <em>id</em>, <em>app</em>, <em>authors</em>, <em>trashed</em>, <em>text</em>, <em>resource</em>, <em>list_id</em>, <em>title</em>, <em>location=None</em>, <em>checked</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#item"><span class="std std-ref">Item</span></a>.</p>
+<dl class="class">
+<dt id="listling.Item.Votes">
+<em class="property">class </em><code class="descname">Votes</code><span class="sig-paren">(</span><em>item</em>, <em>*</em>, <em>app</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Votes" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#itemvotes"><span class="std std-ref">Votes</span></a>.</p>
+<dl class="method">
+<dt id="listling.Item.Votes.vote">
+<code class="descname">vote</code><span class="sig-paren">(</span><em>*</em>, <em>user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Votes.vote" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#post--api-lists-(list-id)-items-(id)-votes" title="POST /api/lists/(list-id)/items/(id)/votes"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/lists/(list-id)/items/(id)/votes</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="listling.Item.Votes.unvote">
+<code class="descname">unvote</code><span class="sig-paren">(</span><em>*</em>, <em>user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Votes.unvote" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#delete--api-lists-(list-id)-items-(id)-votes-user" title="DELETE /api/lists/(list-id)/items/(id)/votes/user"><code class="xref http http-delete docutils literal notranslate"><span class="pre">DELETE</span> <span class="pre">/api/lists/(list-id)/items/(id)/votes/user</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="listling.Item.Votes.has_user_voted">
+<code class="descname">has_user_voted</code><span class="sig-paren">(</span><em>user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Votes.has_user_voted" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#itemvotes"><span class="std std-ref">Votes</span></a> <em>user_voted</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="listling.Item.Votes.json">
+<code class="descname">json</code><span class="sig-paren">(</span><em>restricted=False</em>, <em>include=False</em>, <em>*</em>, <em>slc=None</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Votes.json" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <code class="xref py py-meth docutils literal notranslate"><span class="pre">JSONifiable.json()</span></code>.</p>
+<p><em>slc</em> is a slice of items to include, if any.</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="method">
 <dt id="listling.Item.delete">
 <code class="descname">delete</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.delete" title="Permalink to this definition">¶</a></dt>
