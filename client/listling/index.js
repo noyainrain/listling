@@ -424,6 +424,7 @@ listling.ItemElement = class extends HTMLLIElement {
             votes: null,
             votesComplete: false,
             votesMeta: null,
+            expanded: false,
             editMode: true,
             isCheckDisabled:
                 (ctx, trashed, mode) => trashed || !this._data.may(ctx, "item-modify", mode),
@@ -515,23 +516,15 @@ listling.ItemElement = class extends HTMLLIElement {
                 }
             },
 
-            check: async() => {
+            checkUncheck: async() => {
+                const op = this._data.item.checked ? "uncheck" : "check";
                 try {
                     const item = await ui.call(
-                        "POST", `/api/lists/${ui.page.list.id}/items/${this._data.item.id}/check`
+                        "POST", `/api/lists/${this._data.lst.id}/items/${this._data.item.id}/${op}`
                     );
-                    ui.dispatchEvent(new CustomEvent("item-check", {detail: {item}}));
-                } catch (e) {
-                    ui.handleCallError(e);
-                }
-            },
-
-            uncheck: async() => {
-                try {
-                    const item = await ui.call(
-                        "POST", `/api/lists/${ui.page.list.id}/items/${this._data.item.id}/uncheck`
+                    setTimeout(
+                        () => ui.dispatchEvent(new CustomEvent(`item-${op}`, {detail: {item}})), 0
                     );
-                    ui.dispatchEvent(new CustomEvent("item-uncheck", {detail: {item}}));
                 } catch (e) {
                     ui.handleCallError(e);
                 }
@@ -608,6 +601,26 @@ listling.ItemElement = class extends HTMLLIElement {
         this.shortcutContext.add("Alt+ArrowDown", move.bind(null, "down"));
 
         this._form = this.querySelector("form");
+
+        // Expand / collapse item
+        this.addEventListener("click", event => {
+            if (
+                !this._data.expanded &&
+                !micro.findAncestor(event.target, elem => elem.tabIndex !== -1, this)
+            ) {
+                this._data.expanded = true;
+            }
+        });
+        this.addEventListener("keydown", event => {
+            if (event.target === this && event.key === "Enter") {
+                this.click();
+            }
+        });
+        this.addEventListener("focusout", event => {
+            if (this._data.expanded && !this.contains(event.relatedTarget)) {
+                this._data.expanded = false;
+            }
+        });
     }
 
     attachedCallback() {
@@ -621,6 +634,7 @@ listling.ItemElement = class extends HTMLLIElement {
         this._data.votes.events.addEventListener("fetch", () => {
             this._data.votesComplete = this._data.votes.complete;
         });
+        this._data.votesComplete = false;
         this._data.votesMeta = this._data.item.votes;
 
         this._onVote = event => {

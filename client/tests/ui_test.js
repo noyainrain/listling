@@ -15,7 +15,7 @@
  */
 
 /* eslint-env mocha, node */
-/* eslint-disable no-invalid-this, prefer-arrow-callback */
+/* eslint-disable no-invalid-this, no-unused-expressions, prefer-arrow-callback */
 
 "use strict";
 
@@ -29,6 +29,16 @@ const {getWithServiceWorker, startBrowser, untilElementTextLocated} =
     require("@noyainrain/micro/test");
 
 const URL = "http://localhost:8081";
+
+const {WebElementCondition} = require("selenium-webdriver");
+
+/** Create a condition that will wait for the attribute with *attributeName* to match *regex*. */
+function untilElementAttributeMatches(element, attributeName, regex) {
+    return new WebElementCondition("until element attribute matches", async () => {
+        const value = await element.getAttribute(attributeName);
+        return regex.test(value) ? element : null;
+    });
+}
 
 describe("UI", function() {
     let server;
@@ -157,16 +167,17 @@ describe("UI", function() {
                            timeout);
 
         // Uncheck item
-        const checkSelector = {css: ".listling-list-items > li:first-child .listling-item-check"};
-        const uncheckSelector = {
-            css: ".listling-list-items > li:first-child .listling-item-uncheck"
-        };
-        await browser.findElement(uncheckSelector).click();
-        let checkButton = await browser.wait(until.elementLocated(checkSelector), timeout);
+        const checkIcon = await browser.findElement({css: ".listling-item-check i"});
+        await checkIcon.click();
+        await browser.wait(
+            untilElementAttributeMatches(checkIcon, "className", /fa-square/u), timeout
+        );
 
         // Check item
-        await checkButton.click();
-        await browser.wait(until.elementLocated(uncheckSelector), timeout);
+        await checkIcon.click();
+        await browser.wait(
+            untilElementAttributeMatches(checkIcon, "className", /fa-check-square/u), timeout
+        );
 
         // Vote for item
         const voteButton = await browser.findElement({css: ".listling-item-vote"});
@@ -177,6 +188,12 @@ describe("UI", function() {
         // Unvote item
         await voteButton.click();
         await browser.wait(until.elementTextIs(votesP, "0"), timeout);
+
+        // View item details
+        await browser.findElement({css: "[is=listling-item]"}).click();
+        const footerVisible =
+            await browser.findElement({css: ".listling-item-footer"}).isDisplayed();
+        expect(footerVisible).to.be.true;
 
         // Play list
         await browser.findElement({css: ".listling-list-play-pause"}).click();
