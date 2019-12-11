@@ -1,5 +1,5 @@
 # Open Listling
-# Copyright (C) 2018 Open Listling contributors
+# Copyright (C) 2019 Open Listling contributors
 #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
 # Affero General Public License as published by the Free Software Foundation, either version 3 of
@@ -32,7 +32,7 @@ class ServerTest(ServerTestCase):
 
     @gen_test
     async def test_availibility(self):
-        lst = self.app.lists.create_example('todo')
+        lst = await self.app.lists.create_example('todo')
         lst.edit(features=['check', 'vote'])
         item = next(iter(lst.items.values()))
         self.app.login()

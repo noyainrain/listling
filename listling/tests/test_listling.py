@@ -1,5 +1,5 @@
 # Open Listling
-# Copyright (C) 2018 Open Listling contributors
+# Copyright (C) 2019 Open Listling contributors
 #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
 # Affero General Public License as published by the Free Software Foundation, either version 3 of
@@ -23,18 +23,25 @@ from tornado.testing import AsyncTestCase, gen_test
 from listling import Listling
 
 SETUP_DB_SCRIPT = """\
+from asyncio import get_event_loop
 from listling import Listling
-app = Listling(redis_url='15')
-app.r.flushdb()
-app.update()
 
-app.login()
-# Compatibility for missing todo use case (deprecated since 0.3.0)
-app.lists.create_example('shopping')
-# Compatibility for title (deprecated since 0.3.0)
-app.lists.create('New list')
-app.login()
-app.lists.create('New list')
+async def main():
+    app = Listling(redis_url='15')
+    app.r.flushdb()
+    app.update()
+
+    app.login()
+    # Compatibility with synchronous execution (deprecated since 0.22.0)
+    try:
+        await app.lists.create_example('todo')
+    except TypeError:
+        pass
+    app.lists.create(v=2)
+    app.login()
+    app.lists.create(v=2)
+
+get_event_loop().run_until_complete(main())
 """
 
 class ListlingTestCase(AsyncTestCase):
@@ -54,7 +61,7 @@ class ListlingTest(ListlingTestCase):
 
     @gen_test
     async def test_lists_create_example(self):
-        lst = await self.app.lists.create_example('shopping', asynchronous=ON)
+        lst = await self.app.lists.create_example('shopping')
         self.assertEqual(lst.title, 'Kitchen shopping list')
         self.assertTrue(lst.items)
         self.assertIn(lst.id, self.app.lists)
@@ -82,23 +89,10 @@ class ListlingUpdateTest(AsyncTestCase):
         self.assertEqual(set(user.lists.values()), set(app.lists[0:2]))
 
     def test_update_db_version_first(self):
-        self.setup_db('0.2.1')
+        self.setup_db('0.13.0')
         app = Listling(redis_url='15')
         app.update()
 
-        # Update to version 2
-        lst = app.lists[0]
-        item = lst.items[0]
-        self.assertFalse(lst.features)
-        self.assertFalse(item.checked)
-        # Update to version 3
-        self.assertIsNotNone(lst.activity)
-        # Update to version 4
-        self.assertIsNone(item.location)
-        # Update to version 5
-        self.assertIsNone(item.resource)
-        # Update to version 6
-        self.assertEqual(lst.mode, 'collaborate')
         # Update to version 7
         user = app.settings.staff[0]
         self.assertEqual(set(user.lists.values()), set(app.lists[0:2]))
@@ -147,67 +141,75 @@ class ListTest(ListlingTestCase):
     @gen_test
     async def test_items_create(self):
         lst = self.app.lists.create(v=2)
-        item = await lst.items.create('Sleep', asynchronous=ON)
+        item = await lst.items.create('Sleep')
         self.assertIn(item.id, lst.items)
 
 class ItemTest(ListlingTestCase):
-    def make_item(self, *, use_case='simple', mode=None):
+    async def make_item(self, *, use_case='simple', mode=None):
         lst = self.app.lists.create(use_case, v=2)
         if mode:
             lst.edit(mode=mode)
-        return lst.items.create('Sleep')
+        return await lst.items.create('Sleep')
 
     @gen_test
     async def test_edit(self):
-        item = self.make_item()
+        item = await self.make_item()
         await item.edit(text='Very important!', asynchronous=ON)
         self.assertEqual(item.text, 'Very important!')
 
-    def test_check(self):
-        item = self.make_item(use_case='todo')
+    @gen_test
+    async def test_check(self):
+        item = await self.make_item(use_case='todo')
         item.check()
         self.assertTrue(item.checked)
 
-    def test_check_feature_disabled(self):
-        item = self.make_item()
+    @gen_test
+    async def test_check_feature_disabled(self):
+        item = await self.make_item()
         with self.assertRaisesRegex(ValueError, 'feature_disabled'):
             item.check()
         self.assertFalse(item.checked)
 
-    def test_check_as_user(self):
-        item = self.make_item(use_case='todo')
+    @gen_test
+    async def test_check_as_user(self):
+        item = await self.make_item(use_case='todo')
         self.app.login()
         item.check()
         self.assertTrue(item.checked)
 
-    def test_check_view_mode_as_user(self):
-        item = self.make_item(use_case='todo', mode='view')
+    @gen_test
+    async def test_check_view_mode_as_user(self):
+        item = await self.make_item(use_case='todo', mode='view')
         self.app.login()
         with self.assertRaises(PermissionError):
             item.check()
 
-    def test_uncheck(self):
-        item = self.make_item(use_case='todo')
+    @gen_test
+    async def test_uncheck(self):
+        item = await self.make_item(use_case='todo')
         item.check()
         item.uncheck()
         self.assertFalse(item.checked)
 
 class ItemVotesTest(ListlingTestCase):
-    def make_item(self):
-        item = self.app.lists.create('poll', v=2).items.create('Mouse')
+    async def make_item(self):
+        lst = self.app.lists.create('poll', v=2)
+        item = await lst.items.create('Mouse')
         user = self.app.login()
         item.votes.vote(user=user)
         return item, user
 
-    def test_vote(self):
-        item, user = self.make_item()
+    @gen_test
+    async def test_vote(self):
+        item, user = await self.make_item()
         item.votes.vote(user=self.user)
         item.votes.vote(user=self.user)
         self.assertEqual(list(item.votes.values()), [self.user, user])
         self.assertTrue(item.votes.has_user_voted(self.user))
 
-    def test_unvote(self):
-        item, user = self.make_item()
+    @gen_test
+    async def test_unvote(self):
+        item, user = await self.make_item()
         item.votes.vote(user=self.user)
         item.votes.unvote(user=self.user)
         self.assertEqual(list(item.votes.values()), [user])

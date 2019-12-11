@@ -1,5 +1,5 @@
 # Open Listling
-# Copyright (C) 2018 Open Listling contributors
+# Copyright (C) 2019 Open Listling contributors
 #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
 # Affero General Public License as published by the Free Software Foundation, either version 3 of
@@ -88,21 +88,15 @@ class _UserListEndpoint(Endpoint):
 
 class _ListsEndpoint(Endpoint):
     def post(self):
-        args = self.check_args({
-            'use_case': (str, 'opt'),
-            'title': (str, 'opt'),
-            'description': (str, None, 'opt'),
-            'v': (int, 'opt')
-        })
-        if args.get('v', 1) == 1 and 'title' not in args:
-            raise micro.ValueError('title_missing')
+        # Compatibility for endpoint version (deprecated since 0.22.0)
+        args = self.check_args({'use_case': (str, 'opt'), 'v': (int, 'opt')})
         lst = self.app.lists.create(**args)
         self.write(lst.json(restricted=True, include=True))
 
 class _ListsCreateExampleEndpoint(Endpoint):
     async def post(self):
         args = self.check_args({'use_case': str})
-        lst = await self.app.lists.create_example(asynchronous=ON, **args)
+        lst = await self.app.lists.create_example(**args)
         self.write(lst.json(restricted=True, include=True))
 
 class _ListEndpoint(Endpoint):
@@ -139,7 +133,7 @@ class _ListItemsEndpoint(Endpoint):
                 args['location'] = Location.parse(args['location'])
             except TypeError:
                 raise micro.ValueError('bad_location_type')
-        item = await lst.items.create(asynchronous=ON, **args)
+        item = await lst.items.create(**args)
         self.write(item.json(restricted=True, include=True))
 
 class _ItemEndpoint(Endpoint):

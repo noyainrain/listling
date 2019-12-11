@@ -1,5 +1,5 @@
 # Open Listling
-# Copyright (C) 2018 Open Listling contributors
+# Copyright (C) 2019 Open Listling contributors
 #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
 # Affero General Public License as published by the Free Software Foundation, either version 3 of
@@ -20,7 +20,7 @@ import micro
 from micro import (Activity, Application, Collection, Editable, Location, Object, Orderable,
                    Trashable, Settings, Event, WithContent, error)
 from micro.jsonredis import JSONRedis, RedisSortedSet
-from micro.util import randstr, run_instant, str_or_none, ON
+from micro.util import randstr, str_or_none
 
 _USE_CASES = {
     'simple': {'title': 'New list', 'features': []},
@@ -121,22 +121,10 @@ class Listling(Application):
     class Lists(Collection):
         """See :ref:`Lists`."""
 
-        def create(self, use_case=None, description=None, title=None, v=1):
+        def create(self, use_case='simple', *, v=2):
             """See :http:post:`/api/lists`."""
-            if v == 1:
-                # create(title, description=None)
-                title = title or use_case
-                if title is None:
-                    raise TypeError()
-                lst = self.create('simple', v=2)
-                lst.edit(title=title, description=description)
-                return lst
-            if v == 2:
-                # create(use_case='simple')
-                use_case = use_case or 'simple'
-            else:
-                raise NotImplementedError()
-
+            # pylint: disable=unused-argument; former feature toggle
+            # Compatibility for endpoint version (deprecated since 0.22.0)
             if not self.app.user:
                 raise PermissionError()
             if use_case not in _USE_CASES:
@@ -155,18 +143,8 @@ class Listling(Application):
                 Event.create('create-list', None, {'lst': lst}, app=self.app))
             return lst
 
-        def create_example(self, use_case, *, asynchronous=None):
-            """See :http:post:`/api/lists/create-example`.
-
-            .. deprecated:: 0.7.0
-
-               Synchronous execution. Await instead (with *asynchronous* :data:`micro.util.ON`).
-            """
-            # Compatibility for synchronous execution (deprecated since 0.7.0)
-            coro = self._create_example(use_case)
-            return coro if asynchronous is ON else run_instant(coro)
-
-        async def _create_example(self, use_case):
+        async def create_example(self, use_case):
+            """See :http:post:`/api/lists/create-example`."""
             if use_case not in _EXAMPLE_DATA:
                 raise micro.ValueError('use_case_unknown')
             data = _EXAMPLE_DATA[use_case]
@@ -180,7 +158,7 @@ class Listling(Application):
                 args = dict(item)
                 checked = args.pop('checked', False)
                 user_voted = args.pop('user_voted', False)
-                item = await lst.items.create(asynchronous=ON, **args)
+                item = await lst.items.create(**args)
                 if checked:
                     item.check()
                 if user_voted:
@@ -203,54 +181,6 @@ class Listling(Application):
         version = int(version)
         r = JSONRedis(self.r.r)
         r.caching = False
-
-        # Deprecated since 0.3.0
-        if version < 2:
-            lists = r.omget(r.lrange('lists', 0, -1))
-            for lst in lists:
-                lst['features'] = []
-                items = r.omget(r.lrange('{}.items'.format(lst['id']), 0, -1))
-                for item in items:
-                    item['checked'] = False
-                r.omset({item['id']: item for item in items})
-            r.omset({lst['id']: lst for lst in lists})
-            r.set('version', 2)
-
-        # Deprecated since 0.5.0
-        if version < 3:
-            lists = r.omget(r.lrange('lists', 0, -1))
-            for lst in lists:
-                lst['activity'] = (
-                    Activity('{}.activity'.format(lst['id']), app=self, subscriber_ids=[]).json())
-            r.omset({lst['id']: lst for lst in lists})
-            r.set('version', 3)
-
-        # Deprecated since 0.6.0
-        if version < 4:
-            items = r.omget([id for list_id in r.lrange('lists', 0, -1)
-                             for id in r.lrange('{}.items'.format(list_id.decode()), 0, -1)])
-            for item in items:
-                item['location'] = None
-            r.omset({item['id']: item for item in items})
-            r.set('version', 4)
-
-        # Deprecated since 0.7.0
-        if version < 5:
-            items = r.omget(
-                [id for list_id in r.lrange('lists', 0, -1)
-                 for id in r.lrange('{}.items'.format(list_id.decode()), 0, -1)])
-            for item in items:
-                item['resource'] = None
-            r.omset({item['id']: item for item in items})
-            r.set('version', 5)
-
-        # Deprecated since 0.11.0
-        if version < 6:
-            lists = r.omget(r.lrange('lists', 0, -1))
-            for lst in lists:
-                lst['mode'] = 'collaborate'
-            r.omset({lst['id']: lst for lst in lists})
-            r.set('version', 6)
 
         # Deprecated since 0.14.0
         if version < 7:
@@ -331,21 +261,8 @@ class List(Object, Editable):
     class Items(Collection, Orderable):
         """See :ref:`Items`."""
 
-        def create(self, title, text=None, *, resource=None, location=None, asynchronous=None):
-            """See :http:post:`/api/lists/(id)/items`.
-
-            .. deprecated:: 0.6.0
-
-               *text* as positional argument. Pass as keyword argument instead.
-
-            .. deprecated:: 0.7.0
-
-               Synchronous execution. Await instead (with *asynchronous* :data:`micro.util.ON`).
-            """
-            coro = self._create(title, text=text, resource=resource, location=location)
-            return coro if asynchronous is ON else run_instant(coro)
-
-        async def _create(self, title, *, text=None, resource=None, location=None):
+        async def create(self, title, *, text=None, resource=None, location=None):
+            """See :http:post:`/api/lists/(id)/items`."""
             # pylint: disable=protected-access; List is a friend
             self.host[0]._check_permission(self.app.user, 'list-modify')
             attrs = await WithContent.process_attrs({'text': text, 'resource': resource},
@@ -459,9 +376,8 @@ class Item(Object, Editable, Trashable, WithContent):
                 **({'user_voted': self.has_user_voted(self.app.user)} if restricted else {})
             }
 
-    def __init__(self, *, id, app, authors, trashed, text, resource, list_id, title, location=None,
+    def __init__(self, *, id, app, authors, trashed, text, resource, list_id, title, location,
                  checked):
-        # Compatibility for Item without location (deprecated since 0.6.0)
         super().__init__(id, app)
         Editable.__init__(self, authors, lambda: self.list.activity)
         Trashable.__init__(self, trashed, lambda: self.list.activity)
