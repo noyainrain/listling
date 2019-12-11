@@ -25,20 +25,10 @@ let {promisify} = require("util");
 let {expect} = require("chai");
 let {until} = require("selenium-webdriver");
 
-const {getWithServiceWorker, startBrowser, untilElementTextLocated} =
+const {getWithServiceWorker, startBrowser, untilElementAttributeMatches, untilElementTextLocated} =
     require("@noyainrain/micro/test");
 
 const URL = "http://localhost:8081";
-
-const {WebElementCondition} = require("selenium-webdriver");
-
-/** Create a condition that will wait for the attribute with *attributeName* to match *regex*. */
-function untilElementAttributeMatches(element, attributeName, regex) {
-    return new WebElementCondition("until element attribute matches", async () => {
-        const value = await element.getAttribute(attributeName);
-        return regex.test(value) ? element : null;
-    });
-}
 
 describe("UI", function() {
     let server;

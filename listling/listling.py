@@ -14,19 +14,20 @@
 
 """Open Listling core."""
 
+import json
 from time import time
 
 import micro
 from micro import (Activity, Application, Collection, Editable, Location, Object, Orderable,
                    Trashable, Settings, Event, WithContent, error)
-from micro.jsonredis import JSONRedis, RedisSortedSet
-from micro.util import randstr, str_or_none
+from micro.jsonredis import JSONRedis, RedisSortedSet, script
+from micro.util import parse_isotime, randstr, str_or_none
 
 _USE_CASES = {
     'simple': {'title': 'New list', 'features': []},
     'todo': {'title': 'New to-do list', 'features': ['check']},
     'poll': {'title': 'New poll', 'features': ['vote'], 'mode': 'view'},
-    'shopping': {'title': 'New shopping list', 'features': []},
+    'shopping': {'title': 'New shopping list', 'features': ['check']},
     'meeting-agenda': {'title': 'New meeting agenda', 'features': []},
     'playlist': {'title': 'New playlist', 'features': ['play']},
     'map': {'title': 'New map', 'features': ['location']}
@@ -137,6 +138,7 @@ class Listling(Application):
                 description=None, features=data['features'], mode=data.get('mode', 'collaborate'),
                 activity=Activity('{}.activity'.format(id), self.app, subscriber_ids=[]))
             self.app.r.oset(lst.id, lst)
+            self.app.r.zadd('{}.users'.format(lst.id), {self.app.user.id.encode(): -time()})
             self.app.r.rpush(self.map_key, lst.id)
             self.app.user.lists.add(lst, user=self.app.user)
             self.app.activity.publish(
@@ -175,7 +177,7 @@ class Listling(Application):
     def do_update(self):
         version = self.r.get('version')
         if not version:
-            self.r.set('version', 7)
+            self.r.set('version', 8)
             return
 
         version = int(version)
@@ -189,6 +191,18 @@ class Listling(Application):
             for lst in lists:
                 r.zadd('{}.lists'.format(lst['authors'][0]), {lst['id']: -now})
             r.set('version', 7)
+
+        # Deprecated since 0.23.0
+        if version < 8:
+            lists = r.omget(r.lrange('lists', 0, -1))
+            for lst in lists:
+                users_key = '{}.users'.format(lst['id'])
+                self.r.zadd(users_key, {lst['authors'][0].encode(): 0})
+                events = r.omget(r.lrange('{}.activity.items'.format(lst['id']), 0, -1))
+                for event in reversed(events):
+                    t = parse_isotime(event['time'], aware=True).timestamp()
+                    self.r.zadd(users_key, {event['user'].encode(): -t})
+            r.set('version', 8)
 
     def create_user(self, data):
         return User(**data)
@@ -239,8 +253,8 @@ class User(micro.User):
                 raise PermissionError()
             return self
 
-    def __init__(self, **data):
-        super().__init__(**data)
+    def __init__(self, *, app, **data):
+        super().__init__(app=app, **data)
         self.lists = User.Lists(self)
 
     def json(self, restricted=False, include=False):
@@ -295,7 +309,29 @@ class List(Object, Editable):
         self.mode = mode
         self.items = List.Items((self, 'items'))
         self.activity = activity
+        self.activity.post = self._on_activity_publish
         self.activity.host = self
+
+    def users(self, name=''):
+        """See :http:get:`/api/lists/(id)/users?name=`."""
+        f = script(self.app.r, """\
+            local key, name = KEYS[1], string.lower(ARGV[1])
+            local users = redis.call("mget", unpack(redis.call("zrange", key, 0, -1)))
+            local results = {}
+            for _, user in ipairs(users) do
+                if string.find(string.lower(cjson.decode(user)["name"]), name, 1, true) then
+                    table.insert(results, user)
+                    if #results == 10 then
+                        break
+                    end
+                end
+            end
+            return results
+        """)
+        # Note that returned users may be duplicates because we parse them directly, skipping the
+        # JSONRedis cache
+        users = f(['{}.users'.format(self.id)], [name])
+        return [User(app=self.app, **json.loads(user.decode())) for user in users]
 
     def do_edit(self, **attrs):
         self._check_permission(self.app.user, 'list-modify')
@@ -335,6 +371,9 @@ class List(Object, Editable):
                 user == self.authors[0] or
                 user in self.app.settings.staff)):
             raise PermissionError()
+
+    def _on_activity_publish(self, event):
+        self.app.r.zadd('{}.users'.format(self.id), {event.user.id.encode(): -time()})
 
 class Item(Object, Editable, Trashable, WithContent):
     """See :ref:`Item`."""

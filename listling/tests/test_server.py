@@ -50,6 +50,7 @@ class ServerTest(ServerTestCase):
         await self.request('/api/lists/{}'.format(lst.id))
         await self.request('/api/lists/{}'.format(lst.id), method='POST',
                            body='{"description": "What has to be done!"}')
+        await self.request('/api/lists/{}/users'.format(lst.id))
         await self.request('/api/lists/{}/items'.format(lst.id))
         await self.request('/api/lists/{}/items'.format(lst.id), method='POST',
                            body='{"title": "Sleep"}')

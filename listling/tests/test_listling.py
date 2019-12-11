@@ -37,9 +37,15 @@ async def main():
         await app.lists.create_example('todo')
     except TypeError:
         pass
-    app.lists.create(v=2)
+    lst = app.lists.create(v=2)
     app.login()
     app.lists.create(v=2)
+    # Compatibility with synchronous execution (deprecated since 0.22.0)
+    try:
+        await lst.items.create('Sleep')
+    except TypeError:
+        pass
+    app.login()
 
 get_event_loop().run_until_complete(main())
 """
@@ -81,12 +87,12 @@ class ListlingUpdateTest(AsyncTestCase):
         self.assertEqual(app.settings.title, 'My Open Listling')
 
     def test_update_db_version_previous(self):
-        self.setup_db('0.13.0')
+        self.setup_db('0.22.0')
         app = Listling(redis_url='15')
         app.update()
 
-        user = app.settings.staff[0]
-        self.assertEqual(set(user.lists.values()), set(app.lists[0:2]))
+        self.assertEqual([user.id for user in app.lists[1].users()],
+                         [user.id for user in reversed(app.users[0:2])])
 
     def test_update_db_version_first(self):
         self.setup_db('0.13.0')
@@ -96,6 +102,9 @@ class ListlingUpdateTest(AsyncTestCase):
         # Update to version 7
         user = app.settings.staff[0]
         self.assertEqual(set(user.lists.values()), set(app.lists[0:2]))
+        # Update to version 8
+        self.assertEqual([user.id for user in app.lists[1].users()],
+                         [user.id for user in reversed(app.users[0:2])])
 
 class UserListsTest(ListlingTestCase):
     def test_add(self):
@@ -137,6 +146,18 @@ class ListTest(ListlingTestCase):
         self.app.login()
         with self.assertRaises(PermissionError):
             lst.edit(description='What has to be done!')
+
+    @gen_test
+    async def test_query_users_name(self):
+        lst = self.app.lists.create()
+        happy = self.app.login()
+        happy.edit(name='Happy')
+        await lst.items.create('Sleep')
+        grumpy = self.app.login()
+        grumpy.edit(name='Grumpy')
+        await lst.items.create('Feast')
+        users = lst.users('U')
+        self.assertEqual([user.id for user in users], [grumpy.id, self.user.id])
 
     @gen_test
     async def test_items_create(self):

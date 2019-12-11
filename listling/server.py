@@ -40,6 +40,7 @@ def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='',
         (r'/api/lists$', _ListsEndpoint),
         (r'/api/lists/create-example$', _ListsCreateExampleEndpoint),
         (r'/api/lists/([^/]+)$', _ListEndpoint),
+        (r'/api/lists/([^/]+)/users$', _ListUsersEndpoint),
         (r'/api/lists/([^/]+)/items$', _ListItemsEndpoint),
         *make_orderable_endpoints(r'/api/lists/([^/]+)/items', lambda id: app.lists[id].items),
         make_activity_endpoint(r'/api/lists/([^/]+)/activity',
@@ -114,6 +115,13 @@ class _ListEndpoint(Endpoint):
         })
         lst.edit(**args)
         self.write(lst.json(restricted=True, include=True))
+
+class _ListUsersEndpoint(Endpoint):
+    def get(self, id):
+        lst = self.app.lists[id]
+        name = self.get_query_argument('name', '')
+        users = lst.users(name)
+        self.write({'items': [user.json(restricted=True, include=True) for user in users]})
 
 class _ListItemsEndpoint(Endpoint):
     def get(self, id):

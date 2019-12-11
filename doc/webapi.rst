@@ -148,6 +148,12 @@ List
 
 .. include:: micro/editable-endpoints.inc
 
+.. http:get:: /api/lists/(id)/users?name=
+
+   Query users who interacted with the list and (partially) match *name*.
+
+   A maximum of 10 items is returned.
+
 .. describe:: item-votes-vote
 
    Published when an item has been voted for.
