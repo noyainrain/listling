@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>2. Web API &#8212; Open Listling 0.21.1 documentation</title>
+    <title>2. Web API &#8212; Open Listling 0.22.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -534,14 +534,13 @@ registered as staff member.</p>
 <dl class="post">
 <dt id="post--api-lists">
 <code class="descname">POST </code><code class="descname">/api/lists</code><a class="headerlink" href="#post--api-lists" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="docutils literal notranslate"><span class="pre">{&quot;use_case&quot;,</span> <span class="pre">&quot;v&quot;}</span></code></p>
+<dd><p><code class="docutils literal notranslate"><span class="pre">{&quot;use_case&quot;:</span> <span class="pre">&quot;simple&quot;,</span> <span class="pre">&quot;v&quot;:</span> <span class="pre">2}</span></code></p>
 <p>Create a <a class="reference internal" href="#list"><span class="std std-ref">List</span></a> for the given <em>use_case</em> and return it.</p>
 <p>Available <em>use_case</em> s are <code class="docutils literal notranslate"><span class="pre">simple</span></code>, <code class="docutils literal notranslate"><span class="pre">todo</span></code>, <code class="docutils literal notranslate"><span class="pre">poll</span></code>, <code class="docutils literal notranslate"><span class="pre">shopping</span></code>, <code class="docutils literal notranslate"><span class="pre">meeting-agenda</span></code>,
-<code class="docutils literal notranslate"><span class="pre">playlist</span></code> and <code class="docutils literal notranslate"><span class="pre">map</span></code>. The endpoint version <em>v</em> must be <code class="docutils literal notranslate"><span class="pre">2</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">playlist</span></code> and <code class="docutils literal notranslate"><span class="pre">map</span></code>.</p>
 <p>Permission: Authenticated users.</p>
 <div class="deprecated">
-<p><span class="versionmodified">Deprecated since version 0.3.0: </span>The signature <code class="docutils literal notranslate"><span class="pre">{&quot;title&quot;,</span> <span class="pre">&quot;description&quot;:</span> <span class="pre">null,</span> <span class="pre">&quot;v&quot;:</span> <span class="pre">1}</span></code>. Instead, set <em>use_case</em> to
-<code class="docutils literal notranslate"><span class="pre">simple</span></code> and edit the new list to set <em>title</em> and <em>description</em>.</p>
+<p><span class="versionmodified">Deprecated since version 0.22.0: </span>Endpoint version <em>v</em>.</p>
 </div>
 </dd></dl>
 
@@ -1222,7 +1221,7 @@ the items from index 10 up to including 19.</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2018 Open Listling contributors.
+      &copy;2019 Open Listling contributors.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>

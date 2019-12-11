@@ -19,19 +19,18 @@ Lists
 
 .. http:post:: /api/lists
 
-   ``{"use_case", "v"}``
+   ``{"use_case": "simple", "v": 2}``
 
    Create a :ref:`List` for the given *use_case* and return it.
 
    Available *use_case* s are ``simple``, ``todo``, ``poll``, ``shopping``, ``meeting-agenda``,
-   ``playlist`` and ``map``. The endpoint version *v* must be ``2``.
+   ``playlist`` and ``map``.
 
    Permission: Authenticated users.
 
-   .. deprecated:: 0.3.0
+   .. deprecated:: 0.22.0
 
-      The signature ``{"title", "description": null, "v": 1}``. Instead, set *use_case* to
-      ``simple`` and edit the new list to set *title* and *description*.
+      Endpoint version *v*.
 
 .. http:post:: /api/lists/create-example
 
