@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>3. Python API &#8212; Open Listling 0.22.0 documentation</title>
+    <title>3. Python API &#8212; Open Listling 0.23.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -91,7 +91,7 @@ storing the object. By default, a standard <a class="reference internal" href="#
 
 <dl class="class">
 <dt id="listling.User">
-<em class="property">class </em><code class="descclassname">listling.</code><code class="descname">User</code><span class="sig-paren">(</span><em>**data</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.User" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">listling.</code><code class="descname">User</code><span class="sig-paren">(</span><em>*</em>, <em>app</em>, <em>**data</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.User" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#user"><span class="std std-ref">User</span></a>.</p>
 <dl class="class">
 <dt id="listling.User.Lists">
@@ -146,6 +146,12 @@ storing the object. By default, a standard <a class="reference internal" href="#
 <dd><p>See <a class="reference internal" href="webapi.html#post--api-lists-(id)-items" title="POST /api/lists/(id)/items"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/lists/(id)/items</span></code></a>.</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="method">
+<dt id="listling.List.users">
+<code class="descname">users</code><span class="sig-paren">(</span><em>name=''</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List.users" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#get--api-lists-(id)-users?name=" title="GET /api/lists/(id)/users?name="><code class="xref http http-get docutils literal notranslate"><span class="pre">GET</span> <span class="pre">/api/lists/(id)/users?name=</span></code></a>.</p>
 </dd></dl>
 
 <dl class="method">

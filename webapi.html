@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>2. Web API &#8212; Open Listling 0.22.0 documentation</title>
+    <title>2. Web API &#8212; Open Listling 0.23.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -938,6 +938,13 @@ the list. In <code class="docutils literal notranslate"><span class="pre">view</
 <p>A <em>trashed</em> (deleted) object cannot be edited. In this case a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a>
 (<cite>object_trashed</cite>) is returned.</p>
 <p>Permission: Authenticated users.</p>
+</dd></dl>
+
+<dl class="get">
+<dt id="get--api-lists-(id)-users?name=">
+<code class="descname">GET </code><code class="descname">/api/lists/</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><code class="descname">/users?name=</code><a class="headerlink" href="#get--api-lists-(id)-users?name=" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query users who interacted with the list and (partially) match <em>name</em>.</p>
+<p>A maximum of 10 items is returned.</p>
 </dd></dl>
 
 <dl class="describe">
