@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>3. Python API &#8212; Open Listling 0.23.0 documentation</title>
+    <title>3. Python API &#8212; Open Listling 0.24.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -47,7 +47,7 @@
 <dl class="class">
 <dt id="listling.Listling.Lists">
 <em class="property">class </em><code class="descname">Lists</code><span class="sig-paren">(</span><em>*args, check: Callable[[Union[int, slice, str]], None] = None, expect: Callable[[object], O] = &lt;function expect_type.&lt;locals&gt;._f&gt;, **kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling.Lists" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#lists"><span class="std std-ref">Lists</span></a>.</p>
+<dd><p>See <a class="reference internal" href="webapi.html#id26"><span class="std std-ref">Lists</span></a>.</p>
 <dl class="method">
 <dt id="listling.Listling.Lists.create">
 <code class="descname">create</code><span class="sig-paren">(</span><em>use_case='simple'</em>, <em>*</em>, <em>v=2</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling.Lists.create" title="Permalink to this definition">¶</a></dt>
@@ -177,6 +177,24 @@ attributes of <code class="xref py py-class docutils literal notranslate"><span 
 <dt id="listling.Item">
 <em class="property">class </em><code class="descclassname">listling.</code><code class="descname">Item</code><span class="sig-paren">(</span><em>*</em>, <em>id</em>, <em>app</em>, <em>authors</em>, <em>trashed</em>, <em>text</em>, <em>resource</em>, <em>list_id</em>, <em>title</em>, <em>location</em>, <em>checked</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#item"><span class="std std-ref">Item</span></a>.</p>
+<dl class="class">
+<dt id="listling.Item.Assignees">
+<em class="property">class </em><code class="descname">Assignees</code><span class="sig-paren">(</span><em>item</em>, <em>*</em>, <em>app</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Assignees" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#itemassignees"><span class="std std-ref">Assignees</span></a>.</p>
+<dl class="method">
+<dt id="listling.Item.Assignees.assign">
+<code class="descname">assign</code><span class="sig-paren">(</span><em>assignee</em>, <em>*</em>, <em>user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Assignees.assign" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#post--api-lists-(list-id)-items-(id)-assignees" title="POST /api/lists/(list-id)/items/(id)/assignees"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/lists/(list-id)/items/(id)/assignees</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="listling.Item.Assignees.unassign">
+<code class="descname">unassign</code><span class="sig-paren">(</span><em>assignee</em>, <em>*</em>, <em>user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Assignees.unassign" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#delete--api-lists-(list-id)-items-(id)-assignees-(assignee-id)" title="DELETE /api/lists/(list-id)/items/(id)/assignees/(assignee-id)"><code class="xref http http-delete docutils literal notranslate"><span class="pre">DELETE</span> <span class="pre">/api/lists/(list-id)/items/(id)/assignees/(assignee-id)</span></code></a>.</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="class">
 <dt id="listling.Item.Votes">
 <em class="property">class </em><code class="descname">Votes</code><span class="sig-paren">(</span><em>item</em>, <em>*</em>, <em>app</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Votes" title="Permalink to this definition">¶</a></dt>
