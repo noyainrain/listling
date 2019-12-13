@@ -169,6 +169,23 @@ describe("UI", function() {
             untilElementAttributeMatches(checkIcon, "className", /fa-check-square/u), timeout
         );
 
+        // Assign to item
+        await browser.findElement({css: ".listling-item-menu"}).click();
+        await browser.findElement({css: ".listling-item-assign"}).click();
+        await browser.findElement({css: "[name=assignee] + micro-options li"}).click();
+        await browser.wait(
+            untilElementTextLocated({css: ".listling-assign-assignees p"}, "Guest"),
+            timeout
+        );
+
+        // Unassign from item
+        await browser.findElement({css: ".listling-assign-remove"}).click();
+        const ul = await browser.findElement({css: ".listling-assign-assignees"});
+        await browser.wait(until.elementTextIs(ul, ""), timeout);
+        await browser.findElement({css: ".listling-assign-close"}).click();
+        // Work around Edge not firing blur event when a button gets disabled
+        await browser.findElement({css: ".listling-item-menu"}).click();
+
         // Vote for item
         const voteButton = await browser.findElement({css: ".listling-item-vote"});
         const votesP = await browser.findElement({css: ".listling-item-votes > p"});

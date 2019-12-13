@@ -84,6 +84,123 @@ listling.components.list.ShareDialog = class extends HTMLElement {
 };
 document.registerElement("listling-share-dialog", listling.components.list.ShareDialog);
 
+/** Assign dialog. */
+listling.components.list.AssignDialog = class extends HTMLElement {
+    createdCallback() {
+        this.appendChild(
+            document.importNode(ui.querySelector(".listling-assign-dialog-template").content, true)
+        );
+        this._data = new micro.bind.Watchable({
+            itemElement: null,
+            userToText: user => user.name,
+
+            queryUsers: async query => {
+                const result = await ui.call(
+                    "GET",
+                    `/api/lists/${this._data.itemElement.list.id}/users?name=${encodeURIComponent(query)}`
+                );
+                let users = result.items;
+                if (ui.user.name.toLowerCase().includes(query.toLowerCase())) {
+                    users = [ui.user, ...users.filter(user => user.id !== ui.user.id)];
+                }
+                const assigneeIDs = new Set(
+                    this._data.itemElement.assignees.map(assignee => assignee.id)
+                );
+                return users.filter(user => !assigneeIDs.has(user.id));
+            },
+
+            add: async () => {
+                const assignee = this._input.valueAsObject;
+                try {
+                    await ui.call(
+                        "POST",
+                        `/api/lists/${this._data.itemElement.list.id}/items/${this._data.itemElement.item.id}/assignees`,
+                        {assignee_id: assignee.id}
+                    );
+                } catch (e) {
+                    if (
+                        e instanceof micro.APIError && e.error.__type__ === "ValueError" &&
+                        e.message.includes("assignees")
+                    ) {
+                        // Continue as usual to update the UI
+                    } else {
+                        throw e;
+                    }
+                }
+                ui.dispatchEvent(
+                    new CustomEvent(
+                        "item-assignees-assign",
+                        {detail: {item: this._data.itemElement.item, assignee}}
+                    )
+                );
+                this._input.value = "";
+                this._input.valueAsObject = null;
+                this.querySelector("micro-options").activate();
+            },
+
+            remove: async assignee => {
+                try {
+                    await ui.call(
+                        "DELETE",
+                        `/api/lists/${this._data.itemElement.list.id}/items/${this._data.itemElement.item.id}/assignees/${assignee.id}`
+                    );
+                } catch (e) {
+                    if (e instanceof micro.APIError && e.error.__type__ === "NotFoundError") {
+                        // Continue as usual to update the UI
+                    } else {
+                        throw e;
+                    }
+                }
+                ui.dispatchEvent(
+                    new CustomEvent(
+                        "item-assignees-unassign",
+                        {detail: {item: this._data.itemElement.item, assignee}}
+                    )
+                );
+            },
+
+            close: () => this.remove(),
+
+            onChange: () => {
+                if (this._input.valueAsObject) {
+                    this._input.setCustomValidity("");
+                } else {
+                    this._input.setCustomValidity(
+                        "The user is unknown. Share the list with others to assign them here."
+                    );
+                }
+            },
+
+            onSelect: () => {
+                this._input.dispatchEvent(new Event("change", {bubbles: true}));
+                this.querySelector(".listling-assign-add").click();
+            }
+        });
+        micro.bind.bind(this.children, this._data);
+
+        this._input = this.querySelector("input");
+        this.querySelector("div").shortcutContext.add("A", () => this._input.focus());
+    }
+
+    attachedCallback() {
+        ui.classList.add("listling-ui-dialog");
+        setTimeout(() => this._input.focus(), 0);
+    }
+
+    detachedCallback() {
+        ui.classList.remove("listling-ui-dialog");
+    }
+
+    get itemElement() {
+        return this._data.itemElement;
+    }
+
+    set itemElement(value) {
+        this._data.itemElement = value;
+    }
+};
+document.registerElement("listling-assign-dialog", listling.components.list.AssignDialog);
+
 /** Presentation controller. */
 listling.components.list.Presentation = class {
     constructor(page) {

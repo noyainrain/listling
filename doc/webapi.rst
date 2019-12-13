@@ -12,40 +12,6 @@ Listling application.
 
 .. include:: micro/application-endpoints.inc
 
-.. _Lists:
-
-Lists
-^^^^^
-
-.. http:post:: /api/lists
-
-   ``{"use_case": "simple", "v": 2}``
-
-   Create a :ref:`List` for the given *use_case* and return it.
-
-   Available *use_case* s are ``simple``, ``todo``, ``poll``, ``shopping``, ``meeting-agenda``,
-   ``playlist`` and ``map``.
-
-   Permission: Authenticated users.
-
-   .. deprecated:: 0.22.0
-
-      Endpoint version *v*.
-
-.. http:post:: /api/lists/create-example
-
-   ``{"use_case"}``
-
-   Create an example :ref:`List` for the given *use_case* and return it.
-
-   For available *use_cases* see :http:post:`/api/lists`, excluding ``simple``.
-
-   Permission: Authenticated users.
-
-.. http:get:: /api/lists/(id)
-
-   Get the :ref:`List` given by *id*.
-
 .. _User:
 
 User
@@ -104,6 +70,40 @@ App settings.
 
 .. include:: micro/settings-endpoints.inc
 
+.. _Lists:
+
+Lists
+-----
+
+.. http:post:: /api/lists
+
+   ``{"use_case": "simple", "v": 2}``
+
+   Create a :ref:`List` for the given *use_case* and return it.
+
+   Available *use_case* s are ``simple``, ``todo``, ``poll``, ``shopping``, ``meeting-agenda``,
+   ``playlist`` and ``map``.
+
+   Permission: Authenticated users.
+
+   .. deprecated:: 0.22.0
+
+      Endpoint version *v*.
+
+.. http:post:: /api/lists/create-example
+
+   ``{"use_case"}``
+
+   Create an example :ref:`List` for the given *use_case* and return it.
+
+   For available *use_cases* see :http:post:`/api/lists`, excluding ``simple``.
+
+   Permission: Authenticated users.
+
+.. http:get:: /api/lists/(id)
+
+   Get the :ref:`List` given by *id*.
+
 .. _List:
 
 List
@@ -140,7 +140,7 @@ List
    List owners always have full permissions.
 
    .. [1] Edit the list and create and move items
-   .. [2] Edit, trash, restore, check and uncheck items
+   .. [2] Edit, trash, restore, check, uncheck, assign to and unassign from items
 
 .. describe:: items
 
@@ -148,11 +148,15 @@ List
 
 .. include:: micro/editable-endpoints.inc
 
-.. http:get:: /api/lists/(id)/users?name=
+Events:
 
-   Query users who interacted with the list and (partially) match *name*.
+.. describe:: item-assignees-assign
 
-   A maximum of 10 items is returned.
+   Published when a :ref:`User` *assignee* has been assigned to an item.
+
+.. describe:: item-assignees-unassign
+
+   Published when a :ref:`User` *assignee* has been unassigned from an item.
 
 .. describe:: item-votes-vote
 
@@ -162,10 +166,21 @@ List
 
    Published when an item has been unvoted.
 
+.. _ListUsers:
+
+Users
+^^^^^
+
+.. http:get:: /api/lists/(id)/users?name=
+
+   Query users who interacted with the list and (partially) match *name*.
+
+   A maximum of 10 items is returned.
+
 .. _Items:
 
 Items
-^^^^^
+-----
 
 .. http:get:: /api/lists/(id)/items
 
@@ -214,6 +229,10 @@ Item
 
    Indicates if the item is marked as complete.
 
+.. describe:: assignees
+
+   Item :ref:`ItemAssignees`.
+
 .. describe:: votes
 
    :ref:`ItemVotes` for the item.
@@ -239,6 +258,34 @@ Item
    returned.
 
    Permission: Authenticated users.
+
+.. _ItemAssignees:
+
+Assignees
+^^^^^^^^^
+
+:ref:`Collection` of :ref:`User` s assigned to the item.
+
+.. include:: micro/collection-endpoints.inc
+
+.. http:post:: /api/lists/(list-id)/items/(id)/assignees
+
+   ``{assignee_id}``
+
+   Assign the :ref:`User` with *assignee_id* to the item.
+
+   If :ref:`List` *features* ``assign`` is disabled, if there is no user with
+   *assignee_id* or if the user is already assigned, a :ref:`ValueError` is returned.
+
+   Permission: See :ref:`List` *mode*.
+
+.. http:delete:: /api/lists/(list-id)/items/(id)/assignees/(assignee-id)
+
+   Unassign the :ref:`User` with *assignee-id* from the item.
+
+   If :ref:`List` *features* ``assign`` is disabled, a :ref:`ValueError` is returned.
+
+   Permission: See :ref:`List` *mode*. Authenticated users may unassign themselves.
 
 .. _ItemVotes:
 

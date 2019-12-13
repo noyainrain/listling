@@ -17,6 +17,7 @@
 from subprocess import check_call
 from tempfile import mkdtemp
 
+import micro
 from micro.util import ON
 from tornado.testing import AsyncTestCase, gen_test
 
@@ -144,7 +145,7 @@ class ListTest(ListlingTestCase):
         lst = self.app.lists.create(v=2)
         lst.edit(mode='view')
         self.app.login()
-        with self.assertRaises(PermissionError):
+        with self.assertRaises(micro.PermissionError):
             lst.edit(description='What has to be done!')
 
     @gen_test
@@ -202,7 +203,7 @@ class ItemTest(ListlingTestCase):
     async def test_check_view_mode_as_user(self):
         item = await self.make_item(use_case='todo', mode='view')
         self.app.login()
-        with self.assertRaises(PermissionError):
+        with self.assertRaises(micro.PermissionError):
             item.check()
 
     @gen_test
@@ -211,6 +212,24 @@ class ItemTest(ListlingTestCase):
         item.check()
         item.uncheck()
         self.assertFalse(item.checked)
+
+class ItemAssigneesTest(ListlingTestCase):
+    @gen_test
+    async def test_assign(self):
+        item = await self.app.lists.create('todo').items.create('Sleep')
+        user = self.app.login()
+        item.assignees.assign(self.user, user=self.user)
+        item.assignees.assign(user, user=self.user)
+        self.assertEqual(list(item.assignees.values()), [user, self.user])
+
+    @gen_test
+    async def test_unassign(self):
+        item = await self.app.lists.create('todo').items.create('Sleep')
+        user = self.app.login()
+        item.assignees.assign(self.user, user=self.user)
+        item.assignees.assign(user, user=self.user)
+        item.assignees.unassign(user, user=self.user)
+        self.assertEqual(list(item.assignees.values()), [self.user])
 
 class ItemVotesTest(ListlingTestCase):
     async def make_item(self):

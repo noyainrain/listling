@@ -22,10 +22,10 @@ from http import HTTPStatus
 import json
 
 import micro
-from micro import Location
+from micro import Location, error
 from micro.server import (Endpoint, CollectionEndpoint, Server, UI, make_activity_endpoint,
                           make_orderable_endpoints, make_trashable_endpoints)
-from micro.util import ON
+from micro.util import Expect, ON
 
 from . import Listling
 
@@ -50,6 +50,8 @@ def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='',
                                   lambda list_id, id: app.lists[list_id].items[id]),
         (r'/api/lists/([^/]+)/items/([^/]+)/check$', _ItemCheckEndpoint),
         (r'/api/lists/([^/]+)/items/([^/]+)/uncheck$', _ItemUncheckEndpoint),
+        (r'/api/lists/([^/]+)/items/([^/]+)/assignees$', _ItemAssigneesEndpoint),
+        (r'/api/lists/([^/]+)/items/([^/]+)/assignees/([^/]+)$', _ItemAssigneeEndpoint),
         (r'/api/lists/([^/]+)/items/([^/]+)/votes', _ItemVotesEndpoint),
         (r'/api/lists/([^/]+)/items/([^/]+)/votes/user', _ItemVoteEndpoint),
         # UI
@@ -176,6 +178,29 @@ class _ItemUncheckEndpoint(Endpoint):
         item = self.app.lists[lst_id].items[id]
         item.uncheck()
         self.write(item.json(restricted=True, include=True))
+
+class _ItemAssigneesEndpoint(CollectionEndpoint):
+    def initialize(self):
+        super().initialize(
+            get_collection=lambda list_id, id: self.app.lists[list_id].items[id].assignees)
+
+    def post(self, list_id, id):
+        assignees = self.get_collection(list_id, id)
+        try:
+            assignee_id = self.get_arg('assignee_id', Expect.str)
+            assignee = self.app.users[assignee_id]
+        except KeyError:
+            raise error.ValueError('No assignee {}'.format(assignee_id))
+        assignees.assign(assignee, user=self.current_user)
+        self.set_status(HTTPStatus.CREATED)
+        self.write({})
+
+class _ItemAssigneeEndpoint(Endpoint):
+    def delete(self, list_id, id, assignee_id):
+        assignees = self.app.lists[list_id].items[id].assignees
+        assignee = assignees[assignee_id]
+        assignees.unassign(assignee, user=self.current_user)
+        self.write({})
 
 class _ItemVotesEndpoint(CollectionEndpoint):
     def initialize(self):

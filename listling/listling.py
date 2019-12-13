@@ -25,7 +25,7 @@ from micro.util import parse_isotime, randstr, str_or_none
 
 _USE_CASES = {
     'simple': {'title': 'New list', 'features': []},
-    'todo': {'title': 'New to-do list', 'features': ['check']},
+    'todo': {'title': 'New to-do list', 'features': ['check', 'assign']},
     'poll': {'title': 'New poll', 'features': ['vote'], 'mode': 'view'},
     'shopping': {'title': 'New shopping list', 'features': ['check']},
     'meeting-agenda': {'title': 'New meeting agenda', 'features': []},
@@ -39,7 +39,7 @@ _EXAMPLE_DATA = {
         'Things we need to do to complete our project.',
         [
             {'title': 'Do research', 'checked': True},
-            {'title': 'Create draft'},
+            {'title': 'Create draft', 'user_assigned': True},
             {'title': 'Write report', 'text': 'Summary of the results'}
         ]
     ),
@@ -159,10 +159,13 @@ class Listling(Application):
             for item in data[2]:
                 args = dict(item)
                 checked = args.pop('checked', False)
+                user_assigned = args.pop('user_assigned', False)
                 user_voted = args.pop('user_voted', False)
                 item = await lst.items.create(**args)
                 if checked:
                     item.check()
+                if user_assigned:
+                    item.assignees.assign(self.app.user, user=self.app.user)
                 if user_voted:
                     item.votes.vote(user=self.app.user)
             return lst
@@ -337,7 +340,8 @@ class List(Object, Editable):
         self._check_permission(self.app.user, 'list-modify')
         if 'title' in attrs and str_or_none(attrs['title']) is None:
             raise micro.ValueError('title_empty')
-        if 'features' in attrs and not set(attrs['features']) <= {'check', 'vote', 'location', 'play'}:
+        if ('features' in attrs and
+                not set(attrs['features']) <= {'check', 'assign', 'vote', 'location', 'play'}):
             raise micro.ValueError('feature_unknown')
         if 'mode' in attrs and attrs['mode'] not in {'collaborate', 'view'}:
             raise micro.ValueError('Unknown mode')
@@ -370,13 +374,50 @@ class List(Object, Editable):
                 op in permissions['user'] or
                 user == self.authors[0] or
                 user in self.app.settings.staff)):
-            raise PermissionError()
+            raise micro.PermissionError()
 
     def _on_activity_publish(self, event):
         self.app.r.zadd('{}.users'.format(self.id), {event.user.id.encode(): -time()})
 
 class Item(Object, Editable, Trashable, WithContent):
     """See :ref:`Item`."""
+
+    class Assignees(Collection):
+        """See :ref:`ItemAssignees`."""
+
+        def __init__(self, item, *, app):
+            super().__init__(RedisSortedSet('{}.assignees'.format(item.id), app.r), app=app)
+            self.item = item
+
+        def assign(self, assignee, *, user):
+            """See :http:post:`/api/lists/(list-id)/items/(id)/assignees`."""
+            # pylint: disable=protected-access; Item is a friend
+            self.item._check_permission(user, 'list-modify')
+            if 'assign' not in self.item.list.features:
+                raise error.ValueError('Disabled item list features assign')
+            if self.item.trashed:
+                raise error.ValueError('Trashed item')
+            if not self.app.r.zadd(self.ids.key, {assignee.id.encode(): -time()}):
+                raise error.ValueError(
+                    'assignee {} already in assignees of item {}'.format(assignee.id, self.item.id))
+            self.item.list.activity.publish(
+                Event.create('item-assignees-assign', self.item, detail={'assignee': assignee},
+                             app=self.app))
+
+        def unassign(self, assignee, *, user):
+            """See :http:delete:`/api/lists/(list-id)/items/(id)/assignees/(assignee-id)`."""
+            # pylint: disable=protected-access; Item is a friend
+            self.item._check_permission(user, 'list-modify')
+            if 'assign' not in self.item.list.features:
+                raise error.ValueError('Disabled item list features assign')
+            if self.item.trashed:
+                raise error.ValueError('Trashed item')
+            if not self.app.r.zrem(self.ids.key, assignee.id.encode()):
+                raise error.ValueError(
+                    'No assignee {} in assignees of item {}'.format(assignee.id, self.item.id))
+            self.item.list.activity.publish(
+                Event.create('item-assignees-unassign', self.item, detail={'assignee': assignee},
+                             app=self.app))
 
     class Votes(Collection):
         """See :ref:`ItemVotes`."""
@@ -425,6 +466,7 @@ class Item(Object, Editable, Trashable, WithContent):
         self.title = title
         self.location = Location.parse(location) if location else None
         self.checked = checked
+        self.assignees = Item.Assignees(self, app=app)
         self.votes = Item.Votes(self, app=app)
 
     @property
@@ -482,6 +524,11 @@ class Item(Object, Editable, Trashable, WithContent):
             'title': self.title,
             'location': self.location.json() if self.location else None,
             'checked': self.checked,
+            **(
+                {
+                    'assignees':
+                        self.assignees.json(restricted=restricted, include=include, slc=slice(None))
+                } if include else {}),
             **({'votes': self.votes.json(restricted=restricted, include=include)} if include
                else {})
         }
@@ -494,7 +541,7 @@ class Item(Object, Editable, Trashable, WithContent):
                 op in permissions['user'] or
                 user == lst.authors[0] or
                 user in self.app.settings.staff)):
-            raise PermissionError()
+            raise micro.PermissionError()
 
 def _check_feature(user, feature, item):
     if feature not in item.list.features:

@@ -221,7 +221,7 @@
                                 <template>
                                     <button
                                         is="micro-button" type="button" class="action"
-                                        data-run="unsubscribe" data-shortcut="new Shortcut 'U'"
+                                        data-run="unsubscribe" data-shortcut="new Shortcut 'H'"
                                     >
                                         <i class="fa fa-fw fa-bell-slash"></i> Unsubscribe
                                     </button>
@@ -229,7 +229,7 @@
                                 <template>
                                     <button
                                         is="micro-button" type="button" class="action"
-                                        data-run="subscribe" data-shortcut="new Shortcut 'U'"
+                                        data-run="subscribe" data-shortcut="new Shortcut 'H'"
                                     >
                                         <i class="fa fa-fw fa-bell"></i> Subscribe
                                     </button>
@@ -290,6 +290,13 @@
                             <input type="checkbox" name="features" value="check"
                                    data-checked="includes lst.features 'check'" />
                             Check items
+                        </label>
+                        <label>
+                            <input
+                                type="checkbox" name="features" value="assign"
+                                data-checked="includes lst.features 'assign'"
+                            />
+                            Assign to items
                         </label>
                         <label>
                             <input
@@ -577,7 +584,7 @@
 
     <template class="listling-item-template">
         <form
-            data-class-listling-item-has-content="or item.text item.resource item.location"
+            data-class-listling-item-has-content="hasContent item lst assigneesCount"
             data-class-listling-item-votes-user-voted="votesMeta.user_voted"
             data-class-listling-item-expanded="expanded"
         >
@@ -679,6 +686,14 @@
                                     <i class="fa fa-fw fa-pencil-alt"></i> Edit
                                 </button>
                             </li>
+                            <li class="listling-item-assign">
+                                <button
+                                    is="micro-button" type="button" class="action" data-run="assign"
+                                    data-shortcut="new Shortcut 'U'"
+                                >
+                                    <i class="fa fa-fw fa-id-badge"></i> Assign
+                                </button>
+                            </li>
                             <li class="listling-item-trash">
                                 <button
                                     is="micro-button"
@@ -696,6 +711,15 @@
             </header>
 
             <div class="listling-item-content">
+                <p
+                    class="listling-item-assignees listling-item-mode-view"
+                    data-content="list assignees 'assignee'"
+                >
+                    <template>
+                        <span><micro-user data-user="assignee"></micro-user> </span>
+                    </template>
+                </p>
+
                 <dl class="listling-item-meta">
                     <dt class="listling-item-location" title="Location">
                         <i class="fa fa-fw fa-map-marker-alt"></i>
@@ -896,6 +920,11 @@
             margin-bottom: 0;
         }
 
+        listling-list-page:not(.listling-list-feature-assign) .listling-item-assign,
+        [is=listling-item]:not(.listling-item-may-modify) .listling-item-assign {
+            display: none;
+        }
+
         .listling-item-content {
             padding: 0 var(--micro-size-xs);
             border-top: 1px solid var(--micro-color-delimiter);
@@ -915,6 +944,10 @@
         .listling-item-content .micro-panel p,
         .listling-item-content .micro-entity-list > ul {
             margin: 0;
+        }
+
+        listling-list-page:not(.listling-list-feature-assign) .listling-item-assignees {
+            display: none;
         }
 
         .listling-item-resource {

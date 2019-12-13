@@ -70,6 +70,18 @@ listling.service.Service = class extends micro.service.Service {
                 event => renderItemNotification(event, '{user} restored "{item}"'),
             "item-check": event => renderItemNotification(event, '{user} checked "{item}"'),
             "item-uncheck": event => renderItemNotification(event, '{user} unchecked "{item}"'),
+            "item-assignees-assign"(event) {
+                const body = event.user.id === event.detail.assignee.id
+                    ? '{user} assigned themself to "{item}"'
+                    : `{user} assigned ${micro.util.truncate(event.detail.assignee.name)} to "{item}"`;
+                return renderItemNotification(event, body);
+            },
+            "item-assignees-unassign"(event) {
+                const body = event.user.id === event.detail.assignee.id
+                    ? '{user} unassigned themself from "{item}"'
+                    : `{user} unassigned ${micro.util.truncate(event.detail.assignee.name)} from "{item}"`;
+                return renderItemNotification(event, body);
+            },
             "item-votes-vote": event => renderItemNotification(event, '{user} voted for "{item}"'),
             "item-votes-unvote": event => renderItemNotification(event, '{user} unvoted "{item}"')
         });

@@ -33,7 +33,7 @@ class ServerTest(ServerTestCase):
     @gen_test
     async def test_availibility(self):
         lst = await self.app.lists.create_example('todo')
-        lst.edit(features=['check', 'vote'])
+        lst.edit(features=['check', 'assign', 'vote'])
         item = next(iter(lst.items.values()))
         self.app.login()
         shared_lst = self.app.lists.create(v=2)
@@ -61,6 +61,12 @@ class ServerTest(ServerTestCase):
                            body='')
         await self.request('/api/lists/{}/items/{}/uncheck'.format(lst.id, item.id), method='POST',
                            body='')
+        await self.request('/api/lists/{}/items/{}/assignees'.format(lst.id, item.id))
+        await self.request('/api/lists/{}/items/{}/assignees'.format(lst.id, item.id),
+                           method='POST', body=json.dumps({'assignee_id': self.client_user.id}))
+        await self.request(
+            '/api/lists/{}/items/{}/assignees/{}'.format(lst.id, item.id, self.client_user.id),
+            method='DELETE')
         await self.request('/api/lists/{}/items/{}/votes'.format(lst.id, item.id))
         await self.request('/api/lists/{}/items/{}/votes'.format(lst.id, item.id), method='POST',
                            body='')

@@ -272,7 +272,7 @@ listling.ListPage = class extends micro.Page {
             this.classList.toggle("listling-list-has-trashed-items", this._data.trashedItemsCount);
             this.classList.toggle("listling-list-mode-view", !this._data.editMode);
             this.classList.toggle("listling-list-mode-edit", this._data.editMode);
-            for (let feature of ["check", "vote", "location", "play"]) {
+            for (let feature of ["check", "assign", "vote", "location", "play"]) {
                 this.classList.toggle(
                     `listling-list-feature-${feature}`,
                     this._data.lst && this._data.lst.features.includes(feature)
@@ -421,6 +421,8 @@ listling.ItemElement = class extends HTMLLIElement {
             item: null,
             lst: null,
             resourceElem: null,
+            assignees: null,
+            assigneesCount: 0,
             votes: null,
             votesComplete: false,
             votesMeta: null,
@@ -530,6 +532,12 @@ listling.ItemElement = class extends HTMLLIElement {
                 }
             },
 
+            assign: () => {
+                const dialog = document.createElement("listling-assign-dialog");
+                dialog.itemElement = this;
+                ui.notify(dialog);
+            },
+
             voteUnvote: async() => {
                 try {
                     if (this._data.votesMeta.user_voted) {
@@ -557,6 +565,10 @@ listling.ItemElement = class extends HTMLLIElement {
                     this.querySelector(".listling-item-more-votes").trigger();
                 }
             },
+
+            hasContent: (ctx, item, lst, assigneesCount) =>
+                item && (item.text || item.resource || item.location) || lst &&
+                lst.features.includes("assign") && assigneesCount > 0,
 
             may: (ctx, op, mode) => {
                 // eslint-disable-next-line no-underscore-dangle
@@ -628,6 +640,29 @@ listling.ItemElement = class extends HTMLLIElement {
             return;
         }
 
+        this._data.assignees = new micro.bind.Watchable(this._data.item.assignees.items);
+        this._data.assigneesCount = this._data.assignees.length;
+
+        this._onAssign = event => {
+            if (event.detail.item.id === this._data.item.id) {
+                this._data.assignees.unshift(event.detail.assignee);
+                this._data.assigneesCount = this._data.assignees.length;
+            }
+        };
+        ui.addEventListener("item-assignees-assign", this._onAssign);
+        this._onUnassign = event => {
+            if (event.detail.item.id === this._data.item.id) {
+                const i = this._data.assignees.findIndex(
+                    assignee => assignee.id === event.detail.assignee.id
+                );
+                if (i !== -1) {
+                    this._data.assignees.splice(i, 1);
+                    this._data.assigneesCount = this._data.assignees.length;
+                }
+            }
+        };
+        ui.addEventListener("item-assignees-unassign", this._onUnassign);
+
         this._data.votes = new micro.Collection(
             `/api/lists/${this._data.lst.id}/items/${this._data.item.id}/votes`
         );
@@ -658,6 +693,8 @@ listling.ItemElement = class extends HTMLLIElement {
     }
 
     detachedCallback() {
+        ui.removeEventListener("item-assignees-assign", this._onAssign);
+        ui.removeEventListener("item-assignees-unassign", this._onUnassign);
         ui.removeEventListener("item-votes-vote", this._onVote);
         ui.removeEventListener("item-votes-unvote", this._onUnvote);
         if (this._data.playable) {
@@ -696,6 +733,11 @@ listling.ItemElement = class extends HTMLLIElement {
             this._data.playable = new listling.components.list.Playable(this);
             this._data.playable.resourceElement = this._data.resourceElem;
         }
+    }
+
+    /** Item assignees. */
+    get assignees() {
+        return this._data.assignees;
     }
 
     /** :class:`listling.components.list.Playable` extension. */
