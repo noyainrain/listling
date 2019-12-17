@@ -154,6 +154,7 @@ describe("UI", function() {
 
         // Restore item
         await browser.findElement({css: ".listling-list-trash button"}).click();
+        await browser.executeScript(() => scroll(0, document.scrollingElement.scrollHeight));
         await browser.findElement({css: ".listling-list-trash .listling-item-restore"}).click();
         await browser.wait(untilElementTextLocated({css: "[is=listling-item] h1"}, "Research"),
                            timeout);
