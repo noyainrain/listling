@@ -1,6 +1,6 @@
 /*
  * Open Listling
- * Copyright (C) 2018 Open Listling contributors
+ * Copyright (C) 2019 Open Listling contributors
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU Affero General Public License as published by the Free Software Foundation, either version 3
@@ -36,6 +36,7 @@ listling.components.start.createList = async function(useCase) {
 listling.components.start.getUseCases = function() {
     return [
         {id: "todo", title: "To-Do list", icon: "check"},
+        {id: "poll", title: "Poll", icon: "poll"},
         {id: "shopping", title: "Shopping list", icon: "shopping-cart"},
         {id: "meeting-agenda", title: "Meeting agenda", icon: "handshake"},
         {id: "playlist", title: "Playlist", icon: "play"},

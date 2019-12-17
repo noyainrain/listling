@@ -1,6 +1,6 @@
 /*
  * Open Listling
- * Copyright (C) 2018 Open Listling contributors
+ * Copyright (C) 2019 Open Listling contributors
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU Affero General Public License as published by the Free Software Foundation, either version 3
@@ -69,7 +69,21 @@ listling.service.Service = class extends micro.service.Service {
             "trashable-restore+Item":
                 event => renderItemNotification(event, '{user} restored "{item}"'),
             "item-check": event => renderItemNotification(event, '{user} checked "{item}"'),
-            "item-uncheck": event => renderItemNotification(event, '{user} unchecked "{item}"')
+            "item-uncheck": event => renderItemNotification(event, '{user} unchecked "{item}"'),
+            "item-assignees-assign"(event) {
+                const body = event.user.id === event.detail.assignee.id
+                    ? '{user} assigned themself to "{item}"'
+                    : `{user} assigned ${micro.util.truncate(event.detail.assignee.name)} to "{item}"`;
+                return renderItemNotification(event, body);
+            },
+            "item-assignees-unassign"(event) {
+                const body = event.user.id === event.detail.assignee.id
+                    ? '{user} unassigned themself from "{item}"'
+                    : `{user} unassigned ${micro.util.truncate(event.detail.assignee.name)} from "{item}"`;
+                return renderItemNotification(event, body);
+            },
+            "item-votes-vote": event => renderItemNotification(event, '{user} voted for "{item}"'),
+            "item-votes-unvote": event => renderItemNotification(event, '{user} unvoted "{item}"')
         });
     }
 };

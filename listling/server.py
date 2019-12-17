@@ -1,5 +1,5 @@
 # Open Listling
-# Copyright (C) 2018 Open Listling contributors
+# Copyright (C) 2019 Open Listling contributors
 #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
 # Affero General Public License as published by the Free Software Foundation, either version 3 of
@@ -18,13 +18,14 @@
 
 """Open Listling server."""
 
+from http import HTTPStatus
 import json
 
 import micro
-from micro import Location
+from micro import Location, error
 from micro.server import (Endpoint, CollectionEndpoint, Server, UI, make_activity_endpoint,
                           make_orderable_endpoints, make_trashable_endpoints)
-from micro.util import ON
+from micro.util import Expect, ON
 
 from . import Listling
 
@@ -39,6 +40,7 @@ def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='',
         (r'/api/lists$', _ListsEndpoint),
         (r'/api/lists/create-example$', _ListsCreateExampleEndpoint),
         (r'/api/lists/([^/]+)$', _ListEndpoint),
+        (r'/api/lists/([^/]+)/users$', _ListUsersEndpoint),
         (r'/api/lists/([^/]+)/items$', _ListItemsEndpoint),
         *make_orderable_endpoints(r'/api/lists/([^/]+)/items', lambda id: app.lists[id].items),
         make_activity_endpoint(r'/api/lists/([^/]+)/activity',
@@ -48,6 +50,10 @@ def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='',
                                   lambda list_id, id: app.lists[list_id].items[id]),
         (r'/api/lists/([^/]+)/items/([^/]+)/check$', _ItemCheckEndpoint),
         (r'/api/lists/([^/]+)/items/([^/]+)/uncheck$', _ItemUncheckEndpoint),
+        (r'/api/lists/([^/]+)/items/([^/]+)/assignees$', _ItemAssigneesEndpoint),
+        (r'/api/lists/([^/]+)/items/([^/]+)/assignees/([^/]+)$', _ItemAssigneeEndpoint),
+        (r'/api/lists/([^/]+)/items/([^/]+)/votes', _ItemVotesEndpoint),
+        (r'/api/lists/([^/]+)/items/([^/]+)/votes/user', _ItemVoteEndpoint),
         # UI
         (r'/lists/([^/]+)(?:/[^/]+)?$', _ListPage)
     ]
@@ -85,21 +91,15 @@ class _UserListEndpoint(Endpoint):
 
 class _ListsEndpoint(Endpoint):
     def post(self):
-        args = self.check_args({
-            'use_case': (str, 'opt'),
-            'title': (str, 'opt'),
-            'description': (str, None, 'opt'),
-            'v': (int, 'opt')
-        })
-        if args.get('v', 1) == 1 and 'title' not in args:
-            raise micro.ValueError('title_missing')
+        # Compatibility for endpoint version (deprecated since 0.22.0)
+        args = self.check_args({'use_case': (str, 'opt'), 'v': (int, 'opt')})
         lst = self.app.lists.create(**args)
         self.write(lst.json(restricted=True, include=True))
 
 class _ListsCreateExampleEndpoint(Endpoint):
     async def post(self):
         args = self.check_args({'use_case': str})
-        lst = await self.app.lists.create_example(asynchronous=ON, **args)
+        lst = await self.app.lists.create_example(**args)
         self.write(lst.json(restricted=True, include=True))
 
 class _ListEndpoint(Endpoint):
@@ -117,6 +117,13 @@ class _ListEndpoint(Endpoint):
         })
         lst.edit(**args)
         self.write(lst.json(restricted=True, include=True))
+
+class _ListUsersEndpoint(Endpoint):
+    def get(self, id):
+        lst = self.app.lists[id]
+        name = self.get_query_argument('name', '')
+        users = lst.users(name)
+        self.write({'items': [user.json(restricted=True, include=True) for user in users]})
 
 class _ListItemsEndpoint(Endpoint):
     def get(self, id):
@@ -136,7 +143,7 @@ class _ListItemsEndpoint(Endpoint):
                 args['location'] = Location.parse(args['location'])
             except TypeError:
                 raise micro.ValueError('bad_location_type')
-        item = await lst.items.create(asynchronous=ON, **args)
+        item = await lst.items.create(**args)
         self.write(item.json(restricted=True, include=True))
 
 class _ItemEndpoint(Endpoint):
@@ -171,6 +178,46 @@ class _ItemUncheckEndpoint(Endpoint):
         item = self.app.lists[lst_id].items[id]
         item.uncheck()
         self.write(item.json(restricted=True, include=True))
+
+class _ItemAssigneesEndpoint(CollectionEndpoint):
+    def initialize(self):
+        super().initialize(
+            get_collection=lambda list_id, id: self.app.lists[list_id].items[id].assignees)
+
+    def post(self, list_id, id):
+        assignees = self.get_collection(list_id, id)
+        try:
+            assignee_id = self.get_arg('assignee_id', Expect.str)
+            assignee = self.app.users[assignee_id]
+        except KeyError:
+            raise error.ValueError('No assignee {}'.format(assignee_id))
+        assignees.assign(assignee, user=self.current_user)
+        self.set_status(HTTPStatus.CREATED)
+        self.write({})
+
+class _ItemAssigneeEndpoint(Endpoint):
+    def delete(self, list_id, id, assignee_id):
+        assignees = self.app.lists[list_id].items[id].assignees
+        assignee = assignees[assignee_id]
+        assignees.unassign(assignee, user=self.current_user)
+        self.write({})
+
+class _ItemVotesEndpoint(CollectionEndpoint):
+    def initialize(self):
+        super().initialize(
+            get_collection=lambda list_id, id: self.app.lists[list_id].items[id].votes)
+
+    def post(self, list_id, id):
+        votes = self.get_collection(list_id, id)
+        votes.vote(user=self.current_user)
+        self.set_status(HTTPStatus.CREATED)
+        self.write({})
+
+class _ItemVoteEndpoint(Endpoint):
+    def delete(self, list_id, id):
+        votes = self.app.lists[list_id].items[id].votes
+        votes.unvote(user=self.current_user)
+        self.write({})
 
 class _ListPage(UI):
     def get_meta(self, *args: str):

@@ -1,5 +1,5 @@
 # Open Listling
-# Copyright (C) 2018 Open Listling contributors
+# Copyright (C) 2019 Open Listling contributors
 #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
 # Affero General Public License as published by the Free Software Foundation, either version 3 of
@@ -32,7 +32,8 @@ class ServerTest(ServerTestCase):
 
     @gen_test
     async def test_availibility(self):
-        lst = self.app.lists.create_example('todo')
+        lst = await self.app.lists.create_example('todo')
+        lst.edit(features=['check', 'assign', 'vote'])
         item = next(iter(lst.items.values()))
         self.app.login()
         shared_lst = self.app.lists.create(v=2)
@@ -49,6 +50,7 @@ class ServerTest(ServerTestCase):
         await self.request('/api/lists/{}'.format(lst.id))
         await self.request('/api/lists/{}'.format(lst.id), method='POST',
                            body='{"description": "What has to be done!"}')
+        await self.request('/api/lists/{}/users'.format(lst.id))
         await self.request('/api/lists/{}/items'.format(lst.id))
         await self.request('/api/lists/{}/items'.format(lst.id), method='POST',
                            body='{"title": "Sleep"}')
@@ -59,6 +61,17 @@ class ServerTest(ServerTestCase):
                            body='')
         await self.request('/api/lists/{}/items/{}/uncheck'.format(lst.id, item.id), method='POST',
                            body='')
+        await self.request('/api/lists/{}/items/{}/assignees'.format(lst.id, item.id))
+        await self.request('/api/lists/{}/items/{}/assignees'.format(lst.id, item.id),
+                           method='POST', body=json.dumps({'assignee_id': self.client_user.id}))
+        await self.request(
+            '/api/lists/{}/items/{}/assignees/{}'.format(lst.id, item.id, self.client_user.id),
+            method='DELETE')
+        await self.request('/api/lists/{}/items/{}/votes'.format(lst.id, item.id))
+        await self.request('/api/lists/{}/items/{}/votes'.format(lst.id, item.id), method='POST',
+                           body='')
+        await self.request('/api/lists/{}/items/{}/votes/user'.format(lst.id, item.id),
+                           method='DELETE')
 
         # UI
         await self.request('/lists/{}'.format(lst.id))
