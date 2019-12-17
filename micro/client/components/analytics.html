@@ -1,0 +1,67 @@
+<template id="micro-analytics-page-template">
+    <h1>Analytics</h1>
+    <p class="micro-small"><i class="fa fa-eye"></i> Only visible to staff members</p>
+
+    <div class="micro-analytics-content"></div>
+
+    <section>
+        <h1>User statistics</h1>
+        <micro-chart
+            class="micro-analytics-user-statistics"
+            statistics="users, users-actual, users-active"
+            labels="Users, Actual users, Monthly active users"
+        ></micro-chart>
+    </section>
+
+    <section>
+        <h1>Referrals</h1>
+        <div class="micro-lgroup">
+            <ul class="micro-timeline" data-content="list referrals.items 'referral'">
+                <template>
+                    <li>
+                        <time
+                            data-date-time="referral.time"
+                            data-content="formatDate referral.time SHORT_DATE_TIME_FORMAT"
+                        ></time>
+                        <a data-href="referral.url" data-content="referral.url"></a>
+                    </li>
+                </template>
+            </ul>
+            <ul data-content="switch referralsComplete false">
+                <template>
+                    <li>
+                        <button
+                            is="micro-button" class="micro-analytics-more-referrals link"
+                            data-run="bind fetchCollection referrals 10"
+                            data-shortcut="new Shortcut 'M'"
+                        >
+                            <i class="fa fa-ellipsis-v"></i> More
+                        </button>
+                    </li>
+                </template>
+            </ul>
+        </div>
+    </section>
+</template>
+<style>
+    .micro-analytics-user-statistics {
+        --micro-chart-palette: var(--micro-color-primary-tint), var(--micro-color-primary),
+                               var(--micro-color-primary-shade);
+    }
+</style>
+
+<template id="micro-chart-template">
+    <canvas data-content="alt"></canvas>
+</template>
+<style>
+    html {
+        --micro-chart-palette: var(--micro-color-primary);
+    }
+
+    micro-chart {
+        display: block;
+        position: relative;
+        height: calc(70ch * 9 / 16);
+        margin: var(--micro-size-rm) 0;
+    }
+</style>

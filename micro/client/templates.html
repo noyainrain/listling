@@ -1,0 +1,508 @@
+<template class="micro-ui-template">
+    <header class="micro-ui-header" style="display: none;">
+        <nav class="micro-ui-inside micro-panel">
+            <a class="micro-ui-logo link" href="/" data-shortcut="new Shortcut 'N,S'">
+                <h1>
+                    <img data-src="settings.icon_small" />
+                    <span data-content="settings.title"></span>
+                    <span class="micro-ui-beta">Beta</span>
+                </h1>
+            </a>
+            <p
+                class="micro-ui-header-offline" tabindex="0"
+                data-title="format '{title} is currently offline' 'title' settings.title"
+            >
+                <i class="fa fa-fw fa-wifi"></i>
+            </p>
+
+            <div class="micro-ui-header-fill"></div>
+
+            <ul is="micro-menu" class="micro-ui-menu micro-secondary micro-interactive">
+                <li class="micro-ui-header-user">
+                    <button class="link"><micro-user data-user="user"></micro-user></button>
+                    <ul is="micro-menu">
+                        <li class="micro-ui-edit-user">
+                            <a class="action" href="/user/edit" data-shortcut="new Shortcut 'N,U'">
+                                <i class="fa fa-fw fa-wrench"></i> Edit user settings
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="micro-ui-header-menu">
+                    <button class="link"><i class="fa fa-fw fa-bars"></i></button>
+                    <ul is="micro-menu">
+                        <li class="micro-ui-about">
+                            <a class="link" href="/about" data-shortcut="new Shortcut 'N,A'">
+                                <i class="fa fa-fw fa-info-circle"></i> About
+                            </a>
+                        </li>
+                        <li class="micro-ui-feedback">
+                            <a
+                                class="link" data-href="settings.feedback_url"
+                                data-shortcut="new Shortcut 'N,F'"
+                            >
+                                <i class="fa fa-fw fa-question-circle"></i> Feedback &amp;
+                                help
+                            </a>
+                        </li>
+                        <li class="micro-ui-analytics">
+                            <a class="link" href="/analytics" data-shortcut="new Shortcut 'N,I'">
+                                <i class="fa fa-fw fa-chart-line"></i> Analytics
+                            </a>
+                        </li>
+                        <li class="micro-ui-activity">
+                            <a class="link" href="/activity" data-shortcut="new Shortcut 'N,H'">
+                                <i class="fa fa-fw fa-history"></i> Activity
+                            </a>
+                        </li>
+                        <li class="micro-ui-edit-settings">
+                            <a class="action" href="/settings/edit"
+                               data-shortcut="new Shortcut 'N,C'">
+                                <i class="fa fa-fw fa-wrench"></i> Edit site settings
+                            </a>
+                        </li>
+                        <li class="micro-ui-keyboard compact" tabindex="0">
+                            <p><i class="fa fa-fw fa-keyboard"></i> Keyboard navigation</p>
+                            <ul>
+                                <li><strong>Tab / Shift + Tab</strong>: Cycle through buttons</li>
+                                <li><strong>J / K</strong>: Navigate lists</li>
+                                <li>
+                                    Select / hover over a button to see the associated keyboard
+                                    shortcut
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="micro-ui-notification-space"></div>
+    </header>
+</template>
+<style>
+    body[noninteractive] .micro-interactive {
+        display: none;
+    }
+
+    .micro-ui-logo img {
+        height: 1em;
+        vertical-align: middle;
+    }
+
+    .micro-ui-header-offline {
+        color: var(--micro-color-text-subtle);
+    }
+
+    .micro-ui-keyboard {
+        padding: 0 calc(1.5rem / 4);
+    }
+
+    .micro-ui-keyboard i {
+        color: var(--micro-color-text-subtle);
+    }
+
+    .micro-ui-keyboard ul {
+        display: none;
+        list-style: disc;
+        font-size: 0.875em;
+        white-space: normal;
+    }
+
+    .micro-ui-keyboard:hover ul,
+    .micro-ui-keyboard:focus ul {
+        display: block;
+    }
+
+    .micro-ui-notification-space:not(:empty) {
+        border-top: 1px solid var(--micro-color-delimiter);
+    }
+
+    .micro-ui-notification-space .micro-ui-inside > h1,
+    .micro-ui-notification-space .micro-ui-inside > p,
+    .micro-ui-notification-space .micro-ui-inside > .micro-heading,
+    .micro-ui-notification-space .micro-ui-inside > .micro-entity-list {
+        margin: var(--micro-size-rxs) 0;
+    }
+
+    .micro-ui-notification-space h1 {
+        border: none;
+        font-size: 1em;
+        font-weight: bold;
+    }
+
+    body > [slot],
+    body:not(.micro-ui-settings-have-icon-small) .micro-ui-logo img,
+    body:not(.micro-ui-offline) .micro-ui-header-offline,
+    body:not(.micro-ui-user-is-staff) .micro-ui-analytics,
+    body:not(.micro-ui-user-is-staff) .micro-ui-edit-settings {
+        display: none;
+    }
+</style>
+
+<template class="micro-simple-notification-template">
+    <div class="micro-ui-inside compact">
+        <div class="micro-simple-notification-content"></div>
+        <p class="group">
+            <button class="micro-simple-notification-dismiss action action-subtle">
+                Dismiss
+            </button>
+        </p>
+    </div>
+</template>
+
+<template class="micro-error-notification-template">
+    <div class="micro-ui-inside compact">
+        <p>
+            <i class="fa fa-exclamation-triangle"></i> Oops, something went very wrong! We have been
+            notified and will do our best to fix the problem as soon as possible. We are sorry for
+            the inconvenience!
+        </p>
+        <p>In the meantime, you may reload the page and give it another try.</p>
+        <p class="group">
+            <button class="micro-error-notification-reload action">Reload the page</button>
+        </p>
+    </div>
+</template>
+
+<template class="micro-menu-template">
+    <button class="micro-menu-toggle-secondary action action-subtle"><i class="fa"></i></button>
+</template>
+
+<template id="micro-options-template">
+    <div class="micro-entity-list">
+        <ul data-content="list options 'option'">
+            <template>
+                <li
+                    class="micro-panel" data-onclick="bind onClick option"
+                    data-content="render template"
+                >
+                    <template>
+                        <p data-content="toText option"></p>
+                    </template>
+                </li>
+            </template>
+        </ul>
+    </div>
+    <footer class="micro-panel">
+        <p class="micro-progress"><i class="fa fa-spinner fa-spin"></i></p>
+        <div class="micro-options-footer-content" data-content="render footerTemplate"></div>
+    </footer>
+</template>
+<style>
+    micro-options {
+        position: absolute;
+        z-index: 1;
+        max-width: calc(100% - 2 * var(--micro-size-rm));
+        background: white;
+        box-shadow: var(--micro-shadow);
+    }
+
+    micro-options > .micro-entity-list {
+        margin: 0;
+    }
+
+    micro-options > .micro-entity-list > ul > li {
+        cursor: pointer;
+    }
+
+    micro-options > .micro-entity-list > ul > li:hover {
+        background: var(--micro-color-delimiter);
+    }
+
+    micro-options > footer {
+        display: flex;
+        border-top: 1px solid var(--micro-color-delimiter);
+    }
+
+    .micro-options-footer-content {
+        flex: auto;
+        text-align: right;
+    }
+
+    micro-options:not(.micro-options-active),
+    micro-options:not(.micro-options-has-footer) > footer,
+    micro-options:not(.micro-options-generating) > footer > .micro-progress {
+        display: none;
+    }
+</style>
+
+<template id="micro-map-template">
+    <div></div>
+</template>
+<style>
+    micro-map {
+        display: block;
+        margin: 1.5rem 0;
+    }
+
+    .leaflet-container {
+        z-index: 0;
+        height: calc(70ch * 9 / 16);
+        font: inherit;
+        background: #d1d1d1; /* Map tile background */
+    }
+
+    .leaflet-container:focus {
+        box-shadow: 0 0 0 1px var(--micro-color-primary-tint);
+    }
+
+    .leaflet-container .link {
+        color: var(--micro-color-secondary);
+    }
+</style>
+
+<template id="micro-map-marker-template">
+    <div>
+        <a data-id="or location.hash ''" class="link" data-href="location.url">
+            <i class="fa fa-map-marker-alt"></i>
+        </a>
+    </div>
+</template>
+<style>
+    .leaflet-div-icon {
+        border: none;
+        background: none;
+    }
+
+    .leaflet-div-icon .link {
+        display: block;
+        font-size: 2em;
+        line-height: 1;
+        color: var(--micro-color-primary);
+        text-shadow: 0 -1px white, 1px 0 white, 0 1px white, -1px 0 white;
+    }
+</style>
+
+<template id="micro-map-attribution-template">
+    <span>
+        Map data by ©
+        <a class="link" href="https://www.mapbox.com/about/maps/" target="_blank">
+            <img
+                src="{{ static_url('{}/@noyainrain/micro/images/mapbox.svg'.format(modules_path)) }}"
+                alt="Mapbox"
+            />
+        </a>
+        ©
+        <a class="link" href="https://www.openstreetmap.org/copyright" target="_blank">
+            OpenStreetMap
+        </a>
+    </span>
+</template>
+<style>
+    .leaflet-container .leaflet-control-attribution {
+        padding: var(--micro-size-xs);
+        font-size: 0.875em;
+        color: var(--micro-color-text-subtle);
+        background: rgba(255, 255, 255, 0.66);
+        text-align: right;
+    }
+
+    .leaflet-control-attribution img {
+        height: 1.5em;
+        vertical-align: bottom;
+    }
+</style>
+
+<template id="micro-location-input-template">
+    <input />
+    <micro-options data-options="queryLocations" data-delay="500" data-to-text="locationToText">
+        <template name="footer">
+            <p class="micro-location-input-footer">
+                <small>
+                    Location data by ©
+                    <a class="link" href="https://www.mapbox.com/about/maps/" target="_blank">
+                        <img
+                            src="{{ static_url('{}/@noyainrain/micro/images/mapbox.svg'.format(modules_path)) }}"
+                            alt="Mapbox"
+                        />
+                    </a>
+                </small>
+            </p>
+        </template>
+    </micro-options>
+</template>
+<style>
+    micro-location-input input {
+        display: block;
+        width: 100%;
+    }
+
+    .micro-location-input-footer img {
+        height: 1.5em;
+        vertical-align: bottom;
+    }
+</style>
+
+<template class="micro-user-template">
+    <i class="fa fa-user"></i> <span></span>
+</template>
+
+<template id="micro-offline-page-template">
+    <h1 class="micro-icon-title"><i class="fa fa-wifi"></i></h1>
+    <p>Oops, you seem to be offline!</p>
+    <p><small>Please check your connection and try again.</small></p>
+</template>
+<style>
+    micro-offline-page {
+        text-align: center;
+    }
+</style>
+
+<template class="micro-not-found-page-template">
+    <h1 class="micro-icon-title"><i class="fa fa-map-signs"></i></h1>
+    <p>Oops, we have not found the page you are looking for!</p>
+    <p><small>If you've been here before, someone has deleted it.</small></p>
+</template>
+
+<template class="micro-forbidden-page-template">
+    <h1 class="micro-icon-title"><i class="fa fa-lock"></i></h1>
+    <p>Oops, you are not allowed to view this page!<p>
+    <p><small>If you've been here before, someone has revoked your permissions.</small></p>
+</template>
+
+<template class="micro-about-page-template">
+    <h1 data-text="About {title}"></h1>
+    <p class="micro-about-short"></p>
+    <p class="micro-about-provider"></p>
+
+    <section class="micro-about-project">
+        <h1>Powered by</h1>
+        <p class="micro-logo"><a class="link" target="_blank"><img /> <span></span></a></p>
+        <p>
+            The service is powered by <a class="micro-about-project-link link" target="_blank"></a>,
+            a free and open-source software released under the
+            <a class="micro-about-license link" target="_blank"></a>.
+        </p>
+        <p class="micro-about-copyright"></p>
+    </section>
+</template>
+
+<template class="micro-edit-user-page-template">
+    <h1>Edit user settings</h1>
+    <form class="micro-edit-user-edit">
+        <label>
+            <input name="name" />
+            <small>Name</small>
+            <small>Your name or nick name.</small>
+        </label>
+        <p>
+            <button class="action"><i class="fa fa-check-circle"></i> Save</button>
+        </p>
+    </form>
+
+    <section>
+        <header class="micro-heading micro-panel">
+            <h1>Email</h1>
+            <button class="micro-edit-user-remove-email action">
+                <i class="fa fa-trash"></i> Remove
+            </button>
+        </header>
+
+        <div class="micro-edit-user-set-email-1">
+            <form>
+                <label>
+                    <input name="email" type="email" required="required" />
+                    <small>Email address</small>
+                </label>
+                <p>
+                    <button class="action">
+                        <i class="fa fa-check-circle"></i> Add email address
+                    </button>
+                </p>
+            </form>
+        </div>
+
+        <section class="micro-edit-user-set-email-2">
+            <h1>Add email address</h1>
+            <p>
+                We've sent a message to your email address. Please open it and follow the
+                instructions.
+            </p>
+            <p class="micro-edit-user-cancel-set-email"><button class="action">Cancel</button></p>
+            <p class="micro-progress"><i class="fa fa-spin fa-spinner"></i></p>
+        </section>
+
+        <p class="micro-edit-user-email-value"></p>
+
+        <p><small>The email address is only visible to you.</small></p>
+    </section>
+</template>
+
+<template class="micro-edit-settings-page-template">
+    <h1>Edit site settings</h1>
+    <form class="micro-edit-settings-edit">
+        <label>
+            <input name="title" required="required" data-value="settings.title" />
+            <small>Title</small>
+        </label>
+        <label>
+            <input name="icon" data-value="or settings.icon ''" />
+            <small>Icon (optional)</small>
+            <small>URL of the site icon.</small>
+        </label>
+        <label>
+            <input name="icon_small" data-value="or settings.icon_small ''" />
+            <small>Icon small (optional)</small>
+            <small>
+                URL of the site icon optimized for small scale. Should be 16 pixels square.
+            </small>
+        </label>
+        <label>
+            <input name="icon_large" data-value="or settings.icon_large ''" />
+            <small>Icon large (optional)</small>
+            <small>
+                URL of the site icon optimized for large scale. Should be 192 pixels square.
+            </small>
+        </label>
+        <label>
+            <input name="provider_name" data-value="or settings.provider_name ''" />
+            <small>Service provider name (optional)</small>
+        </label>
+        <label>
+            <input name="provider_url" data-value="or settings.provider_url ''" />
+            <small>Service provider website (optional)</small>
+            <small>URL of the website of the service provider.</small>
+        </label>
+        <label>
+            <input name="provider_description"
+                   data-value="or settings.provider_description.en ''" />
+            <small>Service provider description (optional)</small>
+            <small>“The service is provided by Provider, …”</small>
+        </label>
+        <label>
+            <input name="feedback_url" data-value="or settings.feedback_url ''" />
+            <small>Feedback &amp; help site (optional)</small>
+            <small>URL of the feedback site / help desk.</small>
+        </label>
+        <ul is="micro-menu">
+            <li>
+                <button is="micro-button" class="action" data-run="edit">
+                    <i class="fa fa-check-circle"></i> Done
+                </button>
+            </li>
+            <li><a class="link action-cancel" href="/">Cancel</a></li>
+        </ul>
+    </form>
+</template>
+
+<template class="micro-activity-page-template">
+    <h1>Site activity</h1>
+    <p><small><i class='fa fa-eye'></i> Only visible to staff members</small></p>
+    <div class="micro-lgroup">
+        <ul class="micro-timeline"></ul>
+        <ul>
+            <li class="micro-activity-show-more">
+                <button is="micro-button" class="link">
+                    <i class="fa fa-ellipsis-v"></i> More
+                </button>
+            </li>
+        </ul>
+    </ul>
+</template>
+
+{% include 'components/analytics.html' %}
+{% include 'components/contextual.html' %}
+{% include 'components/image.html' %}
+{% include 'components/link.html' %}
+{% include 'components/video.html' %}
