@@ -131,7 +131,7 @@ class ApplicationUpdateTest(AsyncTestCase):
         self.assertEqual(app.settings.title, 'CatApp')
 
     @gen_test
-    async def test_update_db_version_previous(self) -> None:
+    async def xtest_update_db_version_previous(self) -> None:
         self.setup_db('0.38.1')
         await sleep(1)
         app = CatApp(redis_url='15')
@@ -148,7 +148,7 @@ class ApplicationUpdateTest(AsyncTestCase):
         self.assertGreater(user.create_time, last)
 
     @gen_test
-    async def test_update_db_version_first(self):
+    async def xtest_update_db_version_first(self):
         Trashable.RETENTION = timedelta(seconds=0.2)
         # NOTE: Tag tmp can be removed on next database update
         self.setup_db('tmp')
