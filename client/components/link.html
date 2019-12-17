@@ -1,0 +1,100 @@
+<script>
+micro.components = micro.components || {};
+
+/**
+ * Link including a preview of the target web resource.
+ *
+ * .. attribute:: resource
+ *
+ *    Target :ref:`Resource` description.
+ *
+ * .. describe:: --micro-link-max-height
+ *
+ *    Maximum height of the preview image. Defaults to ``none``.
+ */
+micro.components.LinkElement = class extends HTMLElement {
+    createdCallback() {
+        this.appendChild(
+            document.importNode(document.querySelector("#micro-link-template").content, true)
+        );
+        this._data = new micro.bind.Watchable({resource: null, host: null});
+        micro.bind.bind(this.children, this._data);
+    }
+
+    get resource() {
+        return this._data.resource;
+    }
+
+    set resource(value) {
+        this._data.resource = value;
+        this._data.host = new URL(value.url).host;
+    }
+};
+
+document.addEventListener(
+    "DOMContentLoaded", () => document.registerElement("micro-link", micro.components.LinkElement)
+);
+</script>
+
+<template id="micro-link-template">
+    <a
+        class="link" data-class-micro-link-has-image="resource.image" data-href="resource.url"
+        target="_blank"
+    >
+        <div class="micro-link-image">
+            <img data-src="or resource.image.url ''" data-alt="or resource.image.description ''" />
+            <div class="micro-image-contrast"></div>
+        </div>
+        <div class="micro-link-label">
+            <p data-content="or resource.description ''"></p>
+            <p class="micro-small" data-content="host"></p>
+        </div>
+    </a>
+</template>
+
+<style>
+html {
+    --micro-link-max-height: none;
+}
+
+micro-link {
+    display: inline-block;
+    max-width: 100%;
+    vertical-align: bottom;
+}
+
+micro-link .link,
+micro-link .link:hover,
+micro-link .link:focus {
+    color: var(--micro-color-text);
+    text-decoration: none;
+}
+
+.micro-link-image {
+    position: relative;
+}
+
+.micro-link-image img {
+    display: block;
+    max-width: 100%;
+    max-height: var(--micro-link-max-height);
+    margin: 0 auto;
+}
+
+.micro-link-label {
+    padding: 0 var(--micro-size-xs);
+    overflow: hidden;
+    background: var(--micro-color-delimiter);
+}
+
+.micro-link-label p {
+    margin: var(--micro-size-rxs) 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+micro-link .link:not(.micro-link-has-image) .micro-link-image {
+    display: none;
+}
+</style>
