@@ -981,18 +981,23 @@ micro.Button = class extends HTMLButtonElement {
         }
 
         let i = this.querySelector("i");
-        let classes;
+        let progressI;
         this.disabled = true;
         if (i) {
-            classes = i.className;
-            i.className = "fa fa-spinner fa-spin";
+            progressI = document.createElement("i");
+            progressI.className = "fa fa-spinner fa-spin";
+            i.insertAdjacentElement("afterend", progressI);
+            // TODO via class and style
+            i.style.display = "none";
         }
         try {
             return await Promise.resolve(this.run());
         } finally {
             this.disabled = false;
             if (i) {
-                i.className = classes;
+                progressI.remove();
+                // TODO via class and style
+                i.style.display = "";
             }
         }
     }
