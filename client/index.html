@@ -429,7 +429,10 @@
             </span>
         </aside>
 
-        <footer class="listling-list-footer" data-onmousedown="presentation.onFooterMouseDown">
+        <footer
+            class="listling-list-footer" data-onmousedown="presentation.onFooterMouseDown"
+            data-class-listling-list-playlist-idle="playlistIdle"
+        >
             <div class="micro-ui-inside micro-panel">
                 <div data-content="switch presentationMode">
                     <template>
@@ -474,6 +477,7 @@
                 >
                     <i class="fa fa-fw fa-step-forward"></i>
                 </button>
+                <p class="listling-list-idle-info"><i class="fas fa-fw fa-retweet"></i></p>
                 <button
                     is="micro-button" type="button"
                     class="listling-list-exit-presentation link"
@@ -551,6 +555,10 @@
             background: white;
         }
 
+        .listling-list-idle-info {
+            color: var(--micro-color-text-subtle);
+        }
+
         .listling-list-exit-presentation {
             margin-left: auto;
         }
@@ -577,6 +585,7 @@
         listling-list-page:not(.listling-list-feature-play) .listling-list-play-previous,
         listling-list-page:not(.listling-list-feature-play) .listling-list-play-pause,
         listling-list-page:not(.listling-list-feature-play) .listling-list-play-next,
+        .listling-list-footer:not(.listling-list-playlist-idle) .listling-list-idle-info,
         body:not([noninteractive]) .listling-list-exit-presentation {
             display: none;
         }

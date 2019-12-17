@@ -148,6 +148,7 @@ listling.ListPage = class extends micro.Page {
             playlistPlayPause: null,
             playlistPlayNext: null,
             playlistPlayPrevious: null,
+            playlistIdle: null,
 
             toggleTrash: () => {
                 this._data.trashExpanded = !this._data.trashExpanded;
