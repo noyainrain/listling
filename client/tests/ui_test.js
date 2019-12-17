@@ -20,6 +20,7 @@
 "use strict";
 
 let {exec, spawn} = require("child_process");
+const {hostname} = require("os");
 let {promisify} = require("util");
 
 let {expect} = require("chai");
@@ -74,7 +75,8 @@ describe("UI", function() {
         let itemMenu;
 
         // View intro page
-        await getWithServiceWorker(browser, `${URL}/`);
+        // Work around Sauce labs buffering on localhost
+        await browser.get(`http://${hostname()}:8081/`);
         await browser.wait(
             untilElementTextLocated({css: ".micro-logo"}, "My Open Listling"), timeout);
         const menu = await browser.findElement({css: ".micro-ui-header-menu"});
@@ -236,7 +238,7 @@ describe("UI", function() {
     });
 
     it("should work for staff", async function() {
-        await browser.get(`${URL}/`);
+        await getWithServiceWorker(browser, `${URL}/`);
         await browser.wait(until.elementLocated({css: "listling-intro-page"}), timeout);
         await createExampleList();
 
