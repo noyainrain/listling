@@ -51,3 +51,6 @@ class CommunicationError(Error):
     """
 # Compatibility for micro CommunicationError (deprecated since 0.28.0)
 webapi.CommunicationError = CommunicationError # type: ignore
+
+class RateLimitError(Error):
+    pass

@@ -419,6 +419,8 @@ micro.UI = class extends HTMLBodyElement {
             this.notify("Oops, someone has just deleted this page!");
         } else if (e instanceof micro.APIError && e.error.__type__ === "PermissionError") {
             this.notify("Oops, someone has just revoked your permissions for this page!");
+        } else if (e instanceof micro.APIError && e.error.__type__ === "RateLimitError") {
+            this.notify("Oops, not so fast. Please wait a few minutes.");
         } else {
             throw e;
         }
