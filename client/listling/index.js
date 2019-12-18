@@ -37,7 +37,8 @@ listling.UI = class extends micro.UI {
             {url: "^/$", page: listling.components.start.StartPage.make},
             {url: "^/intro$", page: "listling-intro-page"},
             {url: "^/about$", page: makeAboutPage},
-            {url: "^/lists/([^/]+)(?:/[^/]+)?$", page: listling.ListPage.make}
+            {url: "^/lists/([^/]+)(?:/[^/]+)?$", page: listling.ListPage.make},
+            {url: "^/l/([^/]+)$", page: listling.ListPage.make}
         ]);
 
         Object.assign(this.renderEvent, {
@@ -115,10 +116,9 @@ listling.IntroPage = class extends micro.Page {
 
 listling.ListPage = class extends micro.Page {
     static async make(url, id) {
-        let page = document.createElement("listling-list-page");
-        if (id !== "new") {
-            page.list = await ui.call("GET", `/api/lists/List:${id}`);
-        }
+        const page = document.createElement("listling-list-page");
+        id = id.length === 4 ? `Short:${id}` : `List:${id}`;
+        page.list = await micro.call("GET", `/api/lists/${id}`);
         return page;
     }
 
@@ -142,6 +142,7 @@ listling.ListPage = class extends micro.Page {
             share: listling.components.list.share,
             presentation: new listling.components.list.Presentation(this),
             presentationMode: false,
+            shortUrl: null,
             quickNavigate: micro.keyboard.quickNavigate,
             playlist: null,
             playlistPlaying: null,

@@ -478,6 +478,11 @@
                     <i class="fa fa-fw fa-step-forward"></i>
                 </button>
                 <p class="listling-list-idle-info"><i class="fas fa-fw fa-retweet"></i></p>
+                <p class="micro-panel-main" data-content="switch shortUrl">
+                    <template>
+                        <strong>Join at <span data-content="shortUrl"></span></strong>
+                    </template>
+                </p>
                 <button
                     is="micro-button" type="button"
                     class="listling-list-exit-presentation link"
@@ -557,10 +562,6 @@
 
         .listling-list-idle-info {
             color: var(--micro-color-text-subtle);
-        }
-
-        .listling-list-exit-presentation {
-            margin-left: auto;
         }
 
         listling-list-page:not(.listling-list-mode-view) .listling-list-mode-view,

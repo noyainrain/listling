@@ -47,6 +47,8 @@ class ServerTest(ServerTestCase):
         await self.request('/api/lists', method='POST', body='{"v": 2}')
         await self.request('/api/lists/create-example', method='POST',
                            body='{"use_case": "shopping"}')
+        await self.request('/api/lists/shorts', method='POST',
+                           body='{{"list_id": "{}"}}'.format(lst.id))
         await self.request('/api/lists/{}'.format(lst.id))
         await self.request('/api/lists/{}'.format(lst.id), method='POST',
                            body='{"description": "What has to be done!"}')
