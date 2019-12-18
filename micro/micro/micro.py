@@ -26,6 +26,7 @@ from logging import getLogger
 import re
 from smtplib import SMTP
 import sys
+import time
 from typing import (AsyncIterator, Awaitable, Callable, Coroutine, Dict, Generic, Iterator, List,
                     Optional, Set, Tuple, Type, TypeVar, Union, cast, overload)
 from urllib.parse import SplitResult, urlparse, urlsplit
@@ -39,7 +40,7 @@ from requests.exceptions import RequestException
 from tornado.ioloop import IOLoop
 from typing_extensions import Protocol
 
-from .error import CommunicationError, ValueError
+from .error import CommunicationError, RateLimitError, ValueError
 from .jsonredis import (ExpectFunc, JSONRedis, JSONRedisSequence, JSONRedisMapping, RedisList,
                         RedisSequence, bzpoptimed)
 from .resource import ( # pylint: disable=unused-import; typing
@@ -174,6 +175,7 @@ class Application:
         if 'youtube' in self.video_service_keys:
             handlers.insert(0, handle_youtube(self.video_service_keys['youtube']))
         self.analyzer = Analyzer(handlers=handlers)
+        self.rate_limiter = RateLimiter()
 
     @property
     def settings(self) -> 'Settings':
@@ -861,6 +863,7 @@ class User(Object, Editable):
         self.authenticate_time = parse_isotime(cast(str, data['authenticate_time']), aware=True)
         self.device_notification_status = cast(str, data['device_notification_status'])
         self.push_subscription = cast(Optional[str], data['push_subscription'])
+        self.ip = None
 
     def store_email(self, email):
         """Update the user's *email* address.
@@ -1407,6 +1410,24 @@ class Location:
     def json(self) -> Dict[str, object]:
         """Return a JSON representation of the location."""
         return {'name': self.name, 'coords': list(self.coords) if self.coords else None}
+
+class RateLimiter:
+    LIMIT = 15 * 60
+
+    def __init__(self) -> None:
+        self._counts = {} # type: Dict[str, int]
+        self._current_window = 0
+
+    def count(self, ip: str):
+        window = int(time.time()) // self.LIMIT
+        if self._current_window != window:
+            self._counts = {}
+            self._current_window = window
+        if ip not in self._counts:
+            self._counts[ip] = 0
+        if self._counts[ip] >= 3:
+            raise RateLimitError()
+        self._counts[ip] += 1
 
 class InputError(ValueError):
     """See :ref:`InputError`.
