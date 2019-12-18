@@ -26,6 +26,7 @@ from micro.util import parse_isotime, randstr, str_or_none
 _USE_CASES = {
     'simple': {'title': 'New list', 'features': []},
     'todo': {'title': 'New to-do list', 'features': ['check', 'assign']},
+    'collection': {'title': 'New collection', 'features': []},
     'poll': {'title': 'New poll', 'features': ['vote'], 'mode': 'view'},
     'shopping': {'title': 'New shopping list', 'features': ['check']},
     'meeting-agenda': {'title': 'New meeting agenda', 'features': []},
@@ -41,6 +42,15 @@ _EXAMPLE_DATA = {
             {'title': 'Do research', 'checked': True},
             {'title': 'Create draft', 'user_assigned': True},
             {'title': 'Write report', 'text': 'Summary of the results'}
+        ]
+    ),
+    'collection': (
+        'Team members',
+        'Our lovely team. If something is wrong or missing, please feel free to correct it.',
+        [
+            {'title': 'Rosa', 'text': 'Email: rosa@example.org'},
+            {'title': 'Sven', 'text': 'Website: https://noyainrain.github.io/', 'resource': 'https://noyainrain.github.io/'},
+            {'title': 'Robin'},
         ]
     ),
     'poll': (
