@@ -17,7 +17,7 @@
 
             <div class="micro-ui-header-fill"></div>
 
-            <ul is="micro-menu" class="micro-ui-menu micro-secondary micro-interactive">
+            <!--<ul is="micro-menu" class="micro-ui-menu micro-secondary micro-interactive">
                 <li class="micro-ui-header-user">
                     <button class="link"><micro-user data-user="user"></micro-user></button>
                     <ul is="micro-menu">
@@ -28,15 +28,37 @@
                         </li>
                     </ul>
                 </li>
-                <li class="micro-ui-header-menu">
-                    <button class="link"><i class="fa fa-fw fa-bars"></i></button>
-                    <ul is="micro-menu">
-                        <li class="micro-ui-about">
+            </ul>-->
+
+            <div class="micro-ui-menu micro-ui-header-menu micro-interactive">
+                <button class="link"><i class="fa fa-fw xfa-bars fa-user"></i></button>
+                <micro-contextual>
+                    <div class="micro-entity-list">
+                    <ul>
+                        <li class="micro-ui-header-user micro-panel">
+                            <p>
+                                <micro-user data-user="user"></micro-user>
+                                <small>Hi there!</small>
+                                <!--<small data-content="format '{n} lists' 'n' user.lists.count"></small>-->
+                            </p>
+                            <!--<p>
+                                <small style="margin: 0 0 calc(1.5rem / 4) 0">Logged in as</small>
+                                <micro-user data-user="user"></micro-user>
+                            </p>-->
+                            <!--<a class="link" href="/"><micro-user data-user="user"></micro-user></a>-->
+                            <!--<p><micro-user data-user="user"></micro-user></p>-->
+                        </li>
+                        <li class="micro-ui-edit-user micro-panel">
+                            <a class="action" href="/user/edit" data-shortcut="new Shortcut 'N,U'">
+                                <i class="fa fa-fw fa-wrench"></i> Edit user settings
+                            </a>
+                        </li>
+                        <li class="micro-ui-about micro-panel">
                             <a class="link" href="/about" data-shortcut="new Shortcut 'N,A'">
                                 <i class="fa fa-fw fa-info-circle"></i> About
                             </a>
                         </li>
-                        <li class="micro-ui-feedback">
+                        <li class="micro-ui-feedback micro-panel">
                             <a
                                 class="link" data-href="settings.feedback_url"
                                 data-shortcut="new Shortcut 'N,F'"
@@ -45,17 +67,20 @@
                                 help
                             </a>
                         </li>
-                        <li class="micro-ui-analytics">
+                        <!--<li class="micro-panel">
+                            <p class="micro-small">STAFF</p>
+                        </li>-->
+                        <li class="micro-ui-analytics micro-panel">
                             <a class="link" href="/analytics" data-shortcut="new Shortcut 'N,I'">
                                 <i class="fa fa-fw fa-chart-line"></i> Analytics
                             </a>
                         </li>
-                        <li class="micro-ui-activity">
+                        <li class="micro-ui-activity micro-panel">
                             <a class="link" href="/activity" data-shortcut="new Shortcut 'N,H'">
                                 <i class="fa fa-fw fa-history"></i> Activity
                             </a>
                         </li>
-                        <li class="micro-ui-edit-settings">
+                        <li class="micro-ui-edit-settings micro-panel">
                             <a class="action" href="/settings/edit"
                                data-shortcut="new Shortcut 'N,C'">
                                 <i class="fa fa-fw fa-wrench"></i> Edit site settings
@@ -73,14 +98,24 @@
                             </ul>
                         </li>
                     </ul>
-                </li>
-            </ul>
+                    </div>
+                </micro-contextual>
+            </div>
         </nav>
 
         <div class="micro-ui-notification-space"></div>
     </header>
 </template>
 <style>
+    /*.micro-entity-list > ul > li.micro-ui-edit-user:not(:empty) + li:not(:empty) {
+        border-top-width: 2px;
+    }*/
+
+    /*.micro-ui-menu micro-user i {
+        width: 1.25em;
+        text-align: center;
+    }*/
+
     body[noninteractive] .micro-interactive {
         display: none;
     }

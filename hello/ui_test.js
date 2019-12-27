@@ -72,7 +72,7 @@ describe("UI", function() {
         // )
 
         // Edit user
-        await browser.findElement({css: ".micro-ui-header-user"}).click();
+        await browser.findElement({css: ".micro-ui-header-menu"}).click();
         await browser.findElement({css: ".micro-ui-edit-user"}).click();
         await browser.wait(
             untilElementTextLocated({css: "micro-edit-user-page h1"}, "Edit user settings"),
@@ -82,6 +82,7 @@ describe("UI", function() {
         await input.clear();
         await input.sendKeys("Happy");
         await form.findElement({css: "button"}).click();
+        await browser.findElement({css: ".micro-ui-header-menu"}).click();
         await browser.wait(
             until.elementTextContains(
                 await browser.findElement({css: ".micro-ui-header micro-user"}),

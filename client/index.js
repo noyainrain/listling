@@ -145,9 +145,12 @@ micro.UI = class extends HTMLBodyElement {
         this.insertBefore(
             document.importNode(this.querySelector(".micro-ui-template").content, true),
             this.querySelector("main"));
-        this.querySelector(".micro-ui-header-menu > ul").prepend(
+        for (let elem of this.querySelectorAll("[slot=menu]")) {
+            this.querySelector(".micro-ui-about").insertAdjacentElement("beforebegin", elem);
+        }
+        /*this.querySelector(".micro-ui-header-menu ul").prepend(
             ...this.querySelectorAll("[slot=menu]")
-        );
+        );*/
 
         this._data = new micro.bind.Watchable({
             user: null,
