@@ -361,6 +361,7 @@ listling.ListPage = class extends micro.Page {
                 if (["#play", "#presentation+play"].includes(location.hash)) {
                     if (this._data.playlist) {
                         this._data.playlistPlayPause();
+                        this._data.playlistIdle = true;
                     }
                 }
             }
