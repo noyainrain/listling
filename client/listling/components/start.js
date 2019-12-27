@@ -36,7 +36,7 @@ listling.components.start.createList = async function(useCase) {
 listling.components.start.getUseCases = function() {
     return [
         {id: "todo", title: "To-Do list", icon: "check"},
-        {id: "collection", title: "Collection", icon: "archive"},
+        {id: "collection", title: "Notes", icon: "sticky-note"},
         {id: "poll", title: "Poll", icon: "poll"},
         {id: "shopping", title: "Shopping list", icon: "shopping-cart"},
         {id: "meeting-agenda", title: "Meeting agenda", icon: "handshake"},

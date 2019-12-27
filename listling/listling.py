@@ -26,7 +26,7 @@ from micro.util import parse_isotime, randstr, str_or_none
 _USE_CASES = {
     'simple': {'title': 'New list', 'features': []},
     'todo': {'title': 'New to-do list', 'features': ['check', 'assign']},
-    'collection': {'title': 'New collection', 'features': []},
+    'collection': {'title': 'New notes', 'features': []},
     'poll': {'title': 'New poll', 'features': ['vote'], 'mode': 'view'},
     'shopping': {'title': 'New shopping list', 'features': ['check']},
     'meeting-agenda': {'title': 'New meeting agenda', 'features': []},
