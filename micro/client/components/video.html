@@ -125,7 +125,7 @@ micro.components.VideoElement = class extends HTMLElement {
                     elem,
                     {
                         videoId,
-                        playerVars: {controls: 0, disablekb: 1, end},
+                        playerVars: {controls: 0, disablekb: 1, end, cc_load_policy: 1},
                         events: {onReady: event => resolve(event.target)}
                     }
                 );
