@@ -119,13 +119,13 @@ micro.components.VideoElement = class extends HTMLElement {
             return p;
         }
 
-        function createPlayer(elem, videoId) {
+        function createPlayer(elem, videoId, end) {
             return new Promise(resolve => {
                 new YT.Player(
                     elem,
                     {
                         videoId,
-                        playerVars: {controls: 0, disablekb: 1},
+                        playerVars: {controls: 0, disablekb: 1, end},
                         events: {onReady: event => resolve(event.target)}
                     }
                 );
@@ -134,9 +134,10 @@ micro.components.VideoElement = class extends HTMLElement {
 
         await importYT();
         const videoId = new URL(this._data.video.url).searchParams.get("v");
+        const end = new URL(this._data.video.url).searchParams.get("end");
         const div = document.createElement("div");
         this.querySelector("div").appendChild(div);
-        const player = await createPlayer(div, videoId);
+        const player = await createPlayer(div, videoId, end);
         player.cleanUp = () => {
             player.destroy();
             div.remove();

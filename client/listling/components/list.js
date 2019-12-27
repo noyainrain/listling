@@ -571,13 +571,18 @@ listling.components.list.Playable = class {
         if (this._playableResource) {
             this._resourceElement.addEventListener("play", this._onPlay);
             this._resourceElement.addEventListener("pause", this._onPause);
+            this._resourceElement.video.url =
+                `${this._resourceElement.video.url}&end=${listling.components.list.Playable.MAX_DURATION}`;
         }
         this._renderProgress();
     }
 
     get duration() {
+        // return this._playableResource
+        //     ? this._resourceElement.duration : listling.components.list.Playable.STATIC_DURATION;
         return this._playableResource
-            ? this._resourceElement.duration : listling.components.list.Playable.STATIC_DURATION;
+            ? Math.min(this._resourceElement.duration, listling.components.list.Playable.MAX_DURATION)
+            : listling.components.list.Playable.STATIC_DURATION;
     }
 
     get time() {
@@ -647,3 +652,4 @@ listling.components.list.Playable = class {
 };
 
 listling.components.list.Playable.STATIC_DURATION = 20;
+listling.components.list.Playable.MAX_DURATION = 5 * 60;
