@@ -292,12 +292,6 @@ micro.UI = class extends HTMLBodyElement {
             }
         };
         go().catch(micro.util.catch);
-
-        setInterval(async () => {
-            const result = await micro.call("GET", "/api/co2");
-            this._data.co2 = result.data[0];
-            this._data.temp = result.data[1];
-        }, 10000);
     }
 
     /** Current URL. Set to rewrite the browser URL. */

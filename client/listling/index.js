@@ -362,6 +362,12 @@ listling.ListPage = class extends micro.Page {
                     if (this._data.playlist) {
                         this._data.playlistPlayPause();
                         this._data.playlistIdle = true;
+                        setInterval(async () => {
+                            console.log("AUTOPLAY INTERVAL");
+                            const result = await micro.call("GET", "/api/co2");
+                            ui._data.co2 = result.data[0];
+                            ui._data.temp = result.data[1];
+                        }, 10000);
                     }
                 }
             }
