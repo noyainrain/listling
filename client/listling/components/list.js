@@ -385,6 +385,7 @@ listling.components.list.Playlist = class {
         this._data = this.page._data;
         this._itemsOL = this.page.querySelector(".listling-list-items");
         this._current = this._itemsOL.firstElementChild;
+        this._idleNext = this._itemsOL.firstElementChild;
 
         Object.assign(this._data, {
             playlistPlaying: false,
@@ -407,9 +408,12 @@ listling.components.list.Playlist = class {
                 if (!this._current) {
                     return;
                 }
-                const item = this._current.nextElementSibling || this._itemsOL.firstElementChild;
+                let item = this._current.nextElementSibling || this._itemsOL.firstElementChild;
                 if (this._current.nextElementSibling === null) {
-                    this._data.playlistIdle = true;
+                    if (!this._data.playlistIdle) {
+                        this._data.playlistIdle = true;
+                        item = this._idleNext;
+                    }
                 }
                 item.playable.play();
             },
@@ -447,6 +451,7 @@ listling.components.list.Playlist = class {
             // Handle empty list
             if (!this._current && this._itemsOL.hasChildNodes()) {
                 this._current = this._itemsOL.firstElementChild;
+                this._idleNext = this._itemsOL.firstElementChild;
             } else if (this._current && !this._itemsOL.hasChildNodes()) {
                 this._current = null;
                 this._data.playlistPlaying = false;
@@ -465,6 +470,9 @@ listling.components.list.Playlist = class {
                             this._current.playable.play();
                         }
                     }
+                    if (node === this._idleNext) {
+                        this._idleNext = record.nextSibling || this._itemsOL.firstElementChild;
+                    }
                 }
             }
         });
@@ -474,6 +482,7 @@ listling.components.list.Playlist = class {
             this._onListItemsCreate = () => {
                 if (this._data.playlistIdle) {
                     this._data.playlistIdle = false;
+                    this._idleNext = this._current;
                     this._itemsOL.lastElementChild.playable.play();
                 }
             };
