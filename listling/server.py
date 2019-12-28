@@ -58,7 +58,8 @@ def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='',
         (r'/api/lists/([^/]+)/items/([^/]+)/votes', _ItemVotesEndpoint),
         (r'/api/lists/([^/]+)/items/([^/]+)/votes/user', _ItemVoteEndpoint),
         # UI
-        (r'/lists/([^/]+)(?:/[^/]+)?$', _ListPage)
+        (r'/lists/([^/]+)(?:/[^/]+)?$', _ListPage),
+        (r'/api/co2$', _CO2Endpoint)
     ]
     return Server(app, handlers, port=port, url=url, debug=debug, client_config={
         'modules_path': 'node_modules',
@@ -246,3 +247,14 @@ class _ListPage(UI):
             'og:title': lst.title,
             'og:description': description
         }
+
+import socket
+import tornado
+
+class _CO2Endpoint(Endpoint):
+    async def get(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+        stream = tornado.iostream.IOStream(s)
+        await stream.connect(("151.217.138.29", 5000)) #, send_request)
+        result = await stream.read_until_close()
+        self.write({'data': result.decode().split()})

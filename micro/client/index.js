@@ -155,7 +155,9 @@ micro.UI = class extends HTMLBodyElement {
         this._data = new micro.bind.Watchable({
             user: null,
             settings: null,
-            offline: false
+            offline: false,
+            temp: 0,
+            co2: 0
         });
         micro.bind.bind(this.children, this._data);
 
@@ -290,6 +292,12 @@ micro.UI = class extends HTMLBodyElement {
             }
         };
         go().catch(micro.util.catch);
+
+        setInterval(async () => {
+            const result = await micro.call("GET", "/api/co2");
+            this._data.co2 = result.data[0];
+            this._data.temp = result.data[1];
+        }, 10000);
     }
 
     /** Current URL. Set to rewrite the browser URL. */
