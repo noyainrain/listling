@@ -62,7 +62,7 @@ def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='',
         'service_path': 'listling/service.js',
         'shell': ['listling.css', 'listling', 'images'],
         'map_service_key': client_map_service_key,
-        'description': 'Service to make and edit lists collaboratively. Free, simple and no registration required.',
+        'description': 'Make and edit lists collaboratively. Free, simple and no registration required.',
         'color': '#4d8dd9'
     })
 
