@@ -1,12 +1,10 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>3. Python API &#8212; Open Listling 0.24.1 documentation</title>
+    <meta charset="utf-8" />
+    <title>3. Python API &#8212; Open Listling 0.25.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -36,27 +34,176 @@
           <div class="body" role="main">
             
   <div class="section" id="python-api">
-<h1>3. Python API<a class="headerlink" href="#python-api" title="Permalink to this headline">¶</a></h1>
+<h1><span class="section-number">3. </span>Python API<a class="headerlink" href="#python-api" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-listling">
-<span id="listling"></span><h2>3.1. listling<a class="headerlink" href="#module-listling" title="Permalink to this headline">¶</a></h2>
+<span id="listling"></span><h2><span class="section-number">3.1. </span>listling<a class="headerlink" href="#module-listling" title="Permalink to this headline">¶</a></h2>
 <p>Web app to make and edit lists collaboratively.</p>
 <dl class="class">
+<dt id="listling.Item">
+<em class="property">class </em><code class="sig-prename descclassname">listling.</code><code class="sig-name descname">Item</code><span class="sig-paren">(</span><em class="sig-param">*</em>, <em class="sig-param">id</em>, <em class="sig-param">app</em>, <em class="sig-param">authors</em>, <em class="sig-param">trashed</em>, <em class="sig-param">text</em>, <em class="sig-param">resource</em>, <em class="sig-param">list_id</em>, <em class="sig-param">title</em>, <em class="sig-param">location</em>, <em class="sig-param">checked</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#item"><span class="std std-ref">Item</span></a>.</p>
+<dl class="class">
+<dt id="listling.Item.Assignees">
+<em class="property">class </em><code class="sig-name descname">Assignees</code><span class="sig-paren">(</span><em class="sig-param">item</em>, <em class="sig-param">*</em>, <em class="sig-param">app</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Assignees" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#itemassignees"><span class="std std-ref">Assignees</span></a>.</p>
+<dl class="method">
+<dt id="listling.Item.Assignees.assign">
+<code class="sig-name descname">assign</code><span class="sig-paren">(</span><em class="sig-param">assignee</em>, <em class="sig-param">*</em>, <em class="sig-param">user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Assignees.assign" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#post--api-lists-(list-id)-items-(id)-assignees" title="POST /api/lists/(list-id)/items/(id)/assignees"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/lists/(list-id)/items/(id)/assignees</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="listling.Item.Assignees.unassign">
+<code class="sig-name descname">unassign</code><span class="sig-paren">(</span><em class="sig-param">assignee</em>, <em class="sig-param">*</em>, <em class="sig-param">user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Assignees.unassign" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#delete--api-lists-(list-id)-items-(id)-assignees-(assignee-id)" title="DELETE /api/lists/(list-id)/items/(id)/assignees/(assignee-id)"><code class="xref http http-delete docutils literal notranslate"><span class="pre">DELETE</span> <span class="pre">/api/lists/(list-id)/items/(id)/assignees/(assignee-id)</span></code></a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="listling.Item.Votes">
+<em class="property">class </em><code class="sig-name descname">Votes</code><span class="sig-paren">(</span><em class="sig-param">item</em>, <em class="sig-param">*</em>, <em class="sig-param">app</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Votes" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#itemvotes"><span class="std std-ref">Votes</span></a>.</p>
+<dl class="method">
+<dt id="listling.Item.Votes.vote">
+<code class="sig-name descname">vote</code><span class="sig-paren">(</span><em class="sig-param">*</em>, <em class="sig-param">user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Votes.vote" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#post--api-lists-(list-id)-items-(id)-votes" title="POST /api/lists/(list-id)/items/(id)/votes"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/lists/(list-id)/items/(id)/votes</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="listling.Item.Votes.unvote">
+<code class="sig-name descname">unvote</code><span class="sig-paren">(</span><em class="sig-param">*</em>, <em class="sig-param">user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Votes.unvote" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#delete--api-lists-(list-id)-items-(id)-votes-user" title="DELETE /api/lists/(list-id)/items/(id)/votes/user"><code class="xref http http-delete docutils literal notranslate"><span class="pre">DELETE</span> <span class="pre">/api/lists/(list-id)/items/(id)/votes/user</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="listling.Item.Votes.has_user_voted">
+<code class="sig-name descname">has_user_voted</code><span class="sig-paren">(</span><em class="sig-param">user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Votes.has_user_voted" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#itemvotes"><span class="std std-ref">Votes</span></a> <em>user_voted</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="listling.Item.Votes.json">
+<code class="sig-name descname">json</code><span class="sig-paren">(</span><em class="sig-param">restricted=False</em>, <em class="sig-param">include=False</em>, <em class="sig-param">*</em>, <em class="sig-param">slc=None</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Votes.json" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <code class="xref py py-meth docutils literal notranslate"><span class="pre">JSONifiable.json()</span></code>.</p>
+<p><em>slc</em> is a slice of items to include, if any.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="method">
+<dt id="listling.Item.delete">
+<code class="sig-name descname">delete</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subclass API: Permanently delete the object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="listling.Item.check">
+<code class="sig-name descname">check</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.check" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#post--api-lists-(list-id)-items-(id)-check" title="POST /api/lists/(list-id)/items/(id)/check"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/lists/(list-id)/items/(id)/check</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="listling.Item.uncheck">
+<code class="sig-name descname">uncheck</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.uncheck" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#post--api-lists-(list-id)-items-(id)-uncheck" title="POST /api/lists/(list-id)/items/(id)/uncheck"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/lists/(list-id)/items/(id)/uncheck</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="listling.Item.do_edit">
+<em class="property">async </em><code class="sig-name descname">do_edit</code><span class="sig-paren">(</span><em class="sig-param">**attrs</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.do_edit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subclass API: Perform the edit operation.</p>
+<p>More precisely, validate and then set the given <em>attrs</em>.</p>
+<p>Must be overridden by host. Called by <code class="xref py py-meth docutils literal notranslate"><span class="pre">edit()</span></code>, which takes care of basic permission
+checking, managing <em>authors</em> and storing the updated object in the database.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="listling.Item.trash">
+<code class="sig-name descname">trash</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.trash" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#post--api-(object-url)-trash" title="POST /api/(object-url)/trash"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/(object-url)/trash</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="listling.Item.restore">
+<code class="sig-name descname">restore</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.restore" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#post--api-(object-url)-restore" title="POST /api/(object-url)/restore"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/(object-url)/restore</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="listling.Item.json">
+<code class="sig-name descname">json</code><span class="sig-paren">(</span><em class="sig-param">restricted=False</em>, <em class="sig-param">include=False</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.json" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <code class="xref py py-meth docutils literal notranslate"><span class="pre">JSONifiable.json()</span></code>.</p>
+<p>Subclass API: May be overridden by subclass. The default implementation returns the
+attributes of <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code>. <em>restricted</em> and <em>include</em> are ignored.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="listling.List">
+<em class="property">class </em><code class="sig-prename descclassname">listling.</code><code class="sig-name descname">List</code><span class="sig-paren">(</span><em class="sig-param">*</em>, <em class="sig-param">id</em>, <em class="sig-param">app</em>, <em class="sig-param">authors</em>, <em class="sig-param">title</em>, <em class="sig-param">description</em>, <em class="sig-param">features</em>, <em class="sig-param">mode</em>, <em class="sig-param">activity</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#list"><span class="std std-ref">List</span></a>.</p>
+<dl class="class">
+<dt id="listling.List.Items">
+<em class="property">class </em><code class="sig-name descname">Items</code><span class="sig-paren">(</span><em class="sig-param">*args: object, check: Callable[[Union[int, slice, str]], None] = None, expect: Callable[[object], O] = &lt;function expect_type.&lt;locals&gt;._f&gt;, **kwargs: object</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List.Items" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#items"><span class="std std-ref">Items</span></a>.</p>
+<dl class="method">
+<dt id="listling.List.Items.create">
+<em class="property">async </em><code class="sig-name descname">create</code><span class="sig-paren">(</span><em class="sig-param">title</em>, <em class="sig-param">*</em>, <em class="sig-param">text=None</em>, <em class="sig-param">resource=None</em>, <em class="sig-param">location=None</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List.Items.create" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#post--api-lists-(id)-items" title="POST /api/lists/(id)/items"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/lists/(id)/items</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="listling.List.Items.move">
+<code class="sig-name descname">move</code><span class="sig-paren">(</span><em class="sig-param">item</em>, <em class="sig-param">to</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List.Items.move" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#post--api-(collection-path)-move" title="POST /api/(collection-path)/move"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/(collection-path)/move</span></code></a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="method">
+<dt id="listling.List.users">
+<code class="sig-name descname">users</code><span class="sig-paren">(</span><em class="sig-param">name=''</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List.users" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#get--api-lists-(id)-users?name=" title="GET /api/lists/(id)/users?name="><code class="xref http http-get docutils literal notranslate"><span class="pre">GET</span> <span class="pre">/api/lists/(id)/users?name=</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="listling.List.do_edit">
+<code class="sig-name descname">do_edit</code><span class="sig-paren">(</span><em class="sig-param">**attrs</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List.do_edit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subclass API: Perform the edit operation.</p>
+<p>More precisely, validate and then set the given <em>attrs</em>.</p>
+<p>Must be overridden by host. Called by <code class="xref py py-meth docutils literal notranslate"><span class="pre">edit()</span></code>, which takes care of basic permission
+checking, managing <em>authors</em> and storing the updated object in the database.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="listling.List.json">
+<code class="sig-name descname">json</code><span class="sig-paren">(</span><em class="sig-param">restricted=False</em>, <em class="sig-param">include=False</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List.json" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <code class="xref py py-meth docutils literal notranslate"><span class="pre">JSONifiable.json()</span></code>.</p>
+<p>Subclass API: May be overridden by subclass. The default implementation returns the
+attributes of <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code>. <em>restricted</em> and <em>include</em> are ignored.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="listling.Listling">
-<em class="property">class </em><code class="descclassname">listling.</code><code class="descname">Listling</code><span class="sig-paren">(</span><em>redis_url=''</em>, <em>email='bot&#64;localhost'</em>, <em>smtp_url=''</em>, <em>render_email_auth_message=None</em>, <em>*</em>, <em>video_service_keys={}</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">listling.</code><code class="sig-name descname">Listling</code><span class="sig-paren">(</span><em class="sig-param">redis_url=''</em>, <em class="sig-param">email='bot&#64;localhost'</em>, <em class="sig-param">smtp_url=''</em>, <em class="sig-param">render_email_auth_message=None</em>, <em class="sig-param">*</em>, <em class="sig-param">video_service_keys={}</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#listling"><span class="std std-ref">Listling</span></a>.</p>
 <dl class="class">
 <dt id="listling.Listling.Lists">
-<em class="property">class </em><code class="descname">Lists</code><span class="sig-paren">(</span><em>*args, check: Callable[[Union[int, slice, str]], None] = None, expect: Callable[[object], O] = &lt;function expect_type.&lt;locals&gt;._f&gt;, **kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling.Lists" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-name descname">Lists</code><span class="sig-paren">(</span><em class="sig-param">*args: object, check: Callable[[Union[int, slice, str]], None] = None, expect: Callable[[object], O] = &lt;function expect_type.&lt;locals&gt;._f&gt;, **kwargs: object</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling.Lists" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#id26"><span class="std std-ref">Lists</span></a>.</p>
 <dl class="method">
 <dt id="listling.Listling.Lists.create">
-<code class="descname">create</code><span class="sig-paren">(</span><em>use_case='simple'</em>, <em>*</em>, <em>v=2</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling.Lists.create" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">create</code><span class="sig-paren">(</span><em class="sig-param">use_case='simple'</em>, <em class="sig-param">*</em>, <em class="sig-param">v=2</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling.Lists.create" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#post--api-lists" title="POST /api/lists"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/lists</span></code></a>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="listling.Listling.Lists.create_example">
-<code class="descname">create_example</code><span class="sig-paren">(</span><em>use_case</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling.Lists.create_example" title="Permalink to this definition">¶</a></dt>
+<em class="property">async </em><code class="sig-name descname">create_example</code><span class="sig-paren">(</span><em class="sig-param">use_case</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling.Lists.create_example" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#post--api-lists-create-example" title="POST /api/lists/create-example"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/lists/create-example</span></code></a>.</p>
 </dd></dl>
 
@@ -64,7 +211,7 @@
 
 <dl class="method">
 <dt id="listling.Listling.do_update">
-<code class="descname">do_update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling.do_update" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">do_update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling.do_update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Subclass API: Perform the database update.</p>
 <p>May be overridden by subclass. Called by <code class="xref py py-meth docutils literal notranslate"><span class="pre">update()</span></code>, which takes care of updating (or
 initializing) micro specific data. The default implementation does nothing.</p>
@@ -72,7 +219,7 @@ initializing) micro specific data. The default implementation does nothing.</p>
 
 <dl class="method">
 <dt id="listling.Listling.create_user">
-<code class="descname">create_user</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling.create_user" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">create_user</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling.create_user" title="Permalink to this definition">¶</a></dt>
 <dd><p>Subclass API: Create a new user.</p>
 <p><em>data</em> is the JSON data required for <a class="reference internal" href="#listling.User" title="listling.User"><code class="xref py py-class docutils literal notranslate"><span class="pre">User</span></code></a>.</p>
 <p>May be overridden by subclass. Called by <code class="xref py py-meth docutils literal notranslate"><span class="pre">login()</span></code> for new users, which takes care of
@@ -81,7 +228,7 @@ storing the object. By default, a standard <a class="reference internal" href="#
 
 <dl class="method">
 <dt id="listling.Listling.create_settings">
-<code class="descname">create_settings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling.create_settings" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">create_settings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling.create_settings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Subclass API: Create and return the app <code class="xref py py-class docutils literal notranslate"><span class="pre">Settings</span></code>.</p>
 <p><em>id</em> must be set to <code class="docutils literal notranslate"><span class="pre">Settings</span></code>.</p>
 <p>Must be overridden by subclass. Called by <code class="xref py py-meth docutils literal notranslate"><span class="pre">update()</span></code> when initializing the database.</p>
@@ -91,28 +238,28 @@ storing the object. By default, a standard <a class="reference internal" href="#
 
 <dl class="class">
 <dt id="listling.User">
-<em class="property">class </em><code class="descclassname">listling.</code><code class="descname">User</code><span class="sig-paren">(</span><em>*</em>, <em>app</em>, <em>**data</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.User" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">listling.</code><code class="sig-name descname">User</code><span class="sig-paren">(</span><em class="sig-param">*</em>, <em class="sig-param">app</em>, <em class="sig-param">**data</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.User" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#user"><span class="std std-ref">User</span></a>.</p>
 <dl class="class">
 <dt id="listling.User.Lists">
-<em class="property">class </em><code class="descname">Lists</code><span class="sig-paren">(</span><em>user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.User.Lists" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-name descname">Lists</code><span class="sig-paren">(</span><em class="sig-param">user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.User.Lists" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#userlists"><span class="std std-ref">Lists</span></a>.</p>
 <dl class="method">
 <dt id="listling.User.Lists.add">
-<code class="descname">add</code><span class="sig-paren">(</span><em>lst</em>, <em>*</em>, <em>user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.User.Lists.add" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">add</code><span class="sig-paren">(</span><em class="sig-param">lst</em>, <em class="sig-param">*</em>, <em class="sig-param">user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.User.Lists.add" title="Permalink to this definition">¶</a></dt>
 <dd><p>See: <a class="reference internal" href="webapi.html#post--users-(id)-lists" title="POST /users/(id)/lists"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/users/(id)/lists</span></code></a>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="listling.User.Lists.remove">
-<code class="descname">remove</code><span class="sig-paren">(</span><em>lst</em>, <em>*</em>, <em>user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.User.Lists.remove" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">remove</code><span class="sig-paren">(</span><em class="sig-param">lst</em>, <em class="sig-param">*</em>, <em class="sig-param">user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.User.Lists.remove" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#delete--users-(id)-lists-(list-id)" title="DELETE /users/(id)/lists/(list-id)"><code class="xref http http-delete docutils literal notranslate"><span class="pre">DELETE</span> <span class="pre">/users/(id)/lists/(list-id)</span></code></a>.</p>
 <p>If <em>lst</em> is not in the collection, a <code class="xref py py-exc docutils literal notranslate"><span class="pre">micro.error.ValueError</span></code> is raised.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="listling.User.Lists.read">
-<code class="descname">read</code><span class="sig-paren">(</span><em>*</em>, <em>user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.User.Lists.read" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param">*</em>, <em class="sig-param">user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.User.Lists.read" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return collection for reading.</p>
 </dd></dl>
 
@@ -120,168 +267,19 @@ storing the object. By default, a standard <a class="reference internal" href="#
 
 <dl class="method">
 <dt id="listling.User.json">
-<code class="descname">json</code><span class="sig-paren">(</span><em>restricted=False</em>, <em>include=False</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.User.json" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">json</code><span class="sig-paren">(</span><em class="sig-param">restricted=False</em>, <em class="sig-param">include=False</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.User.json" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <code class="xref py py-meth docutils literal notranslate"><span class="pre">Object.json()</span></code>.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="listling.List">
-<em class="property">class </em><code class="descclassname">listling.</code><code class="descname">List</code><span class="sig-paren">(</span><em>*</em>, <em>id</em>, <em>app</em>, <em>authors</em>, <em>title</em>, <em>description</em>, <em>features</em>, <em>mode</em>, <em>activity</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#list"><span class="std std-ref">List</span></a>.</p>
-<dl class="class">
-<dt id="listling.List.Items">
-<em class="property">class </em><code class="descname">Items</code><span class="sig-paren">(</span><em>*args, check: Callable[[Union[int, slice, str]], None] = None, expect: Callable[[object], O] = &lt;function expect_type.&lt;locals&gt;._f&gt;, **kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List.Items" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#items"><span class="std std-ref">Items</span></a>.</p>
-<dl class="method">
-<dt id="listling.List.Items.move">
-<code class="descname">move</code><span class="sig-paren">(</span><em>item</em>, <em>to</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List.Items.move" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#post--api-(collection-path)-move" title="POST /api/(collection-path)/move"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/(collection-path)/move</span></code></a>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="listling.List.Items.create">
-<code class="descname">create</code><span class="sig-paren">(</span><em>title</em>, <em>*</em>, <em>text=None</em>, <em>resource=None</em>, <em>location=None</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List.Items.create" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#post--api-lists-(id)-items" title="POST /api/lists/(id)/items"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/lists/(id)/items</span></code></a>.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="method">
-<dt id="listling.List.users">
-<code class="descname">users</code><span class="sig-paren">(</span><em>name=''</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List.users" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#get--api-lists-(id)-users?name=" title="GET /api/lists/(id)/users?name="><code class="xref http http-get docutils literal notranslate"><span class="pre">GET</span> <span class="pre">/api/lists/(id)/users?name=</span></code></a>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="listling.List.do_edit">
-<code class="descname">do_edit</code><span class="sig-paren">(</span><em>**attrs</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List.do_edit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Subclass API: Perform the edit operation.</p>
-<p>More precisely, validate and then set the given <em>attrs</em>.</p>
-<p>Must be overridden by host. Called by <code class="xref py py-meth docutils literal notranslate"><span class="pre">edit()</span></code>, which takes care of basic permission
-checking, managing <em>authors</em> and storing the updated object in the database.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="listling.List.json">
-<code class="descname">json</code><span class="sig-paren">(</span><em>restricted=False</em>, <em>include=False</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List.json" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <code class="xref py py-meth docutils literal notranslate"><span class="pre">JSONifiable.json()</span></code>.</p>
-<p>Subclass API: May be overridden by subclass. The default implementation returns the
-attributes of <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code>. <em>restricted</em> and <em>include</em> are ignored.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="listling.Item">
-<em class="property">class </em><code class="descclassname">listling.</code><code class="descname">Item</code><span class="sig-paren">(</span><em>*</em>, <em>id</em>, <em>app</em>, <em>authors</em>, <em>trashed</em>, <em>text</em>, <em>resource</em>, <em>list_id</em>, <em>title</em>, <em>location</em>, <em>checked</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#item"><span class="std std-ref">Item</span></a>.</p>
-<dl class="class">
-<dt id="listling.Item.Assignees">
-<em class="property">class </em><code class="descname">Assignees</code><span class="sig-paren">(</span><em>item</em>, <em>*</em>, <em>app</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Assignees" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#itemassignees"><span class="std std-ref">Assignees</span></a>.</p>
-<dl class="method">
-<dt id="listling.Item.Assignees.assign">
-<code class="descname">assign</code><span class="sig-paren">(</span><em>assignee</em>, <em>*</em>, <em>user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Assignees.assign" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#post--api-lists-(list-id)-items-(id)-assignees" title="POST /api/lists/(list-id)/items/(id)/assignees"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/lists/(list-id)/items/(id)/assignees</span></code></a>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="listling.Item.Assignees.unassign">
-<code class="descname">unassign</code><span class="sig-paren">(</span><em>assignee</em>, <em>*</em>, <em>user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Assignees.unassign" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#delete--api-lists-(list-id)-items-(id)-assignees-(assignee-id)" title="DELETE /api/lists/(list-id)/items/(id)/assignees/(assignee-id)"><code class="xref http http-delete docutils literal notranslate"><span class="pre">DELETE</span> <span class="pre">/api/lists/(list-id)/items/(id)/assignees/(assignee-id)</span></code></a>.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="listling.Item.Votes">
-<em class="property">class </em><code class="descname">Votes</code><span class="sig-paren">(</span><em>item</em>, <em>*</em>, <em>app</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Votes" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#itemvotes"><span class="std std-ref">Votes</span></a>.</p>
-<dl class="method">
-<dt id="listling.Item.Votes.vote">
-<code class="descname">vote</code><span class="sig-paren">(</span><em>*</em>, <em>user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Votes.vote" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#post--api-lists-(list-id)-items-(id)-votes" title="POST /api/lists/(list-id)/items/(id)/votes"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/lists/(list-id)/items/(id)/votes</span></code></a>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="listling.Item.Votes.unvote">
-<code class="descname">unvote</code><span class="sig-paren">(</span><em>*</em>, <em>user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Votes.unvote" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#delete--api-lists-(list-id)-items-(id)-votes-user" title="DELETE /api/lists/(list-id)/items/(id)/votes/user"><code class="xref http http-delete docutils literal notranslate"><span class="pre">DELETE</span> <span class="pre">/api/lists/(list-id)/items/(id)/votes/user</span></code></a>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="listling.Item.Votes.has_user_voted">
-<code class="descname">has_user_voted</code><span class="sig-paren">(</span><em>user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Votes.has_user_voted" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#itemvotes"><span class="std std-ref">Votes</span></a> <em>user_voted</em>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="listling.Item.Votes.json">
-<code class="descname">json</code><span class="sig-paren">(</span><em>restricted=False</em>, <em>include=False</em>, <em>*</em>, <em>slc=None</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Votes.json" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <code class="xref py py-meth docutils literal notranslate"><span class="pre">JSONifiable.json()</span></code>.</p>
-<p><em>slc</em> is a slice of items to include, if any.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="method">
-<dt id="listling.Item.delete">
-<code class="descname">delete</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.delete" title="Permalink to this definition">¶</a></dt>
-<dd><p>Subclass API: Permanently delete the object.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="listling.Item.check">
-<code class="descname">check</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.check" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#post--api-lists-(list-id)-items-(id)-check" title="POST /api/lists/(list-id)/items/(id)/check"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/lists/(list-id)/items/(id)/check</span></code></a>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="listling.Item.uncheck">
-<code class="descname">uncheck</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.uncheck" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#post--api-lists-(list-id)-items-(id)-uncheck" title="POST /api/lists/(list-id)/items/(id)/uncheck"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/lists/(list-id)/items/(id)/uncheck</span></code></a>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="listling.Item.trash">
-<code class="descname">trash</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.trash" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#post--api-(object-url)-trash" title="POST /api/(object-url)/trash"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/(object-url)/trash</span></code></a>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="listling.Item.restore">
-<code class="descname">restore</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.restore" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#post--api-(object-url)-restore" title="POST /api/(object-url)/restore"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/(object-url)/restore</span></code></a>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="listling.Item.json">
-<code class="descname">json</code><span class="sig-paren">(</span><em>restricted=False</em>, <em>include=False</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.json" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <code class="xref py py-meth docutils literal notranslate"><span class="pre">JSONifiable.json()</span></code>.</p>
-<p>Subclass API: May be overridden by subclass. The default implementation returns the
-attributes of <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code>. <em>restricted</em> and <em>include</em> are ignored.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="listling.Item.do_edit">
-<code class="descname">do_edit</code><span class="sig-paren">(</span><em>**attrs</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.do_edit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Subclass API: Perform the edit operation.</p>
-<p>More precisely, validate and then set the given <em>attrs</em>.</p>
-<p>Must be overridden by host. Called by <code class="xref py py-meth docutils literal notranslate"><span class="pre">edit()</span></code>, which takes care of basic permission
-checking, managing <em>authors</em> and storing the updated object in the database.</p>
 </dd></dl>
 
 </dd></dl>
 
 </div>
 <div class="section" id="module-listling.server">
-<span id="server"></span><h2>3.2. server<a class="headerlink" href="#module-listling.server" title="Permalink to this headline">¶</a></h2>
+<span id="server"></span><h2><span class="section-number">3.2. </span>server<a class="headerlink" href="#module-listling.server" title="Permalink to this headline">¶</a></h2>
 <p>Open Listling server.</p>
 <dl class="function">
 <dt id="listling.server.make_server">
-<code class="descclassname">listling.server.</code><code class="descname">make_server</code><span class="sig-paren">(</span><em>*</em>, <em>port=8080</em>, <em>url=None</em>, <em>debug=False</em>, <em>redis_url=''</em>, <em>smtp_url=''</em>, <em>video_service_keys={}</em>, <em>client_map_service_key=None</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.server.make_server" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">listling.server.</code><code class="sig-name descname">make_server</code><span class="sig-paren">(</span><em class="sig-param">*</em>, <em class="sig-param">port=8080</em>, <em class="sig-param">url=None</em>, <em class="sig-param">debug=False</em>, <em class="sig-param">redis_url=''</em>, <em class="sig-param">smtp_url=''</em>, <em class="sig-param">video_service_keys={}</em>, <em class="sig-param">client_map_service_key=None</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.server.make_server" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create an Open Listling server.</p>
 </dd></dl>
 
@@ -334,13 +332,11 @@ checking, managing <em>authors</em> and storing the updated object in the databa
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -353,7 +349,7 @@ checking, managing <em>authors</em> and storing the updated object in the databa
       &copy;2019 Open Listling contributors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

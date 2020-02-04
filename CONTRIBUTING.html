@@ -1,12 +1,10 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>4. Contributing to Open Listling &#8212; Open Listling 0.24.1 documentation</title>
+    <meta charset="utf-8" />
+    <title>4. Contributing to Open Listling &#8212; Open Listling 0.25.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -35,53 +33,54 @@
           <div class="body" role="main">
             
   <div class="section" id="contributing-to-open-listling">
-<h1>4. Contributing to Open Listling<a class="headerlink" href="#contributing-to-open-listling" title="Permalink to this headline">¶</a></h1>
+<h1><span class="section-number">4. </span>Contributing to Open Listling<a class="headerlink" href="#contributing-to-open-listling" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="how-to-contribute">
-<h2>4.1. How to contribute<a class="headerlink" href="#how-to-contribute" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">4.1. </span>How to contribute<a class="headerlink" href="#how-to-contribute" title="Permalink to this headline">¶</a></h2>
 <ol class="simple">
-<li>For any non-trivial contribution:<ol>
-<li><a class="reference external" href="https://github.com/noyainrain/listling/issues">Create an issue</a> describing the intended
-change [1]</li>
-<li>A team member reviews your draft. Make the requested changes, if any.</li>
+<li><p>For any non-trivial contribution:</p>
+<ol class="simple">
+<li><p><a class="reference external" href="https://github.com/noyainrain/listling/issues">Create an issue</a> describing the intended
+change [1]</p></li>
+<li><p>A team member reviews your draft. Make the requested changes, if any.</p></li>
 </ol>
 </li>
-<li>Create a topic branch</li>
-<li>Code…</li>
-<li><a class="reference external" href="https://github.com/noyainrain/listling/pulls">Create a pull request</a></li>
-<li>Travis CI runs the code quality checks. Fix the reported issues, if any.</li>
-<li>A team member reviews your contribution. Make the requested changes, if any.</li>
-<li>A team member merges your contribution \o/</li>
+<li><p>Create a topic branch</p></li>
+<li><p>Code…</p></li>
+<li><p><a class="reference external" href="https://github.com/noyainrain/listling/pulls">Create a pull request</a></p></li>
+<li><p>Travis CI runs the code quality checks. Fix the reported issues, if any.</p></li>
+<li><p>A team member reviews your contribution. Make the requested changes, if any.</p></li>
+<li><p>A team member merges your contribution \o/</p></li>
 </ol>
 <p>[1] A good description contains:</p>
 <ul class="simple">
-<li>If the API or web API is modified, any method signature (including the return value and possible
-errors) and object signature (including properties)</li>
-<li>If the UI is modified, a simple sketch</li>
-<li>If a new dependency is introduced, a short description of the dependency and possible alternatives
-and the reason why it is the best option</li>
+<li><p>If the API or web API is modified, any method signature (including the return value and possible
+errors) and object signature (including properties)</p></li>
+<li><p>If the UI is modified, a simple sketch</p></li>
+<li><p>If a new dependency is introduced, a short description of the dependency and possible alternatives
+and the reason why it is the best option</p></li>
 </ul>
 </div>
 <div class="section" id="requirements">
-<h2>4.2. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">4.2. </span>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
 <p>A supported browser (e.g. Firefox) along with a WebDriver implementation (e.g. geckodriver) are
 required for the UI tests and must be set up on your system.</p>
 </div>
 <div class="section" id="installing-development-dependencies">
-<h2>4.3. Installing development dependencies<a class="headerlink" href="#installing-development-dependencies" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">4.3. </span>Installing development dependencies<a class="headerlink" href="#installing-development-dependencies" title="Permalink to this headline">¶</a></h2>
 <p>To install the development dependencies for Open Listling, type:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make deps-dev
 </pre></div>
 </div>
 </div>
 <div class="section" id="running-the-unit-tests">
-<h2>4.4. Running the unit tests<a class="headerlink" href="#running-the-unit-tests" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">4.4. </span>Running the unit tests<a class="headerlink" href="#running-the-unit-tests" title="Permalink to this headline">¶</a></h2>
 <p>To run all unit tests, type:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make
 </pre></div>
 </div>
 </div>
 <div class="section" id="development-utilities">
-<h2>4.5. Development utilities<a class="headerlink" href="#development-utilities" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">4.5. </span>Development utilities<a class="headerlink" href="#development-utilities" title="Permalink to this headline">¶</a></h2>
 <p>The Makefile that comes with Open Listling provides additional utilities for different development
 tasks. To get an overview, type:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make <span class="nb">help</span>
@@ -89,7 +88,7 @@ tasks. To get an overview, type:</p>
 </div>
 </div>
 <div class="section" id="architecture-overview">
-<h2>4.6. Architecture overview<a class="headerlink" href="#architecture-overview" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">4.6. </span>Architecture overview<a class="headerlink" href="#architecture-overview" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>╭─────────╮
 │ Server  │
 ├─────────┤
@@ -162,13 +161,11 @@ tasks. To get an overview, type:</p>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -181,7 +178,7 @@ tasks. To get an overview, type:</p>
       &copy;2019 Open Listling contributors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>
