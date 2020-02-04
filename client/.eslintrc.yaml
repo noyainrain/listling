@@ -42,6 +42,7 @@ rules:
     arrow-parens:
         - error
         - as-needed
+    function-call-argument-newline: off
     implicit-arrow-linebreak: off
     multiline-ternary: off
     newline-per-chained-call: off
