@@ -4,14 +4,14 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>3. Python API &#8212; Open Listling 0.25.0 documentation</title>
+    <title>3. Python API &#8212; Open Listling 0.26.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="shortcut icon" href="_static/icon-small.png"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -84,7 +84,7 @@
 
 <dl class="method">
 <dt id="listling.Item.Votes.json">
-<code class="sig-name descname">json</code><span class="sig-paren">(</span><em class="sig-param">restricted=False</em>, <em class="sig-param">include=False</em>, <em class="sig-param">*</em>, <em class="sig-param">slc=None</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Votes.json" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">json</code><span class="sig-paren">(</span><em class="sig-param">restricted=False</em>, <em class="sig-param">include=False</em>, <em class="sig-param">*</em>, <em class="sig-param">rewrite=None</em>, <em class="sig-param">slc=None</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Votes.json" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <code class="xref py py-meth docutils literal notranslate"><span class="pre">JSONifiable.json()</span></code>.</p>
 <p><em>slc</em> is a slice of items to include, if any.</p>
 </dd></dl>
@@ -132,7 +132,7 @@ checking, managing <em>authors</em> and storing the updated object in the databa
 
 <dl class="method">
 <dt id="listling.Item.json">
-<code class="sig-name descname">json</code><span class="sig-paren">(</span><em class="sig-param">restricted=False</em>, <em class="sig-param">include=False</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.json" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">json</code><span class="sig-paren">(</span><em class="sig-param">restricted=False</em>, <em class="sig-param">include=False</em>, <em class="sig-param">*</em>, <em class="sig-param">rewrite=None</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.json" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <code class="xref py py-meth docutils literal notranslate"><span class="pre">JSONifiable.json()</span></code>.</p>
 <p>Subclass API: May be overridden by subclass. The default implementation returns the
 attributes of <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code>. <em>restricted</em> and <em>include</em> are ignored.</p>
@@ -179,7 +179,7 @@ checking, managing <em>authors</em> and storing the updated object in the databa
 
 <dl class="method">
 <dt id="listling.List.json">
-<code class="sig-name descname">json</code><span class="sig-paren">(</span><em class="sig-param">restricted=False</em>, <em class="sig-param">include=False</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List.json" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">json</code><span class="sig-paren">(</span><em class="sig-param">restricted=False</em>, <em class="sig-param">include=False</em>, <em class="sig-param">*</em>, <em class="sig-param">rewrite=None</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List.json" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <code class="xref py py-meth docutils literal notranslate"><span class="pre">JSONifiable.json()</span></code>.</p>
 <p>Subclass API: May be overridden by subclass. The default implementation returns the
 attributes of <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code>. <em>restricted</em> and <em>include</em> are ignored.</p>
@@ -189,7 +189,7 @@ attributes of <code class="xref py py-class docutils literal notranslate"><span 
 
 <dl class="class">
 <dt id="listling.Listling">
-<em class="property">class </em><code class="sig-prename descclassname">listling.</code><code class="sig-name descname">Listling</code><span class="sig-paren">(</span><em class="sig-param">redis_url=''</em>, <em class="sig-param">email='bot&#64;localhost'</em>, <em class="sig-param">smtp_url=''</em>, <em class="sig-param">render_email_auth_message=None</em>, <em class="sig-param">*</em>, <em class="sig-param">video_service_keys={}</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">listling.</code><code class="sig-name descname">Listling</code><span class="sig-paren">(</span><em class="sig-param">redis_url=''</em>, <em class="sig-param">email='bot&#64;localhost'</em>, <em class="sig-param">smtp_url=''</em>, <em class="sig-param">render_email_auth_message=None</em>, <em class="sig-param">*</em>, <em class="sig-param">files_path='data'</em>, <em class="sig-param">video_service_keys={}</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#listling"><span class="std std-ref">Listling</span></a>.</p>
 <dl class="class">
 <dt id="listling.Listling.Lists">
@@ -234,6 +234,14 @@ storing the object. By default, a standard <a class="reference internal" href="#
 <p>Must be overridden by subclass. Called by <code class="xref py py-meth docutils literal notranslate"><span class="pre">update()</span></code> when initializing the database.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="listling.Listling.file_references">
+<code class="sig-name descname">file_references</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling.file_references" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subclass API: Iterate over all file references.</p>
+<p>Called by the <code class="xref py py-attr docutils literal notranslate"><span class="pre">files</span></code> garbage collect job. The default implementation returns an empty
+iterator.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -267,7 +275,7 @@ storing the object. By default, a standard <a class="reference internal" href="#
 
 <dl class="method">
 <dt id="listling.User.json">
-<code class="sig-name descname">json</code><span class="sig-paren">(</span><em class="sig-param">restricted=False</em>, <em class="sig-param">include=False</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.User.json" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">json</code><span class="sig-paren">(</span><em class="sig-param">restricted=False</em>, <em class="sig-param">include=False</em>, <em class="sig-param">*</em>, <em class="sig-param">rewrite=None</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.User.json" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <code class="xref py py-meth docutils literal notranslate"><span class="pre">Object.json()</span></code>.</p>
 </dd></dl>
 
@@ -279,7 +287,7 @@ storing the object. By default, a standard <a class="reference internal" href="#
 <p>Open Listling server.</p>
 <dl class="function">
 <dt id="listling.server.make_server">
-<code class="sig-prename descclassname">listling.server.</code><code class="sig-name descname">make_server</code><span class="sig-paren">(</span><em class="sig-param">*</em>, <em class="sig-param">port=8080</em>, <em class="sig-param">url=None</em>, <em class="sig-param">debug=False</em>, <em class="sig-param">redis_url=''</em>, <em class="sig-param">smtp_url=''</em>, <em class="sig-param">video_service_keys={}</em>, <em class="sig-param">client_map_service_key=None</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.server.make_server" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">listling.server.</code><code class="sig-name descname">make_server</code><span class="sig-paren">(</span><em class="sig-param">*</em>, <em class="sig-param">port=8080</em>, <em class="sig-param">url=None</em>, <em class="sig-param">debug=False</em>, <em class="sig-param">redis_url=''</em>, <em class="sig-param">smtp_url=''</em>, <em class="sig-param">files_path='data'</em>, <em class="sig-param">video_service_keys={}</em>, <em class="sig-param">client_map_service_key=None</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.server.make_server" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create an Open Listling server.</p>
 </dd></dl>
 
@@ -340,7 +348,7 @@ storing the object. By default, a standard <a class="reference internal" href="#
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -349,7 +357,7 @@ storing the object. By default, a standard <a class="reference internal" href="#
       &copy;2019 Open Listling contributors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>
