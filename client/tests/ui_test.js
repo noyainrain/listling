@@ -20,6 +20,9 @@
 "use strict";
 
 let {exec, spawn} = require("child_process");
+const {mkdtemp} = require("fs").promises;
+const {tmpdir} = require("os");
+const {cwd} = require("process");
 let {promisify} = require("util");
 
 let {expect} = require("chai");
@@ -53,8 +56,12 @@ describe("UI", function() {
 
     beforeEach(async function() {
         await promisify(exec)("redis-cli -n 15 flushdb");
-        server = spawn("python3", ["-m", "listling", "--port", "8081", "--redis-url", "15"],
-                       {cwd: "..", stdio: "inherit"});
+        const filesPath = await mkdtemp(`${tmpdir()}/`);
+        server = spawn(
+            "python3",
+            ["-m", "listling", "--port", "8081", "--redis-url", "15", "--files-path", filesPath],
+            {cwd: "..", stdio: "inherit"}
+        );
         browser = startBrowser(this.currentTest, "Open Listling");
         timeout = browser.remote ? 10 * 1000 : 1000;
     });
@@ -126,12 +133,15 @@ describe("UI", function() {
         await browser.executeScript(() => scroll(0, document.scrollingElement.scrollHeight));
         form = await browser.findElement({css: ".listling-list-create-item form"});
         await form.findElement({name: "title"}).sendKeys("Sleep");
-        await form.findElement({name: "text"}).sendKeys("Very important!");
+        await form.findElement({name: "upload"}).sendKeys(`${cwd()}/images/icon-large.png`);
+        const textarea = await form.findElement({name: "text"});
+        await browser.wait(untilElementAttributeMatches(textarea, "value", /\/files\//u), timeout);
         await form.findElement({css: "button:not([type])"}).click();
         await browser.wait(
             untilElementTextLocated({css: "[is=listling-item]:last-child h1"}, "Sleep"), timeout);
 
         // Edit item
+        await browser.executeScript(() => scroll(0, 0));
         itemMenu = await browser.findElement({css: ".listling-item-menu li:last-child"});
         await itemMenu.click();
         await browser.findElement({css: ".listling-item-edit"}).click();
@@ -151,12 +161,14 @@ describe("UI", function() {
             timeout);
 
         // Restore item
+        await browser.executeScript(() => scroll(0, document.scrollingElement.scrollHeight));
         await browser.findElement({css: ".listling-list-trash button"}).click();
         await browser.findElement({css: ".listling-list-trash .listling-item-restore"}).click();
         await browser.wait(untilElementTextLocated({css: "[is=listling-item] h1"}, "Research"),
                            timeout);
 
         // Uncheck item
+        await browser.executeScript(() => scroll(0, 0));
         const checkIcon = await browser.findElement({css: ".listling-item-check i"});
         await checkIcon.click();
         await browser.wait(

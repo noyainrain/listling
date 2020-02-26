@@ -16,6 +16,7 @@
 
 import json
 from time import time
+from urllib.parse import urlsplit
 
 import micro
 from micro import (Activity, Application, Collection, Editable, Location, Object, Orderable,
@@ -171,9 +172,11 @@ class Listling(Application):
             return lst
 
     def __init__(self, redis_url='', email='bot@localhost', smtp_url='',
-                 render_email_auth_message=None, *, video_service_keys={}):
-        super().__init__(redis_url, email, smtp_url, render_email_auth_message,
-                         video_service_keys=video_service_keys)
+                 render_email_auth_message=None, *, files_path='data', video_service_keys={}):
+        super().__init__(
+            redis_url=redis_url, email=email, smtp_url=smtp_url,
+            render_email_auth_message=render_email_auth_message, files_path=files_path,
+            video_service_keys=video_service_keys)
         self.types.update({'User': User, 'List': List, 'Item': Item})
         self.lists = Listling.Lists((self, 'lists'))
 
@@ -218,6 +221,12 @@ class Listling(Application):
             provider_description={}, feedback_url=None, staff=[], push_vapid_private_key=None,
             push_vapid_public_key=None, v=2)
 
+    def file_references(self):
+        for lst in self.lists[:]:
+            for item in lst.items[:]:
+                if item.resource and urlsplit(item.resource.url).scheme == 'file':
+                    yield item.resource.url
+
 class User(micro.User):
     """See :ref:`User`."""
 
@@ -260,10 +269,10 @@ class User(micro.User):
         super().__init__(app=app, **data)
         self.lists = User.Lists(self)
 
-    def json(self, restricted=False, include=False):
+    def json(self, restricted=False, include=False, *, rewrite=None):
         return {
-            **super().json(restricted=restricted, include=include),
-            **({'lists': self.lists.json(restricted=restricted, include=include)}
+            **super().json(restricted=restricted, include=include, rewrite=rewrite),
+            **({'lists': self.lists.json(restricted=restricted, include=include, rewrite=rewrite)}
                if restricted and self.app.user == self else {})
         }
 
@@ -355,17 +364,17 @@ class List(Object, Editable):
         if 'mode' in attrs:
             self.mode = attrs['mode']
 
-    def json(self, restricted=False, include=False):
+    def json(self, restricted=False, include=False, *, rewrite=None):
         return {
-            **super().json(restricted, include),
-            **Editable.json(self, restricted, include),
+            **super().json(restricted=restricted, include=include, rewrite=rewrite),
+            **Editable.json(self, restricted=restricted, include=include, rewrite=rewrite),
             'title': self.title,
             'description': self.description,
             'features': self.features,
             'mode': self.mode,
-            'activity': self.activity.json(restricted),
-            **({'items': self.items.json(restricted=restricted, include=include)} if restricted
-               else {}),
+            'activity': self.activity.json(restricted=restricted, rewrite=rewrite),
+            **({'items': self.items.json(restricted=restricted, include=include, rewrite=rewrite)}
+               if restricted else {}),
         }
 
     def _check_permission(self, user, op):
@@ -450,9 +459,9 @@ class Item(Object, Editable, Trashable, WithContent):
             """See :ref:`ItemVotes` *user_voted*."""
             return user and user in self
 
-        def json(self, restricted=False, include=False, *, slc=None):
+        def json(self, restricted=False, include=False, *, rewrite=None, slc=None):
             return {
-                **super().json(restricted=restricted, include=include, slc=slc),
+                **super().json(restricted=restricted, include=include, rewrite=rewrite, slc=slc),
                 **({'user_voted': self.has_user_voted(self.app.user)} if restricted else {})
             }
 
@@ -514,23 +523,24 @@ class Item(Object, Editable, Trashable, WithContent):
         self._check_permission(self.app.user, 'item-modify')
         super().restore()
 
-    def json(self, restricted=False, include=False):
+    def json(self, restricted=False, include=False, *, rewrite=None):
         return {
-            **super().json(restricted, include),
-            **Editable.json(self, restricted, include),
-            **Trashable.json(self, restricted, include),
-            **WithContent.json(self, restricted, include),
+            **super().json(restricted=restricted, include=include, rewrite=rewrite),
+            **Editable.json(self, restricted=restricted, include=include, rewrite=rewrite),
+            **Trashable.json(self, restricted=restricted, include=include, rewrite=rewrite),
+            **WithContent.json(self, restricted=restricted, include=include, rewrite=rewrite),
             'list_id': self._list_id,
             'title': self.title,
             'location': self.location.json() if self.location else None,
             'checked': self.checked,
             **(
                 {
-                    'assignees':
-                        self.assignees.json(restricted=restricted, include=include, slc=slice(None))
+                    'assignees': self.assignees.json(restricted=restricted, include=include,
+                                                     rewrite=rewrite, slc=slice(None))
                 } if include else {}),
-            **({'votes': self.votes.json(restricted=restricted, include=include)} if include
-               else {})
+            **(
+                {'votes': self.votes.json(restricted=restricted, include=include, rewrite=rewrite)}
+                if include else {})
         }
 
     def _check_permission(self, user, op):

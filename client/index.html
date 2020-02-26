@@ -749,17 +749,24 @@
                     class="listling-item-text listling-item-mode-view micro-multiline"
                     data-content="markup item.text"
                 ></p>
+
                 <label class="listling-item-mode-edit">
                     <div class="micro-input-wrapper">
                         <textarea
                             name="text" placeholder="Text (optional)" data-value="or item.text ''"
                         ></textarea>
                         <div class="micro-panel">
-                            <p class="micro-panel-main micro-small">
-                                Attach additional content like images, videos, … by inserting a
-                                link.
-                            </p>
-                            <div>
+                            <button
+                                is="micro-button" type="button" class="listling-item-attach action"
+                                data-run="attach" data-onclick="onAttachClick"
+                            >
+                                <i class="fa fa-paperclip"></i> Attach
+                            </button>
+                            <input
+                                type="file" name="upload" data-onchange="onUploadChange"
+                                accept="image/bmp,image/gif,image/jpeg,image/png,image/svg+xml,.bmp,.gif,.jpg,.png,.svg"
+                            />
+                            <div class="listling-item-content-input-info">
                                 <button type="button" class="link">
                                     <i class="fa fa-fw fa-info-circle"></i>
                                 </button>
@@ -786,6 +793,12 @@
                                             </tr>
                                         </tbody>
                                     </table>
+                                    <div class="micro-panel">
+                                        <p>
+                                            Attach additional content like images, videos, … by
+                                            inserting a link.
+                                        </p>
+                                    </div>
                                 </micro-contextual>
                             </div>
                         </div>
@@ -951,7 +964,7 @@
         }
 
         .listling-item-resource {
-            --micro-link-max-height: calc((70ch - 2 * var(--micro-size-xs)) * 3 / 4);
+            --micro-link-max-height: calc((70ch - 2 * var(--micro-size-xs)) * 9 / 16);
             --micro-image-max-height: var(--micro-link-max-height);
             margin: var(--micro-size-xs) 0;
         }
@@ -969,15 +982,23 @@
             border-top: 1px solid var(--micro-color-delimiter);
         }
 
-        .listling-item-text + label p {
-            align-self: end;
+        .listling-item-text + label input[name=upload] {
+            display: none;
         }
 
-        .listling-item-text + label table {
+        .listling-item-content-input-info {
+            margin-left: auto;
+        }
+
+        .listling-item-content-input-info micro-contextual {
+            bottom: 100%;
+        }
+
+        .listling-item-content-input-info table {
             border-style: hidden;
         }
 
-        .listling-item-text + label tbody td:first-child {
+        .listling-item-content-input-info tbody td:first-child {
             font: 0.875em / 1.5 monospace, monospace;
         }
 

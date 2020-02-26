@@ -29,10 +29,11 @@ from micro.util import Expect, ON
 
 from . import Listling
 
-def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='',
+def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='', files_path='data',
                 video_service_keys={}, client_map_service_key=None):
     """Create an Open Listling server."""
-    app = Listling(redis_url, smtp_url=smtp_url, video_service_keys=video_service_keys)
+    app = Listling(redis_url=redis_url, smtp_url=smtp_url, files_path=files_path,
+                   video_service_keys=video_service_keys)
     handlers = [
         # API
         (r'/api/users/([^/]+)/lists$', _UserListsEndpoint),
@@ -128,7 +129,10 @@ class _ListUsersEndpoint(Endpoint):
 class _ListItemsEndpoint(Endpoint):
     def get(self, id):
         lst = self.app.lists[id]
-        self.write(json.dumps([i.json(True, True) for i in lst.items.values()]))
+        self.write(
+            json.dumps(
+                [item.json(restricted=True, include=True, rewrite=self.server.rewrite)
+                 for item in lst.items[:]]))
 
     async def post(self, id):
         lst = self.app.lists[id]
@@ -138,18 +142,20 @@ class _ListItemsEndpoint(Endpoint):
             'title': str,
             'location': (dict, None, 'opt')
         })
+        if args.get('resource') is not None:
+            args['resource'] = self.server.rewrite(args['resource'], reverse=True)
         if args.get('location') is not None:
             try:
                 args['location'] = Location.parse(args['location'])
             except TypeError:
                 raise micro.ValueError('bad_location_type')
         item = await lst.items.create(**args)
-        self.write(item.json(restricted=True, include=True))
+        self.write(item.json(restricted=True, include=True, rewrite=self.server.rewrite))
 
 class _ItemEndpoint(Endpoint):
     def get(self, list_id, id):
         item = self.app.lists[list_id].items[id]
-        self.write(item.json(restricted=True, include=True))
+        self.write(item.json(restricted=True, include=True, rewrite=self.server.rewrite))
 
     async def post(self, list_id, id):
         item = self.app.lists[list_id].items[id]
@@ -159,25 +165,27 @@ class _ItemEndpoint(Endpoint):
             'title': (str, 'opt'),
             'location': (dict, None, 'opt')
         })
+        if args.get('resource') is not None:
+            args['resource'] = self.server.rewrite(args['resource'], reverse=True)
         if args.get('location') is not None:
             try:
                 args['location'] = Location.parse(args['location'])
             except TypeError:
                 raise micro.ValueError('bad_location_type')
         await item.edit(asynchronous=ON, **args)
-        self.write(item.json(restricted=True, include=True))
+        self.write(item.json(restricted=True, include=True, rewrite=self.server.rewrite))
 
 class _ItemCheckEndpoint(Endpoint):
     def post(self, lst_id, id):
         item = self.app.lists[lst_id].items[id]
         item.check()
-        self.write(item.json(restricted=True, include=True))
+        self.write(item.json(restricted=True, include=True, rewrite=self.server.rewrite))
 
 class _ItemUncheckEndpoint(Endpoint):
     def post(self, lst_id, id):
         item = self.app.lists[lst_id].items[id]
         item.uncheck()
-        self.write(item.json(restricted=True, include=True))
+        self.write(item.json(restricted=True, include=True, rewrite=self.server.rewrite))
 
 class _ItemAssigneesEndpoint(CollectionEndpoint):
     def initialize(self):

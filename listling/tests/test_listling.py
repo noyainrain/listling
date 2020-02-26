@@ -54,12 +54,25 @@ get_event_loop().run_until_complete(main())
 class ListlingTestCase(AsyncTestCase):
     def setUp(self):
         super().setUp()
-        self.app = Listling(redis_url='15')
+        self.app = Listling(redis_url='15', files_path=mkdtemp())
         self.app.r.flushdb()
         self.app.update()
         self.user = self.app.login()
 
 class ListlingTest(ListlingTestCase):
+    @gen_test
+    async def test_file_references(self):
+        urls = [
+            await self.app.files.write(b'<svg />', 'image/svg+xml'),
+            await self.app.files.write(b'<svg  />', 'image/svg+xml')
+        ]
+        lst = self.app.lists.create()
+        await lst.items.create('Sleep', resource=urls[0])
+        await lst.items.create('Feast', resource=urls[1])
+        await lst.items.create('Cuddle')
+        references = list(self.app.file_references())
+        self.assertEqual(references, urls)
+
     def test_lists_create(self):
         lst = self.app.lists.create(v=2)
         self.assertEqual(lst.title, 'New list')
@@ -82,14 +95,14 @@ class ListlingUpdateTest(AsyncTestCase):
         check_call(['python3', '-c', SETUP_DB_SCRIPT], cwd=d)
 
     def test_update_db_fresh(self):
-        app = Listling(redis_url='15')
+        app = Listling(redis_url='15', files_path=mkdtemp())
         app.r.flushdb()
         app.update()
         self.assertEqual(app.settings.title, 'My Open Listling')
 
     def test_update_db_version_previous(self):
         self.setup_db('0.22.0')
-        app = Listling(redis_url='15')
+        app = Listling(redis_url='15', files_path=mkdtemp())
         app.update()
 
         self.assertEqual([user.id for user in app.lists[1].users()],
@@ -97,7 +110,7 @@ class ListlingUpdateTest(AsyncTestCase):
 
     def test_update_db_version_first(self):
         self.setup_db('0.13.0')
-        app = Listling(redis_url='15')
+        app = Listling(redis_url='15', files_path=mkdtemp())
         app.update()
 
         # Update to version 7

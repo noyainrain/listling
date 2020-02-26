@@ -15,6 +15,7 @@
 # pylint: disable=missing-docstring; test module
 
 import json
+from tempfile import mkdtemp
 
 from micro.test import ServerTestCase
 from tornado.testing import gen_test
@@ -24,7 +25,7 @@ from listling.server import make_server
 class ServerTest(ServerTestCase):
     def setUp(self):
         super().setUp()
-        self.server = make_server(port=16160, redis_url='15')
+        self.server = make_server(port=16160, redis_url='15', files_path=mkdtemp())
         self.app = self.server.app
         self.app.r.flushdb()
         self.server.start()

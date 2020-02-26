@@ -566,6 +566,26 @@ listling.ItemElement = class extends HTMLLIElement {
                 }
             },
 
+            onAttachClick: () => {
+                this._form.elements.upload.click();
+            },
+
+            onUploadChange: () => {
+                this.querySelector(".listling-item-attach").trigger();
+            },
+
+            attach: async () => {
+                const [file] = this._form.elements.upload.files;
+                if (!file) {
+                    return;
+                }
+                const response = await fetch("/files", {method: "POST", body: file});
+                const url = response.headers.get("Location");
+                this._form.elements.text.value = this._form.elements.text.value
+                    ? `${url} ${this._form.elements.text.value}` : url;
+                this._form.elements.upload.value = "";
+            },
+
             hasContent: (ctx, item, lst, assigneesCount) =>
                 item && (item.text || item.resource || item.location) || lst &&
                 lst.features.includes("assign") && assigneesCount > 0,
