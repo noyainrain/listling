@@ -1,0 +1,87 @@
+<script>
+micro.components = micro.components || {};
+
+/**
+ * Extended image element.
+ *
+ * .. attribute:: image
+ *
+ *    :ref:`Image` to display.
+ *
+ * .. describe:: --micro-image-max-height
+ *
+ *    Maximum height of the element. Defaults to ``none``.
+ */
+micro.components.ImageElement = class extends HTMLElement {
+    createdCallback() {
+        this.appendChild(
+            document.importNode(document.querySelector("#micro-image-template").content, true)
+        );
+        this._data = new micro.bind.Watchable({image: null});
+        micro.bind.bind(this.children, this._data);
+        this.tabIndex = 0;
+        new micro.keyboard.ShortcutContext(this);
+    }
+
+    get image() {
+        return this._data.image;
+    }
+
+    set image(value) {
+        this._data.image = value;
+    }
+};
+
+document.addEventListener(
+    "DOMContentLoaded", () => document.registerElement("micro-image", micro.components.ImageElement)
+);
+</script>
+
+<template id="micro-image-template">
+    <img data-src="image.url" data-alt="or image.description ''" />
+    <div class="micro-image-contrast"></div>
+    <div class="micro-panel">
+        <a
+            class="link" data-href="image.url" target="_blank"
+            data-shortcut="new Shortcut 'F' 'Full screen'"
+        >
+            <i class="fa fa-fw fa-expand"></i>
+        </a>
+    </div>
+</template>
+
+<style>
+html {
+    --micro-image-max-height: none;
+}
+
+micro-image {
+    display: inline-block;
+    position: relative;
+    vertical-align: bottom;
+}
+
+micro-image img {
+    display: block;
+    max-width: 100%;
+    max-height: var(--micro-image-max-height);
+    margin: 0 auto;
+}
+
+.micro-image-contrast {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    /* Produces delimiter color on white background */
+    border: 1px solid rgba(0, 0, 0, calc(2 / 15));
+}
+
+micro-image .micro-panel {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    background: rgba(221, 221, 221, 0.75);
+}
+</style>

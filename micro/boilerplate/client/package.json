@@ -1,0 +1,16 @@
+{
+    "scripts": {
+        "test-ui": "mocha --preserve-symlinks --exclude='node_modules/**' '**/ui_test*.js'",
+        "lint": "eslint .",
+        "clean": "rm -rf node_modules"
+    },
+    "dependencies": {
+        "@noyainrain/micro": "^0.48"
+    },
+    "devDependencies": {
+        "eslint": "~6.8",
+        "mocha": "^7.0",
+        "chai": "^4.1"
+    },
+    "private": true
+}
