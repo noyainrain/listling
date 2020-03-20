@@ -14,7 +14,8 @@
     <script src="{{ static_url('listling/index.js') }}" defer="defer"></script>
 </head>
 
-<body is="listling-ui">
+<body>
+    <listling-ui>
     <li class="listling-ui-intro" slot="menu">
         <a class="link" href="/intro"><i class="fa fa-fw fa-rocket"></i> Introduction</a>
     </li>
@@ -368,10 +369,12 @@
             data-content="list presentItems 'item'"
         >
             <template>
-                <li
-                    is="listling-item" class="micro-quick-nav" data-item="item" data-list="lst"
-                    data-onmove="moveItemKey"
-                ></li>
+                <li>
+                    <listling-item
+                        class="micro-quick-nav" data-item="item" data-list="lst"
+                        data-onmove="moveItemKey"
+                    ></listling-item>
+                </li>
             </template>
         </ol>
 
@@ -400,10 +403,10 @@
                 </p>
                 <ul class="listling-list-trashed-items" data-content="list trashedItems 'item'">
                     <template>
-                        <li
-                            is="listling-item" class="micro-quick-nav" data-item="item"
-                            data-list="lst"
-                        ></li>
+                        <li>
+                            <listling-item class="micro-quick-nav" data-item="item" data-list="lst">
+                            </listling-item>
+                        </li>
                     </template>
                 </ul>
             </div>
@@ -417,7 +420,8 @@
                     <i class="fa fa-plus-circle"></i> Add item
                 </button>
             </p>
-            <li is="listling-item" data-onedit="stopCreateItem" data-oncancel="stopCreateItem"></li>
+            <listling-item data-onedit="stopCreateItem" data-oncancel="stopCreateItem">
+            </listling-item>
         </div>
 
         <aside class="listling-list-mode-view micro-interactive">
@@ -504,13 +508,19 @@
         }
 
         .listling-list-title,
-        .listling-list-items [is="listling-item"] {
+        .listling-list-items listling-item {
             scroll-snap-align: start;
         }
 
         .listling-list-items,
         .listling-list-trashed-items {
             padding: 0;
+        }
+
+        .listling-list-items > li,
+        .listling-list-trashed-items > li {
+            margin: 1.5rem 0;
+            list-style: none;
         }
 
         .listling-list-trash .micro-heading {
@@ -524,18 +534,18 @@
             color: #888;
         }
 
-        body[noninteractive] [is="listling-item"] {
+        body[noninteractive] listling-item {
             opacity: 0.1;
             filter: blur(1px);
         }
 
-        body[noninteractive] [is="listling-item"]:focus-within {
+        body[noninteractive] listling-item:focus-within {
             box-shadow: none;
             opacity: 1;
             filter: none;
         }
 
-        body[noninteractive] [is="listling-item"]:focus {
+        body[noninteractive] listling-item:focus {
             box-shadow: none;
             opacity: 1;
             filter: none;
@@ -568,7 +578,7 @@
         .listling-list-trash:not(.listling-list-trash-expanded) > div,
         listling-list-page:not(.listling-list-may-modify) .listling-list-create-item,
         .listling-list-create-item.listling-list-creating-item > p,
-        .listling-list-create-item:not(.listling-list-creating-item) > li,
+        .listling-list-create-item:not(.listling-list-creating-item) > listling-item,
         .listling-list-settings.listling-list-settings-expanded > p,
         .listling-list-settings:not(.listling-list-settings-expanded) > section,
         body:not([noninteractive]) listling-list-page:not(.listling-list-feature-play) > footer,
@@ -840,24 +850,23 @@
         </form>
     </template>
     <style>
-        [is=listling-item] {
+        listling-item {
+            display: block;
             border: 1px solid var(--micro-color-delimiter);
             border-radius: var(--micro-size-xxs);
-            margin: 1.5rem 0;
-            list-style: none;
             cursor: pointer;
         }
 
-        [is=listling-item].listling-item-trashed {
+        listling-item.listling-item-trashed {
             color: #888;
         }
 
-        [is=listling-item] > form {
+        listling-item > form {
             position: relative;
             --listling-item-progress: 0%;
         }
 
-        [is=listling-item] > form::after {
+        listling-item > form::after {
             content: '';
             position: absolute;
             top: 0;
@@ -869,11 +878,11 @@
             padding-right: calc(100% - var(--listling-item-progress));
         }
 
-        [is=listling-item] header {
+        listling-item header {
             margin: 0;
         }
 
-        [is=listling-item] .micro-ol-handle {
+        listling-item .micro-ol-handle {
             padding: calc(1.5em / 4);
             width: calc(1.5em / 2 + 1.5em / 2);
             height: calc(1.5em + 1.5em / 2);
@@ -882,8 +891,8 @@
                     0 0 / calc(1.5rem / 4) calc(1.5rem / 4);
         }
 
-        [is=listling-item] .micro-panel > .micro-ol-handle:focus,
-        [is=listling-item] .micro-panel > .micro-ol-handle:not(:disabled):hover {
+        listling-item .micro-panel > .micro-ol-handle:focus,
+        listling-item .micro-panel > .micro-ol-handle:not(:disabled):hover {
             background:
                 radial-gradient(circle closest-side, #888 0%, #888 50%, transparent 50%) content-box
                     0 0 / calc(1.5rem / 4) calc(1.5rem / 4),
@@ -899,7 +908,7 @@
             color: var(--micro-color-text-subtle);
         }
 
-        [is=listling-item] > form.listling-item-votes-user-voted .listling-item-vote {
+        listling-item > form.listling-item-votes-user-voted .listling-item-vote {
             color: forestgreen;
         }
 
@@ -917,24 +926,24 @@
             color: var(--micro-color-border);
         }
 
-        [is=listling-item].listling-item-checked:not(.listling-item-trashed) .micro-panel > .listling-item-check {
+        listling-item.listling-item-checked:not(.listling-item-trashed) .micro-panel > .listling-item-check {
             color: forestgreen;
         }
 
-        [is=listling-item] h1 {
+        listling-item h1 {
             font-weight: bold;
         }
 
-        [is=listling-item].listling-item-trashed h1 {
+        listling-item.listling-item-trashed h1 {
             color: inherit;
         }
 
-        [is=listling-item] h1 > label {
+        listling-item h1 > label {
             margin-bottom: 0;
         }
 
         listling-list-page:not(.listling-list-feature-assign) .listling-item-assign,
-        [is=listling-item]:not(.listling-item-may-modify) .listling-item-assign {
+        listling-item:not(.listling-item-may-modify) .listling-item-assign {
             display: none;
         }
 
@@ -943,7 +952,7 @@
             border-top: 1px solid var(--micro-color-delimiter);
         }
 
-        [is=listling-item].listling-item-mode-view > form:not(.listling-item-has-content) .listling-item-content {
+        listling-item.listling-item-mode-view > form:not(.listling-item-has-content) .listling-item-content {
             display: none;
         }
 
@@ -974,7 +983,7 @@
             width: auto;
         }
 
-        [is=listling-item].listling-item-mode-edit .listling-item-meta {
+        listling-item.listling-item-mode-edit .listling-item-meta {
             row-gap: var(--micro-size-xs);
         }
 
@@ -1007,28 +1016,28 @@
             border-top: 1px solid var(--micro-color-delimiter);
         }
 
-        [is=listling-item] > form:not(.listling-item-expanded) .listling-item-footer {
+        listling-item > form:not(.listling-item-expanded) .listling-item-footer {
             display: none;
         }
 
-        [is=listling-item]:not(.listling-item-mode-view) .listling-item-mode-view,
-        [is=listling-item]:not(.listling-item-mode-edit) .listling-item-mode-edit,
-        [is=listling-item].listling-item-trashed .micro-ol-handle,
+        listling-item:not(.listling-item-mode-view) .listling-item-mode-view,
+        listling-item:not(.listling-item-mode-edit) .listling-item-mode-edit,
+        listling-item.listling-item-trashed .micro-ol-handle,
         listling-list-page:not(.listling-list-may-modify) .micro-ol-handle,
         listling-list-page:not(.listling-list-feature-check) .listling-item-check,
         listling-list-page:not(.listling-list-feature-check) .listling-item-uncheck,
         listling-list-page:not(.listling-list-feature-play) [is=listling-item]:not(.listling-item-may-modify) .listling-item-menu,
-        [is=listling-item]:not(.listling-item-trashed) .listling-item-restore,
-        [is=listling-item]:not(.listling-item-may-modify) .listling-item-restore,
+        listling-item:not(.listling-item-trashed) .listling-item-restore,
+        listling-item:not(.listling-item-may-modify) .listling-item-restore,
         listling-list-page:not(.listling-list-feature-play) .listling-item-play-pause,
-        [is=listling-item]:not(.listling-item-may-modify) .listling-item-edit,
-        [is=listling-item]:not(.listling-item-may-modify) .listling-item-trash,
-        [is=listling-item].listling-item-trashed .listling-item-menu li:last-child,
+        listling-item:not(.listling-item-may-modify) .listling-item-edit,
+        listling-item:not(.listling-item-may-modify) .listling-item-trash,
+        listling-item.listling-item-trashed .listling-item-menu li:last-child,
         body:not(.micro-ui-map-service-enabled) .listling-item-meta,
         listling-list-page:not(.listling-list-feature-location) .listling-item-meta,
-        [is=listling-item].listling-item-mode-view:not(.listling-item-has-location) .listling-item-meta,
-        [is=listling-item].listling-item-has-location-coords .listling-item-location + dd > span,
-        [is=listling-item]:not(.listling-item-has-location-coords) .listling-item-location + dd > a {
+        listling-item.listling-item-mode-view:not(.listling-item-has-location) .listling-item-meta,
+        listling-item.listling-item-has-location-coords .listling-item-location + dd > span,
+        listling-item:not(.listling-item-has-location-coords) .listling-item-location + dd > a {
             display: none;
         }
     </style>
@@ -1042,4 +1051,5 @@
 
     {% include 'listling/components/list.html' %}
     {% include 'listling/components/start.html' %}
+    </listling-ui>
 </body>

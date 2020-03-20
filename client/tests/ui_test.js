@@ -138,19 +138,19 @@ describe("UI", function() {
         await browser.wait(untilElementAttributeMatches(textarea, "value", /\/files\//u), timeout);
         await form.findElement({css: "button:not([type])"}).click();
         await browser.wait(
-            untilElementTextLocated({css: "[is=listling-item]:last-child h1"}, "Sleep"), timeout);
+            untilElementTextLocated({css: "listling-item:last-child h1"}, "Sleep"), timeout);
 
         // Edit item
         await browser.executeScript(() => scroll(0, 0));
         itemMenu = await browser.findElement({css: ".listling-item-menu li:last-child"});
         await itemMenu.click();
         await browser.findElement({css: ".listling-item-edit"}).click();
-        form = await browser.findElement({css: "[is=listling-item] form"});
+        form = await browser.findElement({css: "listling-item form"});
         input = await form.findElement({name: "title"});
         await input.clear();
         await input.sendKeys("Research");
         await form.findElement({css: "button:not([type])"}).click();
-        await browser.wait(untilElementTextLocated({css: "[is=listling-item] h1"}, "Research"),
+        await browser.wait(untilElementTextLocated({css: "listling-item h1"}, "Research"),
                            timeout);
 
         // Trash item
@@ -164,7 +164,7 @@ describe("UI", function() {
         await browser.executeScript(() => scroll(0, document.scrollingElement.scrollHeight));
         await browser.findElement({css: ".listling-list-trash button"}).click();
         await browser.findElement({css: ".listling-list-trash .listling-item-restore"}).click();
-        await browser.wait(untilElementTextLocated({css: "[is=listling-item] h1"}, "Research"),
+        await browser.wait(untilElementTextLocated({css: "listling-item h1"}, "Research"),
                            timeout);
 
         // Uncheck item
@@ -209,20 +209,20 @@ describe("UI", function() {
         await browser.wait(until.elementTextIs(votesP, "0"), timeout);
 
         // View item details
-        await browser.findElement({css: "[is=listling-item]"}).click();
+        await browser.findElement({css: "listling-item"}).click();
         const footerVisible =
             await browser.findElement({css: ".listling-item-footer"}).isDisplayed();
         expect(footerVisible).to.be.true;
 
         // Play list
         await browser.findElement({css: ".listling-list-play-pause"}).click();
-        let item = await browser.findElement({css: "[is=listling-item]:nth-child(2)"});
+        let item = await browser.findElement({css: "listling-item:nth-child(2)"});
         let text = await readItemPlayPause(item);
         expect(text).to.equal("Pause");
 
         // Play next of list
         await browser.findElement({css: ".listling-list-play-next"}).click();
-        item = await browser.findElement({css: "[is=listling-item]:nth-child(3)"});
+        item = await browser.findElement({css: "listling-item:nth-child(3)"});
         text = await readItemPlayPause(item);
         expect(text).to.equal("Pause");
 

@@ -51,15 +51,17 @@ listling.components.start.StartPage = class extends micro.Page {
         const lists = new micro.Collection(`/api/users/${ui.user.id}/lists`);
         await lists.fetch(10);
         if (lists.count === 0) {
-            return document.createElement("listling-intro-page");
+            // return document.createElement("listling-intro-page");
+            return new listling.IntroPage();
         }
-        const page = document.createElement("listling-start-page");
+        // const page = document.createElement("listling-start-page");
+        const page = new listling.components.start.StartPage();
         page.lists = lists;
         return page;
     }
 
-    createdCallback() {
-        super.createdCallback();
+    constructor() {
+        super();
         this.appendChild(
             document.importNode(ui.querySelector("#listling-start-page-template").content, true)
         );
@@ -111,5 +113,4 @@ listling.components.start.StartPage = class extends micro.Page {
         this._data.listsComplete = this._data.lists.complete;
     }
 };
-
-document.registerElement("listling-start-page", listling.components.start.StartPage);
+customElements.define("listling-start-page", listling.components.start.StartPage);

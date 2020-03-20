@@ -35,7 +35,8 @@ listling.UI = class extends micro.UI {
 
         this.pages = this.pages.concat([
             {url: "^/$", page: listling.components.start.StartPage.make},
-            {url: "^/intro$", page: "listling-intro-page"},
+            // {url: "^/intro$", page: "listling-intro-page"},
+            {url: "^/intro$", page: () => new listling.IntroPage()},
             {url: "^/about$", page: makeAboutPage},
             {url: "^/lists/([^/]+)(?:/[^/]+)?$", page: listling.ListPage.make}
         ]);
@@ -50,13 +51,14 @@ listling.UI = class extends micro.UI {
         });
     }
 };
+customElements.define("listling-ui", listling.UI);
 
 /**
  * Intro page.
  */
 listling.IntroPage = class extends micro.Page {
-    createdCallback() {
-        super.createdCallback();
+    constructor() {
+        super();
         const useCases = listling.components.start.getUseCases();
         this.appendChild(
             document.importNode(ui.querySelector(".listling-intro-page-template").content, true));
@@ -93,8 +95,8 @@ listling.IntroPage = class extends micro.Page {
         micro.bind.bind(this.children, this._data);
     }
 
-    attachedCallback() {
-        super.attachedCallback();
+    connectedCallback() {
+        super.connectedCallback();
         ui.shortcutContext.add("S", () => {
             this.querySelector(".listling-selected .listling-intro-create-list").click();
         });
@@ -107,23 +109,25 @@ listling.IntroPage = class extends micro.Page {
         ui.url = "/intro";
     }
 
-    detachedCallback() {
+    disconnectedCallback() {
         ui.shortcutContext.remove("S");
         ui.shortcutContext.remove("E");
     }
 };
+customElements.define("listling-intro-page", listling.IntroPage);
 
 listling.ListPage = class extends micro.Page {
     static async make(url, id) {
-        let page = document.createElement("listling-list-page");
+        // let page = document.createElement("listling-list-page");
+        let page = new listling.ListPage();
         if (id !== "new") {
             page.list = await ui.call("GET", `/api/lists/List:${id}`);
         }
         return page;
     }
 
-    createdCallback() {
-        super.createdCallback();
+    constructor() {
+        super();
         this.appendChild(
             document.importNode(ui.querySelector(".listling-list-page-template").content, true));
         this._data = new micro.bind.Watchable({
@@ -154,8 +158,8 @@ listling.ListPage = class extends micro.Page {
             },
             startCreateItem: () => {
                 this._data.creatingItem = true;
-                this.querySelector(".listling-list-create-item [is=listling-item]").focus();
-                this.querySelector(".listling-list-create-item [is=listling-item]").scrollIntoView(false);
+                this.querySelector(".listling-list-create-item listling-item").focus();
+                this.querySelector(".listling-list-create-item listling-item").scrollIntoView(false);
             },
             stopCreateItem: () => {
                 this._data.creatingItem = false;
@@ -293,8 +297,8 @@ listling.ListPage = class extends micro.Page {
                         "item-restore", "item-check", "item-uncheck"];
     }
 
-    attachedCallback() {
-        super.attachedCallback();
+    connectedCallback() {
+        super.connectedCallback();
         ui.shortcutContext.add("G", this._data.toggleTrash);
         ui.shortcutContext.add("C", this._data.toggleSettings);
         this._events.forEach(e => ui.addEventListener(e, this));
@@ -343,7 +347,7 @@ listling.ListPage = class extends micro.Page {
         })().catch(micro.util.catch);
     }
 
-    detachedCallback() {
+    disconnectedCallback() {
         ui.shortcutContext.remove("G");
         ui.shortcutContext.remove("C");
         this._events.forEach(e => ui.removeEventListener(e, this));
@@ -406,6 +410,7 @@ listling.ListPage = class extends micro.Page {
         }
     }
 };
+customElements.define("listling-list-page", listling.ListPage);
 
 // eslint-disable-next-line no-underscore-dangle
 listling.ListPage._PERMISSIONS = {
@@ -413,8 +418,9 @@ listling.ListPage._PERMISSIONS = {
     view: {user: new Set()}
 };
 
-listling.ItemElement = class extends HTMLLIElement {
-    createdCallback() {
+listling.ItemElement = class extends HTMLElement {
+    constructor() {
+        super();
         this.appendChild(
             document.importNode(ui.querySelector(".listling-item-template").content, true));
         this._data = new micro.bind.Watchable({
@@ -655,7 +661,7 @@ listling.ItemElement = class extends HTMLLIElement {
         });
     }
 
-    attachedCallback() {
+    connectedCallback() {
         if (!this._data.item) {
             return;
         }
@@ -712,7 +718,7 @@ listling.ItemElement = class extends HTMLLIElement {
         ui.addEventListener("item-votes-unvote", this._onUnvote);
     }
 
-    detachedCallback() {
+    disconnectedCallback() {
         ui.removeEventListener("item-assignees-assign", this._onAssign);
         ui.removeEventListener("item-assignees-unassign", this._onUnassign);
         ui.removeEventListener("item-votes-vote", this._onVote);
@@ -765,9 +771,4 @@ listling.ItemElement = class extends HTMLLIElement {
         return this._data.playable;
     }
 };
-
-document.registerElement("listling-ui", {prototype: listling.UI.prototype, extends: "body"});
-document.registerElement("listling-intro-page", listling.IntroPage);
-document.registerElement("listling-list-page", listling.ListPage);
-document.registerElement("listling-item",
-                         {prototype: listling.ItemElement.prototype, extends: "li"});
+customElements.define("listling-item", listling.ItemElement);
