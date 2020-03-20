@@ -1,0 +1,42 @@
+dist: bionic
+language: python
+python:
+    - 3.7
+    - 3.8
+git:
+    # Commit history is required for update tests
+    depth: false
+services:
+    - redis-server
+before_install:
+    - nvm use 10.16.0
+install:
+    - make deps
+    - make deps-dev
+script:
+    - make type
+    - make test
+    - make test-ext
+    # Skip code style checks if WIP is indicated
+    - test -z "${TRAVIS_COMMIT_MESSAGE##*WIP*}" || make lint
+jobs:
+    include:
+        - addons:
+              jwt: &jwt
+                  secure: h7FtIRBB8eTWMio20xq8z5uxFwWmZZZD6arno9eYeF8+RwfO2jgkICeMFW1FMC/TI+aYxHRQfoXH05vlppcKy9NNVCE+4+Kvn5ilQQ6UT9xHHQrVeHXLH+xG/ES1FA7cZ6ntx9sVJLp2CdJP8UYmA0PzZ/VdCeXJcOVjcfYZHv1n801F7N/14E4KKhvA6pWDEgb3M+BJB7VOiTiKmKbG8cqnNE5AJkqXlgIDxuMO+mvlFhmG8fb7tSs0vezjQQXo6QalVHHNXOgpGfcj4MsatnGKmN7vQ8Y2IN8/D4onHZn5ue/pheUDHxA/nYJrXDQdj81io2P8tj+kcb+82WnQRqZjKR6dEFTZi6ckrQTYKp0zSwdqi7SemuhiYxcv/B0OeGwB9flkB+oB7IhAg3fgBUya6fhewF4d5r5rkqSAgEHd1YCdx28XNB0kRB5TRbp0uQh+IqsNL59uBGekWMkqNUALAUmZAqCu9RqoInI2oP3/0F/sP8/MKq4MBIhoUvWP7ThbfvBO+DpHdejpQ6pOhOoboPDBQiIkSZ6sgjG/e+c/9abPz+PLSugaAX8ti0vazF4jpJ5gZoaxf+G7v+7xxgsQDhq14WCMn+48WFwKRP79mFWnVabDHFZi0+O2WWBcf95KPR6F08kH2b6WM+csPZqpybsoBodY15NyRNOc5pQ=
+          script: make test-client BROWSER=sauce-chrome,sauce-edge,sauce-firefox,sauce-safari SAUCE_USERNAME=noyainrain SUBJECT="#$TRAVIS_JOB_NUMBER"
+          env: TEST=client
+        - &test-ui
+          stage: test-ui
+          addons:
+              sauce_connect:
+                  username: noyainrain
+              jwt: *jwt
+          script: make test-ui WEBDRIVER_URL="https://$SAUCE_USERNAME:$SAUCE_ACCESS_KEY@ondemand.saucelabs.com/wd/hub" TUNNEL_ID="$TRAVIS_JOB_NUMBER" SUBJECT="#$TRAVIS_JOB_NUMBER"
+          env: BROWSER=chrome PLATFORM="Windows 10"
+        - <<: *test-ui
+          env: BROWSER=MicrosoftEdge PLATFORM="Windows 10"
+        - <<: *test-ui
+          env: BROWSER=firefox PLATFORM="Windows 10"
+        - <<: *test-ui
+          env: BROWSER=safari PLATFORM="macOS 10.13" BROWSER_VERSION=12

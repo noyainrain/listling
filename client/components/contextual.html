@@ -1,0 +1,24 @@
+<style>
+    micro-contextual {
+        display: block;
+        position: absolute;
+        z-index: 1;
+        right: 0;
+        box-shadow: var(--micro-shadow);
+        background: white;
+    }
+
+    micro-contextual:not(.micro-contextual-active) {
+        height: 0;
+        overflow: hidden;
+    }
+
+    micro-contextual > :first-child,
+    micro-contextual > :last-child {
+        margin: 0;
+    }
+
+    .micro-contextual-wrapper {
+        position: relative;
+    }
+</style>
