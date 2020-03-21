@@ -128,8 +128,10 @@ listling.ListPage = class extends micro.Page {
             document.importNode(ui.querySelector(".listling-list-page-template").content, true));
         this._data = new micro.bind.Watchable({
             lst: null,
-            modes: ["collaborate", "view"],
-            modeToText: (ctx, mode) => ({collaborate: "Collaborate", view: "View"}[mode]),
+            modes: ["collaborate", "contribute", "view"],
+            modeToText: (ctx, mode) => (
+                {collaborate: "Collaborate", contribute: "Contribute", view: "View"}[mode]
+            ),
             presentItems: null,
             trashedItems: null,
             trashedItemsCount: 0,
@@ -282,6 +284,10 @@ listling.ListPage = class extends micro.Page {
                 "listling-list-may-modify",
                 this._data.may(null, "list-modify", this._data.lst && this._data.lst.mode)
             );
+            this.classList.toggle(
+                "listling-list-may-items-create",
+                this._data.may(null, "list-items-create", this._data.lst && this._data.lst.mode)
+            );
         };
         ["lst", "editMode", "trashedItemsCount"].forEach(
             prop => this._data.watch(prop, updateClass));
@@ -409,8 +415,18 @@ listling.ListPage = class extends micro.Page {
 
 // eslint-disable-next-line no-underscore-dangle
 listling.ListPage._PERMISSIONS = {
-    collaborate: {user: new Set(["list-modify", "item-modify"])},
-    view: {user: new Set()}
+    collaborate: {
+        "item-owner": new Set([                                    "item-modify"]),
+        user:         new Set(["list-modify", "list-items-create", "item-modify"])
+    },
+    contribute: {
+        "item-owner": new Set([                                    "item-modify"]),
+        user:         new Set([               "list-items-create"               ])
+    },
+    view: {
+        "item-owner": new Set(),
+        user:         new Set()
+    }
 };
 
 listling.ItemElement = class extends HTMLLIElement {
@@ -595,6 +611,7 @@ listling.ItemElement = class extends HTMLLIElement {
                 const permissions = listling.ListPage._PERMISSIONS[mode || "view"];
                 return (
                     permissions.user.has(op) ||
+                    ui.user.id === (this._data.item && this._data.item.authors[0].id) && permissions["item-owner"].has(op) ||
                     this._data.lst && ui.user.id === this._data.lst.authors[0].id
                 );
             }
