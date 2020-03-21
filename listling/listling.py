@@ -271,8 +271,18 @@ class List(Object, Editable):
     """See :ref:`List`."""
 
     _PERMISSIONS = {
-        'collaborate': {'user': {'list-modify', 'item-modify'}},
-        'view':        {'user': set()}
+        'collaborate': {
+            'item-owner': {                                    'item-modify'},
+            'user':       {'list-modify', 'list-items-create', 'item-modify'}
+        },
+        'contribute': {
+            'item-owner': {                                    'item-modify'},
+            'user': {                     'list-items-create'               }
+        },
+        'view': {
+            'item-owner': set(),
+            'user':       set()
+        }
     }
 
     class Items(Collection, Orderable):
@@ -281,7 +291,7 @@ class List(Object, Editable):
         async def create(self, title, *, text=None, resource=None, location=None):
             """See :http:post:`/api/lists/(id)/items`."""
             # pylint: disable=protected-access; List is a friend
-            self.host[0]._check_permission(self.app.user, 'list-modify')
+            self.host[0]._check_permission(self.app.user, 'list-items-create')
             attrs = await WithContent.process_attrs({'text': text, 'resource': resource},
                                                     app=self.app)
             if str_or_none(title) is None:
@@ -343,7 +353,7 @@ class List(Object, Editable):
         if ('features' in attrs and
                 not set(attrs['features']) <= {'check', 'assign', 'vote', 'location', 'play'}):
             raise micro.ValueError('feature_unknown')
-        if 'mode' in attrs and attrs['mode'] not in {'collaborate', 'view'}:
+        if 'mode' in attrs and attrs['mode'] not in {'collaborate', 'contribute', 'view'}:
             raise micro.ValueError('Unknown mode')
 
         if 'title' in attrs:
@@ -370,7 +380,8 @@ class List(Object, Editable):
 
     def _check_permission(self, user, op):
         permissions = List._PERMISSIONS[self.mode]
-        if not (user and (
+        if not (
+            user and (
                 op in permissions['user'] or
                 user == self.authors[0] or
                 user in self.app.settings.staff)):
@@ -537,8 +548,10 @@ class Item(Object, Editable, Trashable, WithContent):
         lst = self.list
         # pylint: disable=protected-access; List is a friend
         permissions = List._PERMISSIONS[lst.mode]
-        if not (user and (
+        if not (
+            user and (
                 op in permissions['user'] or
+                user == self.authors[0] and op in permissions['item-owner'] or
                 user == lst.authors[0] or
                 user in self.app.settings.staff)):
             raise micro.PermissionError()

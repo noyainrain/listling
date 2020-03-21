@@ -128,8 +128,10 @@ listling.ListPage = class extends micro.Page {
             document.importNode(ui.querySelector(".listling-list-page-template").content, true));
         this._data = new micro.bind.Watchable({
             lst: null,
-            modes: ["collaborate", "view"],
-            modeToText: (ctx, mode) => ({collaborate: "Collaborate", view: "View"}[mode]),
+            modes: ["collaborate", "contribute", "view"],
+            modeToText: (ctx, mode) => (
+                {collaborate: "Collaborate", contribute: "Contribute", view: "View"}[mode]
+            ),
             presentItems: null,
             trashedItems: null,
             trashedItemsCount: 0,
@@ -421,7 +423,7 @@ listling.ListPage._PERMISSIONS = {
         "item-owner": new Set([                                    "item-modify"]),
         user:         new Set(["list-modify", "list-items-create", "item-modify"])
     },
-    contribution: {
+    contribute: {
         "item-owner": new Set([                                    "item-modify"]),
         user:         new Set([               "list-items-create"               ])
     },
