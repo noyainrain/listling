@@ -41,7 +41,8 @@ listling.components.start.getUseCases = function() {
         {id: "meeting-agenda", title: "Meeting agenda", icon: "handshake"},
         {id: "playlist", title: "Playlist", icon: "play"},
         ...ui.mapServiceKey ? [{id: "map", title: "Map", icon: "map"}] : [],
-        {id: "simple", title: "Simple list", icon: "list"}
+        {id: "simple", title: "Simple list", icon: "list"},
+        {id: "presentation", title: "Presentation", icon: "comment-dots"}
     ];
 };
 

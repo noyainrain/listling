@@ -31,7 +31,8 @@ _USE_CASES = {
     'shopping': {'title': 'New shopping list', 'features': ['check']},
     'meeting-agenda': {'title': 'New meeting agenda', 'features': []},
     'playlist': {'title': 'New playlist', 'features': ['play']},
-    'map': {'title': 'New map', 'features': ['location']}
+    'map': {'title': 'New map', 'features': ['location']},
+    'presentation': {'title': 'New presentation', 'features': []}
 }
 
 _EXAMPLE_DATA = {
@@ -112,6 +113,24 @@ _EXAMPLE_DATA = {
                 'text': 'Website: http://www.yellow-sunshine.de/',
                 'location': Location('Wiener Straße 19, 10999 Berlin, Germany',
                                      (52.497561, 13.430773))
+            }
+        ]
+    ),
+    'presentation': (
+        'Brief résumé of my work experience',
+        'Max Mustermann \n\n  *You will find in the menu the button to activate the presentation mode*',
+        [
+            {
+                'title': 'My job as a programmer',
+                'text': 'I wrote a 2D MMORPG for Star Wars fans.'
+            },
+            {
+                'title': 'My job as a manager',
+                'text': 'I was responsible for an EDEKA supermarket in Berlin.'
+            },
+            {
+                'title': 'My job as a pilot',
+                'text': 'I flew commercial airplanes for 5 years.'
             }
         ]
     )
