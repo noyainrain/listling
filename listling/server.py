@@ -113,6 +113,7 @@ class _ListEndpoint(Endpoint):
         args = self.check_args({
             'title': (str, 'opt'),
             'description': (str, None, 'opt'),
+            'item_template': (str, None, 'opt'),
             'features': (list, 'opt'),
             'mode': (str, 'opt')
         })

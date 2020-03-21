@@ -156,6 +156,8 @@ listling.ListPage = class extends micro.Page {
                 this._data.creatingItem = true;
                 this.querySelector(".listling-list-create-item [is=listling-item]").focus();
                 this.querySelector(".listling-list-create-item [is=listling-item]").scrollIntoView(false);
+                const elem = this.querySelector(".listling-list-create-item [is=listling-item]");
+                elem.startCreate(this._form.elements.item_template.value);
             },
             stopCreateItem: () => {
                 this._data.creatingItem = false;
@@ -177,7 +179,8 @@ listling.ListPage = class extends micro.Page {
                         features:
                             Array.from(this._form.elements.features, e => e.checked && e.value)
                                 .filter(feature => feature),
-                        mode: this._form.elements.mode.valueAsObject
+                        mode: this._form.elements.mode.valueAsObject,
+                        item_template: this._form.elements.item_template.value
                     });
                     if (this._data.lst) {
                         this.list = list;
@@ -414,6 +417,11 @@ listling.ListPage._PERMISSIONS = {
 };
 
 listling.ItemElement = class extends HTMLLIElement {
+
+    startCreate(templateText) {
+        this.querySelector("textarea").value = templateText;
+    }
+
     createdCallback() {
         this.appendChild(
             document.importNode(ui.querySelector(".listling-item-template").content, true));

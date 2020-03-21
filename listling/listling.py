@@ -312,13 +312,15 @@ class List(Object, Editable):
             self.host[0]._check_permission(self.app.user, 'list-modify')
             super().move(item, to)
 
-    def __init__(self, *, id, app, authors, title, description, features, mode, activity):
+    def __init__(self, *, id, app, authors, title, description, features, mode, activity,
+                 item_template=None):
         super().__init__(id=id, app=app)
         Editable.__init__(self, authors=authors, activity=activity)
         self.title = title
         self.description = description
         self.features = features
         self.mode = mode
+        self.item_template = item_template
         self.items = List.Items((self, 'items'))
         self.activity = activity
         self.activity.post = self._on_activity_publish
@@ -359,6 +361,8 @@ class List(Object, Editable):
             self.title = attrs['title']
         if 'description' in attrs:
             self.description = str_or_none(attrs['description'])
+        if 'item_template' in attrs:
+            self.item_template = str_or_none(attrs['item_template'])
         if 'features' in attrs:
             self.features = attrs['features']
         if 'mode' in attrs:
@@ -370,6 +374,7 @@ class List(Object, Editable):
             **Editable.json(self, restricted=restricted, include=include, rewrite=rewrite),
             'title': self.title,
             'description': self.description,
+            'item_template': self.item_template,
             'features': self.features,
             'mode': self.mode,
             'activity': self.activity.json(restricted=restricted, rewrite=rewrite),
