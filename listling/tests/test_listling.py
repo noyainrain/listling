@@ -173,9 +173,43 @@ class ListTest(ListlingTestCase):
         users = lst.users('U')
         self.assertEqual([user.id for user in users], [grumpy.id, self.user.id])
 
+class ListItemsTest(ListlingTestCase):
+    def make_list(self, *, mode=None):
+        lst = self.app.lists.create()
+        if mode:
+            lst.edit(mode=mode)
+        return lst
+
+    #@gen_test
+    #async def test_create(self):
+    #    lst = self.make_list()
+    #    item = await lst.items.create('Sleep')
+    #    self.assertIn(item.id, lst.items)
+
     @gen_test
-    async def test_items_create(self):
-        lst = self.app.lists.create(v=2)
+    async def test_create_as_user(self):
+        lst = self.make_list()
+        self.app.login()
+        item = await lst.items.create('Sleep')
+        self.assertIn(item.id, lst.items)
+
+    @gen_test
+    async def test_create_contribute_mode_as_user(self):
+        lst = self.make_list(mode='contribute')
+        self.app.login()
+        item = await lst.items.create('Sleep')
+        self.assertIn(item.id, lst.items)
+
+    @gen_test
+    async def test_create_view_mode_as_user(self):
+        lst = self.make_list(mode='view')
+        self.app.login()
+        with self.assertRaises(micro.PermissionError):
+            await lst.items.create('Sleep')
+
+    @gen_test
+    async def test_create_view_mode_as_list_owner(self):
+        lst = self.make_list(mode='view')
         item = await lst.items.create('Sleep')
         self.assertIn(item.id, lst.items)
 
@@ -191,6 +225,15 @@ class ItemTest(ListlingTestCase):
         if mode:
             lst.edit(mode=mode)
         return lst
+
+    async def make_items(self, *, mode=None):
+        lst = self.app.lists.create('todo')
+        self.app.login()
+        item = await lst.items.create('Sleep')
+        self.app.user = self.user
+        if mode:
+            lst.edit(mode=mode)
+        return item
 
     @gen_test
     async def test_edit(self):
@@ -213,78 +256,61 @@ class ItemTest(ListlingTestCase):
 
     @gen_test
     async def test_check_as_user(self):
-        lst = self.make_list('todo')
-        item = await lst.items.create('Sleep')
+        item = await self.make_items()
         self.app.login()
         item.check()
         self.assertTrue(item.checked)
 
     @gen_test
     async def test_check_as_item_owner(self):
-        lst = self.make_list('todo')
-        self.app.login()
-        item = await lst.items.create('Sleep')
+        item = await self.make_items()
+        self.app.user = item.authors[0]
         item.check()
         self.assertTrue(item.checked)
 
     @gen_test
     async def test_check_as_list_owner(self):
-        lst = self.make_list('todo', mode='contribute')
-        self.app.login()
-        item = await lst.items.create('Sleep')
-        self.app.user = self.user
+        item = await self.make_items()
         item.check()
         self.assertTrue(item.checked)
 
     @gen_test
     async def test_check_contribute_mode_as_user(self):
-        lst = self.make_list('todo', mode='contribute')
-        item = await lst.items.create('Sleep')
+        item = await self.make_items(mode='contribute')
         self.app.login()
         with self.assertRaises(micro.PermissionError):
             item.check()
 
     @gen_test
     async def test_check_contribute_mode_as_item_owner(self):
-        lst = self.make_list('todo', mode='contribute')
-        self.app.login()
-        item = await lst.items.create('Sleep')
+        item = await self.make_items(mode='contribute')
+        self.app.user = item.authors[0]
         item.check()
         self.assertTrue(item.checked)
 
     @gen_test
     async def test_check_contribute_mode_as_list_owner(self):
-        lst = self.make_list('todo', mode='contribute')
-        self.app.login()
-        item = await lst.items.create('Sleep')
-        self.app.user = self.user
+        item = await self.make_items(mode='contribute')
         item.check()
         self.assertTrue(item.checked)
 
     @gen_test
     async def test_check_view_mode_as_user(self):
-        lst = self.make_list('todo', mode='view')
-        item = await lst.items.create('Sleep')
+        item = await self.make_items(mode='view')
         self.app.login()
         with self.assertRaises(micro.PermissionError):
             item.check()
 
-    # TODO should fail because we cannot create an item
     @gen_test
     async def test_check_view_mode_as_item_owner(self):
-        lst = self.make_list('todo', mode='view')
-        item = await lst.items.create('Sleep')
-        self.app.login()
+        item = await self.make_items(mode='view')
+        self.app.user = item.authors[0]
         with self.assertRaises(micro.PermissionError):
             item.check()
 
-    # TODO should fail because only admin can create an item
     @gen_test
     async def test_check_view_mode_as_list_owner(self):
-        lst = self.make_list('todo', mode='contribute')
-        self.app.login()
-        item = await lst.items.create('Sleep')
-        self.app.user = self.user
+        item = await self.make_items(mode='view')
         item.check()
         self.assertTrue(item.checked)
 

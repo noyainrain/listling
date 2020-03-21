@@ -300,7 +300,7 @@ class List(Object, Editable):
         async def create(self, title, *, text=None, resource=None, location=None):
             """See :http:post:`/api/lists/(id)/items`."""
             # pylint: disable=protected-access; List is a friend
-            self.host[0]._check_permission(self.app.user, 'list-modify')
+            self.host[0]._check_permission(self.app.user, 'list-items-create')
             attrs = await WithContent.process_attrs({'text': text, 'resource': resource},
                                                     app=self.app)
             if str_or_none(title) is None:
