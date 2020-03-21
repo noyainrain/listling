@@ -259,10 +259,6 @@ listling.ListPage = class extends micro.Page {
 
             may: (ctx, op, mode) => {
                 // eslint-disable-next-line no-underscore-dangle
-                // XXX all playlists are in contribution mode
-                if (this._data.lst && this._data.lst.features.includes("play")) {
-                    mode = "contribution";
-                }
                 const permissions = listling.ListPage._PERMISSIONS[mode || "view"];
                 return (
                     permissions.user.has(op) ||
@@ -610,10 +606,6 @@ listling.ItemElement = class extends HTMLLIElement {
 
             may: (ctx, op, mode) => {
                 // eslint-disable-next-line no-underscore-dangle
-                // XXX all playlists are in contribution mode
-                if (this._data.lst && this._data.lst.features.includes("play")) {
-                    mode = "contribution";
-                }
                 const permissions = listling.ListPage._PERMISSIONS[mode || "view"];
                 return (
                     permissions.user.has(op) ||
