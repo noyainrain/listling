@@ -122,15 +122,18 @@ _EXAMPLE_DATA = {
         [
             {
                 'title': 'My job as a programmer',
-                'text': 'I wrote a 2D MMORPG for Star Wars fans.'
+                'text': 'I wrote a 2D MMORPG for Star Wars fans.',
+                'resource': 'https://c.wallhere.com/photos/e4/80/4096x2160_px_artwork_STAR_WARS_Battlefront_GAME_Star_Wars_Battlefront_video_games-1102412.jpg!d'
             },
             {
                 'title': 'My job as a manager',
-                'text': 'I was responsible for an EDEKA supermarket in Berlin.'
+                'text': 'I was responsible for an EDEKA supermarket in Berlin.',
+                'resource': 'https://media04.berliner-woche.de/article/2019/02/20/3/244513_XL.jpg?1564396207'
             },
             {
                 'title': 'My job as a pilot',
-                'text': 'I flew commercial airplanes for 5 years.'
+                'text': 'I flew commercial airplanes for 5 years.',
+                'resource': 'https://images.assetsdelivery.com/compings_v2/satit_srihin/satit_srihin1509/satit_srihin150900028.jpg'
             }
         ]
     )
