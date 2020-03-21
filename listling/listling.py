@@ -118,22 +118,19 @@ _EXAMPLE_DATA = {
     ),
     'presentation': (
         'Brief résumé of my work experience',
-        'Max Mustermann \n\n  *You will find in the menu the button to activate the presentation mode*',
+        'Max Mustermann \n\n  *You will find in the menu the button to activate the presentation mode.*',
         [
             {
                 'title': 'My job as a programmer',
-                'text': 'I wrote a 2D MMORPG for Star Wars fans.',
-                'resource': 'https://c.wallhere.com/photos/e4/80/4096x2160_px_artwork_STAR_WARS_Battlefront_GAME_Star_Wars_Battlefront_video_games-1102412.jpg!d'
+                'text': 'I wrote a 2D MMORPG for Star Wars fans.'
             },
             {
                 'title': 'My job as a manager',
-                'text': 'I was responsible for an EDEKA supermarket in Berlin.',
-                'resource': 'https://media04.berliner-woche.de/article/2019/02/20/3/244513_XL.jpg?1564396207'
+                'text': 'I was responsible for an EDEKA supermarket in Berlin.'
             },
             {
                 'title': 'My job as a pilot',
-                'text': 'I flew commercial airplanes for 5 years.',
-                'resource': 'https://images.assetsdelivery.com/compings_v2/satit_srihin/satit_srihin1509/satit_srihin150900028.jpg'
+                'text': 'I flew commercial airplanes for 5 years.'
             }
         ]
     )
