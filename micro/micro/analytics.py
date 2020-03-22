@@ -21,10 +21,11 @@
 
 from asyncio import Task, ensure_future, sleep # pylint: disable=unused-import; typing
 import json
+from collections import defaultdict
 from datetime import datetime, timedelta
 from logging import getLogger
 import typing
-from typing import Callable, Dict, Iterator, List, Mapping, Optional, cast
+from typing import Callable, Dict, Iterator, List, Mapping, Optional, Tuple, cast
 from urllib.parse import urlsplit
 
 from . import error
@@ -189,3 +190,30 @@ class Referrals(Collection[Referral]):
         self.app.r.oset(referral.id, referral)
         self.app.r.r.zadd(self.ids.key, {referral.id.encode(): -referral.time.timestamp()})
         return referral
+
+    def summarize(self, interval: Tuple[datetime, datetime] = None):
+        """ Generates a summary of referrals over a given time interval or all time.
+
+            Returns a list of tuples (referrer URL: str, number of referrals: int) sorted
+            by number of referrals.
+
+            .. attribute:: interval
+
+                A datetime tuple defining an interval for which the summary should be created
+
+        """
+        if interval is None:
+            keys = self.app.r.r.zrange(self.ids.key, 0, -1)
+        else:
+            # since the scores of the entries are timestamps * -1, we must also
+            # multiply the given timestamps by -1 and also invert the order so it
+            # is still a valid interval
+            interval = (-int(interval[1].timestamp()), -int(interval[0].timestamp()))
+            keys = self.app.r.r.zrangebyscore(self.ids.key, *list(interval))
+
+        result = defaultdict(lambda: 0)
+
+        for referral in self.app.r.omget(keys):
+            result[referral.url] += 1
+
+        return sorted(list(result.items()), key=lambda x: (-x[1], x[0]))

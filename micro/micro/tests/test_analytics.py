@@ -63,3 +63,38 @@ class ReferralsTest(MicroTestCase):
         referral = self.app.analytics.referrals.add('https://example.org/', user=self.user)
         self.assertEqual(referral.url, 'https://example.org/')
         self.assertIn(referral.id, self.app.analytics.referrals)
+
+    def test_summarize(self):
+
+        self.app.analytics.referrals.add('https://example.org/', user=self.user)
+        self.app.analytics.referrals.add('https://example.org/', user=self.user)
+        self.app.analytics.referrals.add('https://foo.org/', user=self.user)
+        self.app.analytics.referrals.add('https://bar.org/', user=self.user)
+
+        summary = self.app.analytics.referrals.summarize()
+
+        self.assertEqual(3, len(summary))
+
+        self.assertEqual(("https://example.org/", 2), summary[0])
+        self.assertEqual(("https://bar.org/", 1), summary[1])
+        self.assertEqual(("https://foo.org/", 1), summary[2])
+
+
+    def test_summarize_interval(self):
+        earlier = self.app.now() - timedelta(minutes=2)
+
+        with patch.object(self.app, "now", return_value=earlier):
+            self.app.analytics.referrals.add('https://example.org/', user=self.user)
+            self.app.analytics.referrals.add('https://example.org/', user=self.user)
+
+        later = (earlier + timedelta(minutes=1))
+
+        self.app.analytics.referrals.add('https://foo.org/', user=self.user)
+        self.app.analytics.referrals.add('https://bar.org/', user=self.user)
+        future = self.app.now() + timedelta(minutes=1)
+
+        summary = self.app.analytics.referrals.summarize((later, future))
+
+        self.assertEqual(2, len(summary))
+        self.assertEqual(("https://bar.org/", 1), summary[0])
+        self.assertEqual(("https://foo.org/", 1), summary[1])
