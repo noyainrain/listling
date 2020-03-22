@@ -1238,6 +1238,7 @@ micro.MapElement = class extends HTMLElement {
                 if (this._locations) {
                     let loc = this._locations.find(item => item.hash === location.hash.slice(1));
                     if (loc) {
+                        this.scrollIntoView();
                         this._updateView();
                         this.querySelector(`#${loc.hash}`).focus();
                     }
