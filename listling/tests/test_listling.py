@@ -119,6 +119,9 @@ class ListlingUpdateTest(AsyncTestCase):
         # Update to version 8
         self.assertEqual([user.id for user in app.lists[1].users()],
                          [user.id for user in reversed(app.users[0:2])])
+        # Update to version 9
+        for l in app.lists.values(): # pylint: disable=no-member
+            self.assertEqual(l.item_template, None)
 
 class UserListsTest(ListlingTestCase):
     def test_add(self):
@@ -144,9 +147,10 @@ class UserListsTest(ListlingTestCase):
 class ListTest(ListlingTestCase):
     def test_edit(self):
         lst = self.app.lists.create(v=2)
-        lst.edit(description='What has to be done!', mode='view')
+        lst.edit(description='What has to be done!', mode='view', item_template="A template")
         self.assertEqual(lst.description, 'What has to be done!')
         self.assertEqual(lst.mode, 'view')
+        self.assertEqual(lst.item_template, 'A template')
 
     def test_edit_as_user(self):
         lst = self.app.lists.create(v=2)
@@ -160,6 +164,18 @@ class ListTest(ListlingTestCase):
         self.app.login()
         with self.assertRaises(micro.PermissionError):
             lst.edit(description='What has to be done!')
+
+    def test_json(self):
+        lst = self.app.lists.create(v=2)
+        lst.edit(
+            title="A list to rule all lists",
+            description="It's all in the title",
+            item_template="An item to rule all items",
+        )
+        data = lst.json()
+        self.assertEqual(data['title'], "A list to rule all lists")
+        self.assertEqual(data['description'], "It's all in the title")
+        self.assertEqual(data['item_template'], "An item to rule all items")
 
     @gen_test
     async def test_query_users_name(self):

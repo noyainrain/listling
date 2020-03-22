@@ -158,6 +158,9 @@ listling.ListPage = class extends micro.Page {
                 this._data.creatingItem = true;
                 this.querySelector(".listling-list-create-item [is=listling-item]").focus();
                 this.querySelector(".listling-list-create-item [is=listling-item]").scrollIntoView(false);
+                // Find the new ItemElement and pass the item_template to it
+                const elem = this.querySelector(".listling-list-create-item [is=listling-item]");
+                elem.startCreate(this._data.lst.item_template);
             },
             stopCreateItem: () => {
                 this._data.creatingItem = false;
@@ -179,7 +182,8 @@ listling.ListPage = class extends micro.Page {
                         features:
                             Array.from(this._form.elements.features, e => e.checked && e.value)
                                 .filter(feature => feature),
-                        mode: this._form.elements.mode.valueAsObject
+                        mode: this._form.elements.mode.valueAsObject,
+                        item_template: this._form.elements.item_template.value
                     });
                     if (this._data.lst) {
                         this.list = list;
@@ -430,6 +434,16 @@ listling.ListPage._PERMISSIONS = {
 };
 
 listling.ItemElement = class extends HTMLLIElement {
+
+    /*
+        Called by ListPage when the "add item" button is clicked.
+        Receives the template text for new items as it's only parameter and
+        fills the textarea with it.
+    */
+    startCreate(templateText) {
+        this.querySelector("textarea").value = templateText;
+    }
+
     createdCallback() {
         this.appendChild(
             document.importNode(ui.querySelector(".listling-item-template").content, true));

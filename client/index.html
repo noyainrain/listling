@@ -348,6 +348,14 @@
                             </template>
                         </micro-options>
                     </label>
+
+                    <label>
+                        Item template
+                        <textarea name="item_template" placeholder="Enter text that new items should start with (optional)"
+                          data-value="or lst.item_template ''">
+                        </textarea>
+                        <small>New items will be created with this description</small>
+                    </label>
                 </section>
             </div>
 
@@ -936,7 +944,7 @@
         }
 
         [is=listling-item] h1 > label {
-            margin-bottom: 0;
+            margin: 0;
         }
 
         listling-list-page:not(.listling-list-feature-assign) .listling-item-assign,
