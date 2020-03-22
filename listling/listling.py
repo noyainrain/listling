@@ -183,7 +183,7 @@ class Listling(Application):
     def do_update(self):
         version = self.r.get('version')
         if not version:
-            self.r.set('version', 8)
+            self.r.set('version', 9)
             return
 
         version = int(version)
@@ -209,6 +209,13 @@ class Listling(Application):
                     t = parse_isotime(event['time'], aware=True).timestamp()
                     self.r.zadd(users_key, {event['user'].encode(): -t})
             r.set('version', 8)
+
+        if version < 9:
+            lists = r.omget(r.lrange('lists', 0, -1))
+            for lst in lists:
+                lst['item_template'] = None
+            r.omset({l["id"]: l for l in lists})
+            r.set('version', 9)
 
     def create_user(self, data):
         return User(**data)

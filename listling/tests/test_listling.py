@@ -119,6 +119,9 @@ class ListlingUpdateTest(AsyncTestCase):
         # Update to version 8
         self.assertEqual([user.id for user in app.lists[1].users()],
                          [user.id for user in reversed(app.users[0:2])])
+        # Update to version 9
+        for l in app.lists.values(): # pylint: disable=no-member
+            self.assertEqual(l.item_template, None)
 
 class UserListsTest(ListlingTestCase):
     def test_add(self):
