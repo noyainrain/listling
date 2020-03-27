@@ -114,7 +114,8 @@ class _ListEndpoint(Endpoint):
             'title': (str, 'opt'),
             'description': (str, None, 'opt'),
             'features': (list, 'opt'),
-            'mode': (str, 'opt')
+            'mode': (str, 'opt'),
+            'item_template': (str, None, 'opt')
         })
         lst.edit(**args)
         self.write(lst.json(restricted=True, include=True))

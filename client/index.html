@@ -322,7 +322,7 @@
                     </fieldset>
 
                     <label>
-                        List mode
+                        <small>List mode</small>
                         <input
                             name="mode" readonly="readonly" data-value="modeToText lst.mode"
                             data-value-as-object="lst.mode"
@@ -342,6 +342,13 @@
                                 </p>
                             </template>
                         </micro-options>
+                    </label>
+
+                    <label>
+                        <small>Item template (optional)</small>
+                        <textarea name="item-template" data-value="or lst.item_template ''">
+                        </textarea>
+                        <small>Template for the text of new items.</small>
                     </label>
                 </section>
             </div>
@@ -417,7 +424,10 @@
                     <i class="fa fa-plus-circle"></i> Add item
                 </button>
             </p>
-            <li is="listling-item" data-onedit="stopCreateItem" data-oncancel="stopCreateItem"></li>
+            <li
+                is="listling-item" data-list="lst" data-onedit="stopCreateItem"
+                data-oncancel="stopCreateItem"
+            ></li>
         </div>
 
         <aside class="listling-list-mode-view micro-interactive">
@@ -753,7 +763,8 @@
                 <label class="listling-item-mode-edit">
                     <div class="micro-input-wrapper">
                         <textarea
-                            name="text" placeholder="Text (optional)" data-value="or item.text ''"
+                            name="text" placeholder="Text (optional)"
+                            data-value="getTextValue item lst.item_template"
                         ></textarea>
                         <div class="micro-panel">
                             <button

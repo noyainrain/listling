@@ -142,6 +142,10 @@ List
    .. [1] Edit the list and create and move items
    .. [2] Edit, trash, restore, check, uncheck, assign to and unassign from items
 
+.. describe:: item_template
+
+   Template for *text* content of new items as *markup text*. May be ``null``.
+
 .. describe:: items
 
    List :ref:`Items`.

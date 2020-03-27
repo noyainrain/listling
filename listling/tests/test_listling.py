@@ -101,12 +101,12 @@ class ListlingUpdateTest(AsyncTestCase):
         self.assertEqual(app.settings.title, 'My Open Listling')
 
     def test_update_db_version_previous(self):
-        self.setup_db('0.22.0')
+        self.setup_db('0.26.1')
         app = Listling(redis_url='15', files_path=mkdtemp())
         app.update()
 
-        self.assertEqual([user.id for user in app.lists[1].users()],
-                         [user.id for user in reversed(app.users[0:2])])
+        for l in app.lists[:]:
+            self.assertEqual(l.item_template, None)
 
     def test_update_db_version_first(self):
         self.setup_db('0.13.0')
@@ -119,6 +119,9 @@ class ListlingUpdateTest(AsyncTestCase):
         # Update to version 8
         self.assertEqual([user.id for user in app.lists[1].users()],
                          [user.id for user in reversed(app.users[0:2])])
+        # Update to version 9
+        for l in app.lists[:]:
+            self.assertEqual(l.item_template, None)
 
 class UserListsTest(ListlingTestCase):
     def test_add(self):
@@ -144,9 +147,10 @@ class UserListsTest(ListlingTestCase):
 class ListTest(ListlingTestCase):
     def test_edit(self):
         lst = self.app.lists.create(v=2)
-        lst.edit(description='What has to be done!', mode='view')
+        lst.edit(description='What has to be done!', mode='view', item_template="Details:")
         self.assertEqual(lst.description, 'What has to be done!')
         self.assertEqual(lst.mode, 'view')
+        self.assertEqual(lst.item_template, 'Details:')
 
     def test_edit_as_user(self):
         lst = self.app.lists.create(v=2)

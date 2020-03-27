@@ -177,7 +177,8 @@ listling.ListPage = class extends micro.Page {
                         features:
                             Array.from(this._form.elements.features, e => e.checked && e.value)
                                 .filter(feature => feature),
-                        mode: this._form.elements.mode.valueAsObject
+                        mode: this._form.elements.mode.valueAsObject,
+                        item_template: this._form.elements["item-template"].value
                     });
                     if (this._data.lst) {
                         this.list = list;
@@ -428,6 +429,7 @@ listling.ItemElement = class extends HTMLLIElement {
             votesMeta: null,
             expanded: false,
             editMode: true,
+            getTextValue: (ctx, item, template) => (item ? item.text : template) || "",
             isCheckDisabled:
                 (ctx, trashed, mode) => trashed || !this._data.may(ctx, "item-modify", mode),
             makeItemURL: listling.util.makeItemURL,
@@ -475,8 +477,8 @@ listling.ItemElement = class extends HTMLLIElement {
                 if (this._data.item) {
                     ui.dispatchEvent(new CustomEvent("item-edit", {detail: {item}}));
                 } else {
-                    this._form.reset();
-                    this._form.elements.location.wrapper.value = null;
+                    // Reset form
+                    this._data.item = null;
                     ui.dispatchEvent(new CustomEvent("list-items-create", {detail: {item}}));
                 }
                 if (this.onedit) {
@@ -487,9 +489,6 @@ listling.ItemElement = class extends HTMLLIElement {
             cancelEdit: () => {
                 if (this._data.item) {
                     this._data.editMode = false;
-                } else {
-                    this._form.reset();
-                    this._form.elements.location.wrapper.value = null;
                 }
                 if (this.oncancel) {
                     this.oncancel(new CustomEvent("cancel"));
@@ -728,7 +727,8 @@ listling.ItemElement = class extends HTMLLIElement {
 
     set item(value) {
         this._data.item = value;
-        this._data.resourceElem = micro.bind.transforms.renderResource(null, value.resource);
+        this._data.resourceElem =
+            micro.bind.transforms.renderResource(null, value && value.resource) || null;
         this._data.editMode = !this._data.item;
         this.id = this._data.item ? `items-${this._data.item.id.split(":")[1]}` : "";
         if (this._data.playable) {
@@ -741,7 +741,7 @@ listling.ItemElement = class extends HTMLLIElement {
     }
 
     set list(value) {
-        const playFeature = value.features.includes("play");
+        const playFeature = value && value.features.includes("play");
         if (this._data.playable && !playFeature) {
             this._data.playable.dispose();
             this._data.playable = null;
