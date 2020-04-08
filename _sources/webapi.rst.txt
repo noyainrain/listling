@@ -150,6 +150,10 @@ List
 
    List :ref:`Items`.
 
+.. describe:: activity
+
+   List :ref:`Activity` feed.
+
 .. include:: micro/editable-endpoints.inc
 
 Events:
