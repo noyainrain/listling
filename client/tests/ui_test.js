@@ -21,7 +21,7 @@
 
 let {exec, spawn} = require("child_process");
 const {mkdtemp} = require("fs").promises;
-const {tmpdir} = require("os");
+const {hostname, tmpdir} = require("os");
 const {cwd} = require("process");
 let {promisify} = require("util");
 
@@ -81,7 +81,8 @@ describe("UI", function() {
         let itemMenu;
 
         // View intro page
-        await getWithServiceWorker(browser, `${URL}/`);
+        // Work around Sauce Labs buffering on localhost
+        await browser.get(`http://${hostname()}:8081/`);
         await browser.wait(
             untilElementTextLocated({css: ".micro-logo"}, "My Open Listling"), timeout);
         const menu = await browser.findElement({css: ".micro-ui-header-menu"});
@@ -248,7 +249,7 @@ describe("UI", function() {
     });
 
     it("should work for staff", async function() {
-        await browser.get(`${URL}/`);
+        await getWithServiceWorker(browser, `${URL}/`);
         await browser.wait(until.elementLocated({css: "listling-intro-page"}), timeout);
         await createExampleList();
 

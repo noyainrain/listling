@@ -170,8 +170,7 @@ listling.ListPage = class extends micro.Page {
 
             edit: async() => {
                 try {
-                    const url = this._data.lst ? `/api/lists/${this._data.lst.id}` : "/api/lists";
-                    const list = await ui.call("POST", url, {
+                    await ui.call("POST", `/api/lists/${this._data.lst.id}`, {
                         title: this._form.elements.title.value,
                         description: this._form.elements.description.value,
                         features:
@@ -180,22 +179,16 @@ listling.ListPage = class extends micro.Page {
                         mode: this._form.elements.mode.valueAsObject,
                         item_template: this._form.elements["item-template"].value
                     });
-                    if (this._data.lst) {
-                        this.list = list;
-                    } else {
-                        ui.navigate(`/lists/${list.id.split(":")[1]}`).catch(micro.util.catch);
-                    }
+                    this._data.editMode = false;
+                    this._replayEvents();
                 } catch (e) {
                     ui.handleCallError(e);
                 }
             },
 
             cancelEdit: () => {
-                if (this._data.lst) {
-                    this._data.editMode = false;
-                } else {
-                    ui.navigate("/");
-                }
+                this._data.editMode = false;
+                this._replayEvents();
             },
 
             subscribe: async() => {
@@ -230,8 +223,7 @@ listling.ListPage = class extends micro.Page {
 
             moveItemDrag: event => {
                 // NOTE: This may be better done by micro.OL itself if some reset attribute is set
-                this.querySelector(".listling-list-items").insertBefore(event.detail.li,
-                                                                        event.detail.from);
+                this._itemsOL.insertBefore(event.detail.li, event.detail.from);
                 let to = event.detail.to && event.detail.to.item;
                 if (to) {
                     let i = this._data.presentItems.findIndex(item => item.id === to.id);
@@ -289,45 +281,89 @@ listling.ListPage = class extends micro.Page {
         updateClass();
 
         this._items = null;
+        this._activity = null;
+        this._eventBuffer = [];
         this._form = this.querySelector("form");
-        this._events = ["list-items-create", "list-items-move", "item-edit", "item-trash",
-                        "item-restore", "item-check", "item-uncheck"];
+        this._itemsOL = this.querySelector(".listling-list-items");
     }
 
     attachedCallback() {
         super.attachedCallback();
         ui.shortcutContext.add("G", this._data.toggleTrash);
         ui.shortcutContext.add("C", this._data.toggleSettings);
-        this._events.forEach(e => ui.addEventListener(e, this));
+        ui.addEventListener("list-items-move", this);
 
         this.ready.when((async() => {
-            if (this._data.editMode) {
-                this._form.elements[0].focus();
-            } else {
-                try {
-                    const items = await ui.call("GET", `/api/lists/${this._data.lst.id}/items`);
-                    this._items = new micro.bind.Watchable(items);
-                } catch (e) {
-                    ui.handleCallError(e);
-                    return;
-                }
+            try {
+                const items = await ui.call("GET", `/api/lists/${this._data.lst.id}/items`);
+                this._items = new micro.bind.Watchable(items);
+            } catch (e) {
+                ui.handleCallError(e);
+                return;
+            }
 
-                this._data.presentItems = micro.bind.filter(this._items, i => !i.trashed);
-                this._data.trashedItems = micro.bind.filter(this._items, i => i.trashed);
-                this._data.trashedItemsCount = this._data.trashedItems.length;
+            this._activity =
+                await micro.Activity.open(`/api/lists/${this._data.lst.id}/activity/stream`);
+            this._activity.events.addEventListener(
+                "list-create-item", event => this._items.push(event.detail.event.detail.item)
+            );
+            const events = [
+                "editable-edit", "trashable-trash", "trashable-restore", "item-check",
+                "item-uncheck"
+            ];
+            for (let type of events) {
+                this._activity.events.addEventListener(type, event => {
+                    const object = event.detail.event.object;
+                    let li;
+                    let i;
+                    switch (object.__type__) {
+                    case "List":
+                        if (this._data.editMode) {
+                            // Buffer modifications until editing is done
+                            this._bufferEvent(event);
+                            break;
+                        }
+                        this.list = object;
+                        break;
+                    case "Item":
+                        li = Array.from(this._itemsOL.children).find(
+                            node => node.item.id === object.id
+                        );
+                        if (li && li.editMode) {
+                            // Buffer modifications until editing is done
+                            this._bufferEvent(event);
+                            break;
+                        }
+                        i = this._items.findIndex(item => item.id === object.id);
+                        this._items[i] = object;
+                        this._data.trashedItemsCount = this._data.trashedItems.length;
+                        break;
+                    default:
+                        // Unreachable
+                        throw new Error();
+                    }
+                });
+            }
 
-                this._data.locations = micro.bind.map(
-                    micro.bind.filter(
-                        this._items, item => !item.trashed && item.location && item.location.coords
-                    ),
-                    item => Object.assign({
-                        url: listling.util.makeItemURL(null, item),
-                        hash: `map-${item.id.split(":")[1]}`
-                    }, item.location)
-                );
+            this._data.presentItems = micro.bind.filter(this._items, i => !i.trashed);
+            this._data.trashedItems = micro.bind.filter(this._items, i => i.trashed);
+            this._data.trashedItemsCount = this._data.trashedItems.length;
+            this._data.locations = micro.bind.map(
+                micro.bind.filter(
+                    this._items, item => !item.trashed && item.location && item.location.coords
+                ),
+                item => Object.assign({
+                    url: listling.util.makeItemURL(null, item),
+                    hash: `map-${item.id.split(":")[1]}`
+                }, item.location)
+            );
 
-                if (location.hash === "#presentation") {
-                    this._data.presentation.enter().catch(micro.util.catch);
+            if (["#presentation", "#presentation+play"].includes(location.hash)) {
+                this._data.presentation.enter().catch(micro.util.catch);
+            }
+            if (["#play", "#presentation+play"].includes(location.hash)) {
+                if (this._data.playlist) {
+                    this._data.playlistPlayPause();
                 }
             }
         })().catch(micro.util.catch));
@@ -347,7 +383,10 @@ listling.ListPage = class extends micro.Page {
     detachedCallback() {
         ui.shortcutContext.remove("G");
         ui.shortcutContext.remove("C");
-        this._events.forEach(e => ui.removeEventListener(e, this));
+        ui.removeEventListener("list-items-move", this);
+        if (this._activity) {
+            this._activity.close();
+        }
         this._data.presentation.exit().catch(micro.util.catch);
         if (this._data.playlist) {
             this._data.playlist.dispose();
@@ -378,20 +417,12 @@ listling.ListPage = class extends micro.Page {
     }
 
     handleEvent(event) {
-        if (event.type === "list-items-create") {
-            this._items.push(event.detail.item);
-        } else if (event.type === "list-items-move") {
+        if (event.type === "list-items-move") {
             let i = this._items.findIndex(item => item.id === event.detail.item.id);
             this._items.splice(i, 1);
             let j = event.detail.to
                 ? this._items.findIndex(item => item.id === event.detail.to.id) + 1 : 0;
             this._items.splice(j, 0, event.detail.item);
-        } else if (
-            ["item-edit", "item-trash", "item-restore", "item-check", "item-uncheck"]
-                .includes(event.type)) {
-            let i = this._items.findIndex(item => item.id === event.detail.item.id);
-            this._items[i] = event.detail.item;
-            this._data.trashedItemsCount = this._data.trashedItems.length;
         }
     }
 
@@ -404,6 +435,18 @@ listling.ListPage = class extends micro.Page {
             });
         } catch (e) {
             ui.handleCallError(e);
+        }
+    }
+
+    _bufferEvent(event) {
+        this._eventBuffer.push(event);
+    }
+
+    _replayEvents() {
+        const events = this._eventBuffer;
+        this._eventBuffer = [];
+        for (let event of events) {
+            this._activity.events.dispatchEvent(event);
         }
     }
 };
@@ -428,7 +471,7 @@ listling.ItemElement = class extends HTMLLIElement {
             votesComplete: false,
             votesMeta: null,
             expanded: false,
-            editMode: true,
+            editMode: false,
             getTextValue: (ctx, item, template) => (item ? item.text : template) || "",
             isCheckDisabled:
                 (ctx, trashed, mode) => trashed || !this._data.may(ctx, "item-modify", mode),
@@ -452,9 +495,8 @@ listling.ItemElement = class extends HTMLLIElement {
                     ? `/api/lists/${ui.page.list.id}/items/${this._data.item.id}`
                     : `/api/lists/${ui.page.list.id}/items`;
 
-                let item;
                 try {
-                    item = await ui.call("POST", url, {
+                    await ui.call("POST", url, {
                         text,
                         resource,
                         title,
@@ -475,11 +517,12 @@ listling.ItemElement = class extends HTMLLIElement {
                 }
 
                 if (this._data.item) {
-                    ui.dispatchEvent(new CustomEvent("item-edit", {detail: {item}}));
+                    this._data.editMode = false;
+                    // eslint-disable-next-line no-underscore-dangle
+                    ui.page._replayEvents();
                 } else {
                     // Reset form
                     this._data.item = null;
-                    ui.dispatchEvent(new CustomEvent("list-items-create", {detail: {item}}));
                 }
                 if (this.onedit) {
                     this.onedit(new CustomEvent("edit"));
@@ -489,6 +532,8 @@ listling.ItemElement = class extends HTMLLIElement {
             cancelEdit: () => {
                 if (this._data.item) {
                     this._data.editMode = false;
+                    // eslint-disable-next-line no-underscore-dangle
+                    ui.page._replayEvents();
                 }
                 if (this.oncancel) {
                     this.oncancel(new CustomEvent("cancel"));
@@ -497,10 +542,9 @@ listling.ItemElement = class extends HTMLLIElement {
 
             trash: async() => {
                 try {
-                    const item = await ui.call(
+                    await ui.call(
                         "POST", `/api/lists/${ui.page.list.id}/items/${this._data.item.id}/trash`
                     );
-                    ui.dispatchEvent(new CustomEvent("item-trash", {detail: {item}}));
                 } catch (e) {
                     ui.handleCallError(e);
                 }
@@ -508,10 +552,9 @@ listling.ItemElement = class extends HTMLLIElement {
 
             restore: async() => {
                 try {
-                    const item = await ui.call(
+                    await ui.call(
                         "POST", `/api/lists/${ui.page.list.id}/items/${this._data.item.id}/restore`
                     );
-                    ui.dispatchEvent(new CustomEvent("item-restore", {detail: {item}}));
                 } catch (e) {
                     ui.handleCallError(e);
                 }
@@ -520,11 +563,8 @@ listling.ItemElement = class extends HTMLLIElement {
             checkUncheck: async() => {
                 const op = this._data.item.checked ? "uncheck" : "check";
                 try {
-                    const item = await ui.call(
+                    await ui.call(
                         "POST", `/api/lists/${this._data.lst.id}/items/${this._data.item.id}/${op}`
-                    );
-                    setTimeout(
-                        () => ui.dispatchEvent(new CustomEvent(`item-${op}`, {detail: {item}})), 0
                     );
                 } catch (e) {
                     ui.handleCallError(e);
@@ -541,18 +581,8 @@ listling.ItemElement = class extends HTMLLIElement {
                 try {
                     if (this._data.votesMeta.user_voted) {
                         await ui.call("DELETE", `${this._data.votes.url}/user`);
-                        const item = Object.assign(
-                            {}, this._data.item,
-                            {votes: {count: this._data.votesMeta.count - 1, user_voted: false}}
-                        );
-                        ui.dispatchEvent(new CustomEvent("item-votes-unvote", {detail: {item}}));
                     } else {
                         await ui.call("POST", this._data.votes.url);
-                        const item = Object.assign(
-                            {}, this._data.item,
-                            {votes: {count: this._data.votesMeta.count + 1, user_voted: true}}
-                        );
-                        ui.dispatchEvent(new CustomEvent("item-votes-vote", {detail: {item}}));
                     }
                 } catch (e) {
                     ui.handleCallError(e);
@@ -631,6 +661,7 @@ listling.ItemElement = class extends HTMLLIElement {
         this.shortcutContext.add("Alt+ArrowUp", move.bind(null, "up"));
         this.shortcutContext.add("Alt+ArrowDown", move.bind(null, "down"));
 
+        this._activity = null;
         this._form = this.querySelector("form");
 
         // Expand / collapse item
@@ -658,21 +689,23 @@ listling.ItemElement = class extends HTMLLIElement {
         if (!this._data.item) {
             return;
         }
+        // eslint-disable-next-line no-underscore-dangle
+        this._activity = ui.page._activity;
 
         this._data.assignees = new micro.bind.Watchable(this._data.item.assignees.items);
         this._data.assigneesCount = this._data.assignees.length;
 
         this._onAssign = event => {
-            if (event.detail.item.id === this._data.item.id) {
-                this._data.assignees.unshift(event.detail.assignee);
+            if (event.detail.event.object.id === this._data.item.id) {
+                this._data.assignees.unshift(event.detail.event.detail.assignee);
                 this._data.assigneesCount = this._data.assignees.length;
             }
         };
-        ui.addEventListener("item-assignees-assign", this._onAssign);
+        this._activity.events.addEventListener("item-assignees-assign", this._onAssign);
         this._onUnassign = event => {
-            if (event.detail.item.id === this._data.item.id) {
+            if (event.detail.event.object.id === this._data.item.id) {
                 const i = this._data.assignees.findIndex(
-                    assignee => assignee.id === event.detail.assignee.id
+                    assignee => assignee.id === event.detail.event.detail.assignee.id
                 );
                 if (i !== -1) {
                     this._data.assignees.splice(i, 1);
@@ -680,7 +713,7 @@ listling.ItemElement = class extends HTMLLIElement {
                 }
             }
         };
-        ui.addEventListener("item-assignees-unassign", this._onUnassign);
+        this._activity.events.addEventListener("item-assignees-unassign", this._onUnassign);
 
         this._data.votes = new micro.Collection(
             `/api/lists/${this._data.lst.id}/items/${this._data.item.id}/votes`
@@ -692,30 +725,35 @@ listling.ItemElement = class extends HTMLLIElement {
         this._data.votesMeta = this._data.item.votes;
 
         this._onVote = event => {
-            if (event.detail.item.id === this._data.item.id) {
-                this._data.votesMeta = event.detail.item.votes;
-                this._data.votes.items.unshift(ui.user);
+            if (event.detail.event.object.id === this._data.item.id) {
+                this._data.votesMeta = event.detail.event.object.votes;
+                this._data.votes.items.unshift(event.detail.event.user);
             }
         };
-        ui.addEventListener("item-votes-vote", this._onVote);
+        this._activity.events.addEventListener("item-votes-vote", this._onVote);
 
         this._onUnvote = event => {
-            if (event.detail.item.id === this._data.item.id) {
-                this._data.votesMeta = event.detail.item.votes;
-                const i = this._data.votes.items.findIndex(vote => vote.id === ui.user.id);
+            if (event.detail.event.object.id === this._data.item.id) {
+                this._data.votesMeta = event.detail.event.object.votes;
+                const i = this._data.votes.items.findIndex(
+                    vote => vote.id === event.detail.event.user.id
+                );
                 if (i !== -1) {
                     this._data.votes.items.splice(i, 1);
                 }
             }
         };
-        ui.addEventListener("item-votes-unvote", this._onUnvote);
+        this._activity.events.addEventListener("item-votes-unvote", this._onUnvote);
     }
 
     detachedCallback() {
-        ui.removeEventListener("item-assignees-assign", this._onAssign);
-        ui.removeEventListener("item-assignees-unassign", this._onUnassign);
-        ui.removeEventListener("item-votes-vote", this._onVote);
-        ui.removeEventListener("item-votes-unvote", this._onUnvote);
+        if (!this._data.item) {
+            return;
+        }
+        this._activity.events.removeEventListener("item-assignees-assign", this._onAssign);
+        this._activity.events.removeEventListener("item-assignees-unassign", this._onUnassign);
+        this._activity.events.removeEventListener("item-votes-vote", this._onVote);
+        this._activity.events.removeEventListener("item-votes-unvote", this._onUnvote);
         if (this._data.playable) {
             this._data.playable.dispose();
         }
@@ -729,7 +767,6 @@ listling.ItemElement = class extends HTMLLIElement {
         this._data.item = value;
         this._data.resourceElem =
             micro.bind.transforms.renderResource(null, value && value.resource) || null;
-        this._data.editMode = !this._data.item;
         this.id = this._data.item ? `items-${this._data.item.id.split(":")[1]}` : "";
         if (this._data.playable) {
             this._data.playable.resourceElement = this._data.resourceElem;
@@ -758,6 +795,15 @@ listling.ItemElement = class extends HTMLLIElement {
     /** Item assignees. */
     get assignees() {
         return this._data.assignees;
+    }
+
+    /** Indicates if the element is in edit mode. */
+    get editMode() {
+        return this._data.editMode;
+    }
+
+    set editMode(value) {
+        this._data.editMode = value;
     }
 
     /** :class:`listling.components.list.Playable` extension. */

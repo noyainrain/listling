@@ -23,8 +23,9 @@ import json
 
 import micro
 from micro import Location, error
-from micro.server import (Endpoint, CollectionEndpoint, Server, UI, make_activity_endpoint,
-                          make_orderable_endpoints, make_trashable_endpoints)
+from micro.server import (
+    ActivityStreamEndpoint, Endpoint, CollectionEndpoint, Server, UI, make_activity_endpoint,
+    make_orderable_endpoints, make_trashable_endpoints)
 from micro.util import Expect, ON
 
 from . import Listling
@@ -44,8 +45,9 @@ def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='', 
         (r'/api/lists/([^/]+)/users$', _ListUsersEndpoint),
         (r'/api/lists/([^/]+)/items$', _ListItemsEndpoint),
         *make_orderable_endpoints(r'/api/lists/([^/]+)/items', lambda id: app.lists[id].items),
-        make_activity_endpoint(r'/api/lists/([^/]+)/activity',
-                               lambda id, *a: app.lists[id].activity),
+        make_activity_endpoint(r'/api/lists/([^/]+)/activity', lambda id: app.lists[id].activity),
+        (r'/api/lists/([^/]+)/activity/stream$', ActivityStreamEndpoint,
+         {'get_activity': lambda id: app.lists[id].activity}),
         (r'/api/lists/([^/]+)/items/([^/]+)$', _ItemEndpoint),
         *make_trashable_endpoints(r'/api/lists/([^/]+)/items/([^/]+)',
                                   lambda list_id, id: app.lists[list_id].items[id]),

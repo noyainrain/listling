@@ -27,7 +27,7 @@ bump_version doc/conf.py "^\(version = release = '\)\(.*\)\('\)$"
 make check
 
 # Publish
-git commit
+git commit --author="$(git log master..$FEATURE --format="%aN <%aE>" | tail -n 1)"
 git tag $VERSION
 git push origin master $VERSION
 
