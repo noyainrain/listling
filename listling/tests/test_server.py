@@ -32,7 +32,7 @@ class ServerTest(ServerTestCase):
         self.client_user = self.app.login()
 
     @gen_test
-    async def test_availibility(self):
+    async def test_availability(self):
         lst = await self.app.lists.create_example('todo')
         lst.edit(features=['check', 'assign', 'vote'])
         item = next(iter(lst.items.values()))
@@ -55,6 +55,7 @@ class ServerTest(ServerTestCase):
         await self.request('/api/lists/{}/items'.format(lst.id))
         await self.request('/api/lists/{}/items'.format(lst.id), method='POST',
                            body='{"title": "Sleep"}')
+        await self.request(f'/api/lists/{lst.id}/activity')
         await self.request('/api/lists/{}/items/{}'.format(lst.id, item.id))
         await self.request('/api/lists/{}/items/{}'.format(lst.id, item.id), method='POST',
                            body='{"text": "Very important!"}')
