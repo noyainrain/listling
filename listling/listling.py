@@ -77,12 +77,10 @@ _EXAMPLE_DATA = {
         [
             {
                 'title': 'Rick Astley - Never Gonna Give You Up',
-                'text': 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
                 'resource': 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
             },
             {
                 'title': 'Rihanna - Diamonds',
-                'text': 'https://www.youtube.com/watch?v=lWA2pjMjpBs',
                 'resource': 'https://www.youtube.com/watch?v=lWA2pjMjpBs'
             },
             {
@@ -97,19 +95,19 @@ _EXAMPLE_DATA = {
         [
             {
                 'title': 'Glück to go',
-                'text': 'Website: http://www.glueck-to-go.de/',
+                'text': 'http://www.glueck-to-go.de/',
                 'location': Location('Friesenstraße 26, 10965 Berlin, Germany',
                                      (52.48866, 13.394651))
             },
             {
                 'title': 'L’herbivore',
-                'text': 'Website: https://lherbivore.de/',
+                'text': 'https://lherbivore.de/',
                 'location': Location('Petersburger Straße 38, 10249 Berlin, Germany',
                                      (52.522951, 13.449482))
             },
             {
                 'title': 'YELLOW SUNSHINE',
-                'text': 'Website: http://www.yellow-sunshine.de/',
+                'text': 'http://www.yellow-sunshine.de/',
                 'location': Location('Wiener Straße 19, 10999 Berlin, Germany',
                                      (52.497561, 13.430773))
             }
@@ -404,6 +402,7 @@ class List(Object, Editable):
 
 class Item(Object, Editable, Trashable, WithContent):
     """See :ref:`Item`."""
+    # pylint: disable=invalid-overridden-method; do_edit may be async
 
     class Assignees(Collection):
         """See :ref:`ItemAssignees`."""

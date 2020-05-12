@@ -472,7 +472,10 @@ listling.ItemElement = class extends HTMLLIElement {
             votesMeta: null,
             expanded: false,
             editMode: false,
-            getTextValue: (ctx, item, template) => (item ? item.text : template) || "",
+            getContentValue: (ctx, item, template) => ({
+                text: item ? item.text : template,
+                resource: item && item.resource
+            }),
             isCheckDisabled:
                 (ctx, trashed, mode) => trashed || !this._data.may(ctx, "item-modify", mode),
             makeItemURL: listling.util.makeItemURL,
@@ -486,20 +489,17 @@ listling.ItemElement = class extends HTMLLIElement {
             },
 
             edit: async() => {
-                const title = this._form.elements.title.value;
-                const text = this._form.elements.text.value;
-                const pattern = /^https?:\/\/\S+/u;
-                const match = title.match(pattern) || text.match(pattern);
-                const resource = match ? match[0] : null;
-                let url = this._data.item
+                const input = this.querySelector("micro-content-input");
+                const {text, resource} = input.valueAsObject;
+                const url = this._data.item
                     ? `/api/lists/${ui.page.list.id}/items/${this._data.item.id}`
                     : `/api/lists/${ui.page.list.id}/items`;
 
                 try {
                     await ui.call("POST", url, {
                         text,
-                        resource,
-                        title,
+                        resource: resource && resource.url,
+                        title: this._form.elements.title.value,
                         location: this._form.elements.location.wrapper.value
                     });
                 } catch (e) {
@@ -509,7 +509,8 @@ listling.ItemElement = class extends HTMLLIElement {
                             "BrokenResourceError"
                         ].includes(e.error.__type__)
                     ) {
-                        ui.notify("Oops, there was a problem opening the link. Please try again in a few moments.");
+                        // Delete the resource if it is no longer retrievable
+                        input.valueAsObject = {text, resource: null};
                     } else {
                         ui.handleCallError(e);
                     }
@@ -595,24 +596,11 @@ listling.ItemElement = class extends HTMLLIElement {
                 }
             },
 
-            onAttachClick: () => {
-                this._form.elements.upload.click();
-            },
-
-            onUploadChange: () => {
-                this.querySelector(".listling-item-attach").trigger();
-            },
-
-            attach: async () => {
-                const [file] = this._form.elements.upload.files;
-                if (!file) {
-                    return;
+            onURLInput: event => {
+                const input = this.querySelector("micro-content-input");
+                if (!input.valueAsObject.resource) {
+                    input.attach(event.detail.url).catch(micro.util.catch);
                 }
-                const response = await fetch("/files", {method: "POST", body: file});
-                const url = response.headers.get("Location");
-                this._form.elements.text.value = this._form.elements.text.value
-                    ? `${url} ${this._form.elements.text.value}` : url;
-                this._form.elements.upload.value = "";
             },
 
             hasContent: (ctx, item, lst, assigneesCount) =>

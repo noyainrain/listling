@@ -22,7 +22,6 @@
 let {exec, spawn} = require("child_process");
 const {mkdtemp} = require("fs").promises;
 const {hostname, tmpdir} = require("os");
-const {cwd} = require("process");
 let {promisify} = require("util");
 
 let {expect} = require("chai");
@@ -134,9 +133,7 @@ describe("UI", function() {
         await browser.executeScript(() => scroll(0, document.scrollingElement.scrollHeight));
         form = await browser.findElement({css: ".listling-list-create-item form"});
         await form.findElement({name: "title"}).sendKeys("Sleep");
-        await form.findElement({name: "upload"}).sendKeys(`${cwd()}/images/icon-large.png`);
-        const textarea = await form.findElement({name: "text"});
-        await browser.wait(untilElementAttributeMatches(textarea, "value", /\/files\//u), timeout);
+        await form.findElement({css: ".micro-content-input-text"}).sendKeys("Very important!");
         await form.findElement({css: "button:not([type])"}).click();
         await browser.wait(
             untilElementTextLocated({css: "[is=listling-item]:last-child h1"}, "Sleep"), timeout);

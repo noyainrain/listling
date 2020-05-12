@@ -653,8 +653,11 @@
                 <h1 class="micro-panel-main">
                     <span class="listling-item-mode-view" data-content="markup item.title"></span>
                     <label class="listling-item-mode-edit">
-                        <input name="title" placeholder="Title" required="required"
-                               autocomplete="off" data-value="or item.title ''" />
+                        <input
+                            name="title" placeholder="Title" required="required" autocomplete="off"
+                            data-value="or item.title ''" data-url-detection="new URLDetection"
+                            data-onurlinput="onURLInput"
+                        />
                     </label>
                 </h1>
                 <ul is="micro-menu"
@@ -749,75 +752,26 @@
                     </dd>
                 </dl>
 
+                <!-- Do not switch because micro-video (iframe) resets state when detached -->
                 <div
                     class="listling-item-resource listling-item-mode-view"
                     data-content="resourceElem"
                 >
                 </div>
-
                 <p
                     class="listling-item-text listling-item-mode-view micro-multiline"
                     data-content="markup item.text"
                 ></p>
 
-                <label class="listling-item-mode-edit">
-                    <div class="micro-input-wrapper">
-                        <textarea
-                            name="text" placeholder="Text (optional)"
-                            data-value="getTextValue item lst.item_template"
-                        ></textarea>
-                        <div class="micro-panel">
-                            <button
-                                is="micro-button" type="button" class="listling-item-attach action"
-                                data-run="attach" data-onclick="onAttachClick"
-                            >
-                                <i class="fa fa-paperclip"></i> Attach
-                            </button>
-                            <input
-                                type="file" name="upload" data-onchange="onUploadChange"
-                                accept="image/bmp,image/gif,image/jpeg,image/png,image/svg+xml,.bmp,.gif,.jpg,.png,.svg"
-                            />
-                            <div class="listling-item-content-input-info">
-                                <button type="button" class="link">
-                                    <i class="fa fa-fw fa-info-circle"></i>
-                                </button>
-                                <micro-contextual>
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <td>You type:</td>
-                                                <td>You get:</td>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>*Emphasized*</td>
-                                                <td><em>Emphasized</em></td>
-                                            </tr>
-                                            <tr>
-                                                <td>**Important**</td>
-                                                <td><strong>Important</strong></td>
-                                            </tr>
-                                            <tr>
-                                                <td>* List item</td>
-                                                <td>&nbsp;• List item</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                    <div class="micro-panel">
-                                        <p>
-                                            Attach additional content like images, videos, … by
-                                            inserting a link.
-                                        </p>
-                                    </div>
-                                </micro-contextual>
-                            </div>
-                        </div>
-                    </div>
-                </label>
-
                 <div data-content="switch editMode">
                     <template>
+                        <label>
+                            <micro-content-input
+                                placeholder="Text (optional)"
+                                data-value-as-object="getContentValue item lst.item_template"
+                            ></micro-content-input>
+                        </label>
+
                         <ul is="micro-menu">
                             <li>
                                 <button
@@ -866,6 +820,8 @@
         [is=listling-item] > form {
             position: relative;
             --listling-item-progress: 0%;
+            --micro-link-max-height: calc((70ch - 2 * var(--micro-size-xs)) * 9 / 16);
+            --micro-image-max-height: var(--micro-link-max-height);
         }
 
         [is=listling-item] > form::after {
@@ -974,43 +930,19 @@
             display: none;
         }
 
-        .listling-item-resource {
-            --micro-link-max-height: calc((70ch - 2 * var(--micro-size-xs)) * 9 / 16);
-            --micro-image-max-height: var(--micro-link-max-height);
-            margin: var(--micro-size-xs) 0;
-        }
-
-        .listling-item-resource > * {
+        .listling-item-resource > *,
+        [is=listling-item] .micro-content-input-resource-wrapper,
+        [is=listling-item] .micro-content-input-resource > * {
             display: block;
             width: auto;
         }
 
+        .listling-item-resource {
+            margin: var(--micro-size-xs) 0;
+        }
+
         [is=listling-item].listling-item-mode-edit .listling-item-meta {
             row-gap: var(--micro-size-xs);
-        }
-
-        .listling-item-text + label .micro-panel {
-            border-top: 1px solid var(--micro-color-delimiter);
-        }
-
-        .listling-item-text + label input[name=upload] {
-            display: none;
-        }
-
-        .listling-item-content-input-info {
-            margin-left: auto;
-        }
-
-        .listling-item-content-input-info micro-contextual {
-            bottom: 100%;
-        }
-
-        .listling-item-content-input-info table {
-            border-style: hidden;
-        }
-
-        .listling-item-content-input-info tbody td:first-child {
-            font: 0.875em / 1.5 monospace, monospace;
         }
 
         .listling-item-footer {
