@@ -1,0 +1,37 @@
+<template id="listling-share-page-template">
+    <div>
+        <h1>Share to list</h1>
+
+        <div class="micro-entity-list">
+            <ul data-content="list lists.items 'lst'">
+                <template>
+                    <li class="micro-panel">
+                        <p
+                            class="micro-panel-main micro-quick-nav" tabindex="0"
+                            data-onclick="bind onClick lst" data-onkeydown="onKeyDown"
+                        >
+                            <span data-content="lst.title"></span>
+                            <small>
+                                <span
+                                    data-content="formatPlural '{n} item' '{n} items' 'n' lst.items.count"
+                                ></span>
+                            </small>
+                        </p>
+                    </li>
+                </template>
+            </ul>
+            <ul data-content="switch listsComplete false">
+                <template>
+                    <li class="micro-panel">
+                        <button
+                            is="micro-button" class="link micro-panel-main micro-quick-nav"
+                            data-run="bind fetchCollection lists 10"
+                        >
+                            <i class="fa fa-ellipsis-v"></i> More
+                        </button>
+                    </li>
+                </template>
+            </ul>
+        </div>
+    </div>
+</template>

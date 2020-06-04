@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="{{ static_url('listling.css') }}" />
     <script src="{{ static_url('listling/util.js') }}" defer="defer"></script>
     <script src="{{ static_url('listling/components/list.js') }}" defer="defer"></script>
+    <script src="{{ static_url('listling/components/share.js') }}" defer="defer"></script>
     <script src="{{ static_url('listling/components/start.js') }}" defer="defer"></script>
     <script src="{{ static_url('listling/index.js') }}" defer="defer"></script>
 </head>
@@ -425,8 +426,8 @@
                 </button>
             </p>
             <li
-                is="listling-item" data-list="lst" data-edit-mode="true"
-                data-onedit="stopCreateItem" data-oncancel="stopCreateItem"
+                is="listling-item" data-list="lst" data-onedit="stopCreateItem"
+                data-oncancel="stopCreateItem"
             ></li>
         </div>
 
@@ -655,8 +656,7 @@
                     <label class="listling-item-mode-edit">
                         <input
                             name="title" placeholder="Title" required="required" autocomplete="off"
-                            data-value="or item.title ''" data-url-detection="new URLDetection"
-                            data-onurlinput="onURLInput"
+                            data-url-detection="new URLDetection" data-onurlinput="onURLInput"
                         />
                     </label>
                 </h1>
@@ -746,7 +746,7 @@
                         </span>
                         <micro-location-input
                             class="listling-item-mode-edit" name="location"
-                            placeholder="Location (optional)" data-value="item.location"
+                            placeholder="Location (optional)"
                         >
                         </micro-location-input>
                     </dd>
@@ -766,10 +766,8 @@
                 <div data-content="switch editMode">
                     <template>
                         <label>
-                            <micro-content-input
-                                placeholder="Text (optional)"
-                                data-value-as-object="getContentValue item lst.item_template"
-                            ></micro-content-input>
+                            <micro-content-input placeholder="Text (optional)">
+                            </micro-content-input>
                         </label>
 
                         <ul is="micro-menu">
@@ -984,5 +982,6 @@
     </template>
 
     {% include 'listling/components/list.html' %}
+    {% include 'listling/components/share.html' %}
     {% include 'listling/components/start.html' %}
 </body>

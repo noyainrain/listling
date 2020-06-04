@@ -37,6 +37,7 @@ listling.UI = class extends micro.UI {
             {url: "^/$", page: listling.components.start.StartPage.make},
             {url: "^/intro$", page: "listling-intro-page"},
             {url: "^/about$", page: makeAboutPage},
+            {url: "^/share$", page: "listling-share-page"},
             {url: "^/lists/([^/]+)(?:/[^/]+)?$", page: listling.ListPage.make}
         ]);
 
@@ -138,6 +139,7 @@ listling.ListPage = class extends micro.Page {
             editMode: true,
             trashExpanded: false,
             creatingItem: false,
+            startCreateItem: this.startCreateItem.bind(this),
             settingsExpanded: false,
             share: listling.components.list.share,
             presentation: new listling.components.list.Presentation(this),
@@ -151,11 +153,6 @@ listling.ListPage = class extends micro.Page {
 
             toggleTrash: () => {
                 this._data.trashExpanded = !this._data.trashExpanded;
-            },
-            startCreateItem: () => {
-                this._data.creatingItem = true;
-                this.querySelector(".listling-list-create-item [is=listling-item]").focus();
-                this.querySelector(".listling-list-create-item [is=listling-item]").scrollIntoView(false);
             },
             stopCreateItem: () => {
                 this._data.creatingItem = false;
@@ -416,6 +413,22 @@ listling.ListPage = class extends micro.Page {
         }
     }
 
+    /**
+     * Start to create an :ref:`Item` via editor.
+     *
+     * *title*, *text*, *resource* and *location* correspond to the arguments of
+     * :meth:`ItemElement.startEdit`. *text* defaults to :attr:`list` *item_template*.
+     */
+    startCreateItem({title = null, text, resource = null, location = null} = {}) {
+        if (text === undefined) {
+            text = this._data.lst.item_template;
+        }
+        this._data.creatingItem = true;
+        const elem = this.querySelector(".listling-list-create-item [is=listling-item]");
+        elem.startEdit({title, text, resource, location});
+        elem.scrollIntoView(false);
+    }
+
     handleEvent(event) {
         if (event.type === "list-items-move") {
             let i = this._items.findIndex(item => item.id === event.detail.item.id);
@@ -472,21 +485,13 @@ listling.ItemElement = class extends HTMLLIElement {
             votesMeta: null,
             expanded: false,
             editMode: false,
-            getContentValue: (ctx, item, template) => ({
-                text: item ? item.text : template,
-                resource: item && item.resource
-            }),
+            startEdit: this.startEdit.bind(this),
             isCheckDisabled:
                 (ctx, trashed, mode) => trashed || !this._data.may(ctx, "item-modify", mode),
             makeItemURL: listling.util.makeItemURL,
             playable: null,
             playablePlaying: null,
             playablePlayPause: null,
-
-            startEdit: () => {
-                this._data.editMode = true;
-                this.focus();
-            },
 
             edit: async() => {
                 const input = this.querySelector("micro-content-input");
@@ -790,13 +795,44 @@ listling.ItemElement = class extends HTMLLIElement {
         return this._data.editMode;
     }
 
-    set editMode(value) {
-        this._data.editMode = value;
-    }
-
     /** :class:`listling.components.list.Playable` extension. */
     get playable() {
         return this._data.playable;
+    }
+
+    /**
+     * Start to edit :attr:`item` via edit mode.
+     *
+     * The form is populated with *title*, *text*, *resource* and *location*. *resource* may also be
+     * a URL or :class:`File` to attach. They default to the corresponding :attr:`item` attributes
+     * or ``null``.
+     */
+    startEdit({title, text, resource, location} = {}) {
+        if (title === undefined) {
+            title = this._data.item && this._data.item.title;
+        }
+        if (text === undefined) {
+            text = this._data.item && this._data.item.text;
+        }
+        if (resource === undefined) {
+            resource = this._data.item && this._data.item.resource;
+        }
+        if (location === undefined) {
+            location = this._data.item && this._data.item.location;
+        }
+
+        // Populate the form directly without data binding because attach() is used
+        this._data.editMode = true;
+        this._form.elements.title.value = title || "";
+        this.querySelector("micro-location-input").valueAsObject = location;
+        const contentInput = this.querySelector("micro-content-input");
+        if (typeof resource === "string" || resource instanceof File) {
+            contentInput.valueAsObject = {text, resource: null};
+            contentInput.attach(resource).catch(micro.util.catch);
+        } else {
+            contentInput.valueAsObject = {text, resource};
+        }
+        this.focus();
     }
 };
 

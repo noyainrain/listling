@@ -64,7 +64,10 @@ def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='', 
         'shell': ['listling.css', 'listling', 'images'],
         'map_service_key': client_map_service_key,
         'description': 'Make and edit lists collaboratively. Free, simple and no registration required.',
-        'color': '#4d8dd9'
+        'color': '#4d8dd9',
+        'share_target': True,
+        'share_target_accept': ['image/bmp', 'image/gif', 'image/jpeg', 'image/png',
+                                'image/svg+xml', '.bmp', '.gif', '.jpg', '.png', '.svg']
     })
 
 class _UserListsEndpoint(CollectionEndpoint):
