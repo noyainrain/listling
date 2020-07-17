@@ -101,8 +101,7 @@ listling.IntroPage = class extends micro.Page {
         });
         ui.shortcutContext.add("E", () => {
             if (this._data.selectedUseCase.id !== "simple") {
-                this.querySelector(".listling-selected .listling-intro-create-example button")
-                    .click();
+                this.querySelector(".listling-selected .listling-intro-create-example").click();
             }
         });
         ui.url = "/intro";
@@ -163,6 +162,7 @@ listling.ListPage = class extends micro.Page {
 
             startEdit: () => {
                 this._data.editMode = true;
+                this._form.elements.title.focus();
             },
 
             edit: async() => {
@@ -832,7 +832,7 @@ listling.ItemElement = class extends HTMLLIElement {
         } else {
             contentInput.valueAsObject = {text, resource};
         }
-        this.focus();
+        this._form.elements.title.focus();
     }
 };
 

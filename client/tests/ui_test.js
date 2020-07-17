@@ -42,7 +42,7 @@ describe("UI", function() {
     async function createExampleList() {
         await browser.findElement({css: ".micro-ui-header-menu"}).click();
         await browser.findElement({css: ".listling-ui-intro"}).click();
-        await browser.findElement({css: ".listling-intro-create-example button"}).click();
+        await browser.findElement({css: ".listling-intro-create-example"}).click();
         await browser.wait(until.elementLocated({css: "listling-list-page"}));
     }
 
@@ -134,7 +134,11 @@ describe("UI", function() {
         form = await browser.findElement({css: ".listling-list-create-item form"});
         await form.findElement({name: "title"}).sendKeys("Sleep");
         await form.findElement({css: ".micro-content-input-text"}).sendKeys("Very important!");
-        await form.findElement({css: "button:not([type])"}).click();
+        // Work around Safari 13 missing elements on click (see
+        // https://bugs.webkit.org/show_bug.cgi?id=202589)
+        await browser.executeScript(
+            () => document.querySelector(".listling-list-create-item button:not([type])").click()
+        );
         await browser.wait(
             untilElementTextLocated({css: "[is=listling-item]:last-child h1"}, "Sleep"), timeout);
 
@@ -155,13 +159,19 @@ describe("UI", function() {
         await itemMenu.click();
         await browser.findElement({css: ".listling-item-trash"}).click();
         await browser.wait(
-            until.elementIsVisible(await browser.findElement({css: ".listling-list-trash p"})),
-            timeout);
+            until.elementIsVisible(await browser.findElement({css: ".listling-list-trash .link"})),
+            timeout
+        );
 
         // Restore item
         await browser.executeScript(() => scroll(0, document.scrollingElement.scrollHeight));
-        await browser.findElement({css: ".listling-list-trash button"}).click();
-        await browser.findElement({css: ".listling-list-trash .listling-item-restore"}).click();
+        await browser.findElement({css: ".listling-list-trash .link"}).click();
+        // Work around Safari 13 missing elements on click (see
+        // https://bugs.webkit.org/show_bug.cgi?id=202589)
+        await browser.executeScript(
+            () => document.querySelector(".listling-list-trash .listling-item-restore .action")
+                .click()
+        );
         await browser.wait(untilElementTextLocated({css: "[is=listling-item] h1"}, "Research"),
                            timeout);
 
