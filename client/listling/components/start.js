@@ -72,7 +72,7 @@ listling.components.start.StartPage = class extends micro.Page {
             makeListURL: listling.util.makeListURL,
 
             startCreateList: () => {
-                this.querySelector(".listling-start-create .action").focus();
+                this.querySelector(".listling-start-create micro-contextual").scrollIntoView(false);
             },
 
             remove: async list => {

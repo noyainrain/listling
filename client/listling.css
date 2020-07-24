@@ -12,17 +12,3 @@ html {
     font-size: 0.875em;
     text-align: right;
 }
-
-.link,
-.action {
-    margin: 0;
-}
-
-label,
-fieldset {
-    margin: var(--micro-size-s) 0;
-}
-
-label > small {
-    padding: 0 var(--micro-size-s);
-}

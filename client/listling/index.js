@@ -188,29 +188,21 @@ listling.ListPage = class extends micro.Page {
                 this._replayEvents();
             },
 
-            subscribe: async() => {
-                let pushSubscription = await ui.service.pushManager.getSubscription();
-                if (!pushSubscription || !ui.user.push_subscription) {
-                    let result = await ui.enableDeviceNotifications();
-                    if (result === "error") {
-                        return;
+            subscribeUnsubscribe: async() => {
+                const op = this._data.lst.activity.user_subscribed ? "unsubscribe" : "subscribe";
+                if (op === "subscribe") {
+                    const pushSubscription = await ui.service.pushManager.getSubscription();
+                    if (!pushSubscription || !ui.user.push_subscription) {
+                        const result = await ui.enableDeviceNotifications();
+                        if (result === "error") {
+                            return;
+                        }
                     }
                 }
 
                 try {
                     this._data.lst.activity = await ui.call(
-                        "PATCH", `/api/lists/${this._data.lst.id}/activity`, {op: "subscribe"}
-                    );
-                    this.list = this._data.lst;
-                } catch (e) {
-                    ui.handleCallError(e);
-                }
-            },
-
-            unsubscribe: async() => {
-                try {
-                    this._data.lst.activity = await ui.call(
-                        "PATCH", `/api/lists/${this._data.lst.id}/activity`, {op: "unsubscribe"}
+                        "PATCH", `/api/lists/${this._data.lst.id}/activity`, {op}
                     );
                     this.list = this._data.lst;
                 } catch (e) {

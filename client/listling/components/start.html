@@ -20,57 +20,50 @@
                                 </span>
                             </small>
                         </a>
-                        <ul
-                            is="micro-menu" class="micro-secondary"
-                            data-content="switch lst.authors.0.id user.id"
-                        >
+                        <div data-content="switch lst.authors.0.id user.id">
                             <template></template>
                             <template>
-                                <li>
-                                    <button class="link"><i class="fa fa-fw fa-bars"></i></button>
-                                    <ul is="micro-menu">
-                                        <li class="micro-panel">
-                                            <button
-                                                is="micro-button" class="action"
-                                                data-run="bind remove lst"
-                                                data-shortcut="new Shortcut 'T'"
-                                            >
-                                                <i class="fa fa-fw fa-minus-circle"></i> Remove from
-                                                your lists
-                                            </button>
-                                        </li>
-                                    </ul>
-                                </li>
+                                <button class="link"><i class="fa fa-bars"></i></button>
+                                <micro-contextual>
+                                    <button
+                                        is="micro-button" type="button" class="action"
+                                        data-run="bind remove lst" data-shortcut="new Shortcut 'T'"
+                                    >
+                                        <i class="fa fa-fw fa-minus-circle"></i> Remove from your
+                                        lists
+                                    </button>
+                                </micro-contextual>
                             </template>
-                        </ul>
+                        </div>
                     </li>
                 </template>
             </ul>
             <ul>
-                <li class="micro-panel" data-content="switch listsComplete false">
+                <li data-content="switch listsComplete false">
                     <template>
                         <button
-                            is="micro-button" class="link micro-panel-main micro-quick-nav"
+                            is="micro-button" class="link micro-quick-nav"
                             data-run="bind fetchCollection lists" data-shortcut="new Shortcut 'M'"
                         >
                             <i class="fa fa-fw fa-ellipsis-v"></i> More
                         </button>
                     </template>
                 </li>
-                <li class="micro-panel">
-                    <ul is="micro-menu" class="listling-start-create">
-                        <li>
-                            <button
-                                is="micro-button" class="action micro-highlight"
-                                data-run="startCreateList" data-shortcut="new Shortcut 'A'"
-                            >
-                                <i class="fa fa-fw fa-plus-circle"></i> Create new list
-                            </button>
-                            <ul is="micro-menu" data-content="list useCases 'useCase'">
+                <li class="listling-start-create">
+                    <div>
+                        <button
+                            is="micro-button" type="button" class="action micro-highlight"
+                            data-run="startCreateList" data-shortcut="new Shortcut 'A'"
+                        >
+                            <i class="fa fa-fw fa-plus-circle"></i> Create new list
+                        </button>
+                        <micro-contextual class="micro-entity-list">
+                            <ul data-content="list useCases 'useCase'">
                                 <template>
                                     <li>
                                         <p
-                                            tabindex="0" data-onclick="bind createList useCase.id"
+                                            class="micro-contextual-deactivate" tabindex="0"
+                                            data-onclick="bind createList useCase.id"
                                             data-onkeydown="onUseCaseKeyDown"
                                         >
                                             <i
@@ -81,8 +74,8 @@
                                     </li>
                                 </template>
                             </ul>
-                        </li>
-                    </ul>
+                        </micro-contextual>
+                    </div>
                 </li>
             </ul>
         </div>
@@ -95,13 +88,12 @@
 </template>
 
 <style>
-    .listling-start-create > li {
-        flex: auto;
+    .listling-start-create div {
+        width: max-content;
     }
 
-    .listling-start-create [is=micro-menu] {
+    .listling-start-create micro-contextual {
         right: auto;
-        bottom: 100%;
-        cursor: pointer;
+        margin-bottom: var(--micro-size-s);
     }
 </style>

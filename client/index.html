@@ -180,48 +180,47 @@
                 >
                     <i class="fa fa-plus-circle"></i>
                 </button>
-                <ul is="micro-menu" class="listling-list-menu micro-secondary listling-list-mode-view micro-interactive">
-                    <li>
-                        <button type="button" class="link"><i class="fa fa-bars"></i></button>
-                        <ul is="micro-menu">
+                <div class="listling-list-menu listling-list-mode-view micro-interactive">
+                    <button type="button" class="link"><i class="fa fa-bars"></i></button>
+                    <micro-contextual class="micro-entity-list">
+                        <ul>
                             <li class="listling-list-edit">
-                                <button is="micro-button" type="button" class="action"
-                                        data-run="startEdit" data-shortcut="new Shortcut 'E'">
+                                <button
+                                    is="micro-button" type="button"
+                                    class="action micro-contextual-deactivate"
+                                    data-run="startEdit" data-shortcut="new Shortcut 'E'"
+                                >
                                     <i class="fa fa-fw fa-pencil-alt"></i> Edit
                                 </button>
                             </li>
                             <li>
                                 <button
-                                    is="micro-button" type="button" class="action"
+                                    is="micro-button" type="button"
+                                    class="action micro-contextual-deactivate"
                                     data-run="bind share lst" data-shortcut="new Shortcut 'S'"
                                 >
                                     <i class="fa fa-fw fa-user-friends"></i> Share
                                 </button>
                             </li>
-                            <li
-                                class="listling-list-subscribe"
-                                data-content="switch lst.activity.user_subscribed"
-                            >
-                                <template>
-                                    <button
-                                        is="micro-button" type="button" class="action"
-                                        data-run="unsubscribe" data-shortcut="new Shortcut 'H'"
-                                    >
+                            <li class="listling-list-subscribe">
+                                <button
+                                    is="micro-button" type="button"
+                                    class="action micro-contextual-deactivate"
+                                    data-run="subscribeUnsubscribe" data-shortcut="new Shortcut 'H'"
+                                    data-content="switch lst.activity.user_subscribed"
+                                >
+                                    <template>
                                         <i class="fa fa-fw fa-bell-slash"></i> Unsubscribe
-                                    </button>
-                                </template>
-                                <template>
-                                    <button
-                                        is="micro-button" type="button" class="action"
-                                        data-run="subscribe" data-shortcut="new Shortcut 'H'"
-                                    >
+                                    </template>
+                                    <template>
                                         <i class="fa fa-fw fa-bell"></i> Subscribe
-                                    </button>
-                                </template>
+                                    </template>
+                                </button>
                             </li>
                             <li class="listling-list-enter-presentation">
                                 <button
-                                    is="micro-button" type="button" class="link"
+                                    is="micro-button" type="button"
+                                    class="link micro-contextual-deactivate"
                                     data-run="bindThis presentation.enter presentation"
                                     data-shortcut="new Shortcut 'D'"
                                 >
@@ -229,8 +228,8 @@
                                 </button>
                             </li>
                         </ul>
-                    </li>
-                </ul>
+                    </micro-contextual>
+                </div>
                 <button
                     is="micro-button" class="action listling-list-mode-edit" data-run="edit"
                     data-shortcut="new Shortcut 'Control+Enter'"
@@ -665,23 +664,23 @@
                     data-url-detection="new URLDetection" data-onurlinput="onURLInput"
                 />
 
-                <ul is="micro-menu"
-                    class="listling-item-menu micro-secondary listling-item-mode-view micro-interactive"
+                <button
+                    is="micro-button" type="button"
+                    class="listling-item-restore action listling-item-mode-view micro-interactive"
+                    data-run="restore" data-shortcut="new Shortcut 'R'"
                 >
-                    <li class="listling-item-restore">
-                        <button is="micro-button" type="button" class="action" data-run="restore"
-                                data-shortcut="new Shortcut 'R'">
-                            <i class="fa fa-trash-restore"></i> Restore
-                        </button>
-                    </li>
-                    <li>
-                        <button is="micro-button" type="button" class="link">
-                            <i class="fa fa-bars"></i>
-                        </button>
-                        <ul is="micro-menu">
+                    <i class="fa fa-trash-restore"></i> Restore
+                </button>
+                <div class="listling-item-menu listling-item-mode-view micro-interactive">
+                    <button is="micro-button" type="button" class="link">
+                        <i class="fa fa-bars"></i>
+                    </button>
+                    <micro-contextual class="micro-entity-list">
+                        <ul>
                             <li class="listling-item-play-pause">
                                 <button
-                                    is="micro-button" type="button" class="action"
+                                    is="micro-button" type="button"
+                                    class="action micro-contextual-deactivate"
                                     data-run="playablePlayPause"
                                     data-content="switch playablePlaying" title="⌨ P"
                                 >
@@ -695,10 +694,8 @@
                             </li>
                             <li class="listling-item-edit">
                                 <button
-                                    is="micro-button"
-                                    type="button"
-                                    class="action"
-                                    data-run="startEdit"
+                                    is="micro-button" type="button"
+                                    class="action micro-contextual-deactivate" data-run="startEdit"
                                     data-shortcut="new Shortcut 'E'"
                                 >
                                     <i class="fa fa-fw fa-pencil-alt"></i> Edit
@@ -706,7 +703,8 @@
                             </li>
                             <li class="listling-item-assign">
                                 <button
-                                    is="micro-button" type="button" class="action" data-run="assign"
+                                    is="micro-button" type="button"
+                                    class="action micro-contextual-deactivate" data-run="assign"
                                     data-shortcut="new Shortcut 'U'"
                                 >
                                     <i class="fa fa-fw fa-id-badge"></i> Assign
@@ -714,18 +712,15 @@
                             </li>
                             <li class="listling-item-trash">
                                 <button
-                                    is="micro-button"
-                                    type="button"
-                                    class="action"
-                                    data-run="trash"
+                                    is="micro-button" type="button" class="action" data-run="trash"
                                     data-shortcut="new Shortcut 'T'"
                                 >
                                     <i class="fa fa-fw fa-trash"></i> Trash
                                 </button>
                             </li>
                         </ul>
-                    </li>
-                </ul>
+                    </micro-contextual>
+                </div>
 
                 <button
                     is="micro-button" class="action listling-item-mode-edit"
@@ -881,6 +876,16 @@
             font-weight: bold;
         }
 
+        [is=listling-item] h1 {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        [is=listling-item] > form.listling-item-expanded h1 {
+            white-space: normal;
+        }
+
         [is=listling-item].listling-item-trashed h1 {
             color: inherit;
         }
@@ -939,7 +944,7 @@
         listling-list-page:not(.listling-list-feature-play) .listling-item-play-pause,
         [is=listling-item]:not(.listling-item-may-modify) .listling-item-edit,
         [is=listling-item]:not(.listling-item-may-modify) .listling-item-trash,
-        [is=listling-item].listling-item-trashed .listling-item-menu li:last-child,
+        [is=listling-item].listling-item-trashed .listling-item-menu,
         body:not(.micro-ui-map-service-enabled) .listling-item-meta,
         listling-list-page:not(.listling-list-feature-location) .listling-item-meta,
         [is=listling-item].listling-item-mode-view:not(.listling-item-has-location) .listling-item-meta,
