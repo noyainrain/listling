@@ -15,12 +15,14 @@
 """Open Listling core."""
 
 import json
+from redis.exceptions import ResponseError
 from time import time
 from urllib.parse import urlsplit
 
 import micro
 from micro import (Activity, Application, Collection, Editable, Location, Object, Orderable,
                    Trashable, Settings, Event, WithContent, error)
+from micro.core import context
 from micro.jsonredis import JSONRedis, RedisSortedSet, script
 from micro.util import parse_isotime, randstr, str_or_none
 
@@ -133,14 +135,14 @@ class Listling(Application):
             data = _USE_CASES[use_case]
             id = 'List:{}'.format(randstr())
             lst = List(
-                id=id, app=self.app, authors=[self.app.user.id], title=data['title'],
+                id=id, app=self.app, authors=[self.app.user.id], trashed=False, title=data['title'],
                 description=None, features=data['features'], mode=data.get('mode', 'collaborate'),
                 item_template=None,
                 activity=Activity('{}.activity'.format(id), self.app, subscriber_ids=[]))
             self.app.r.oset(lst.id, lst)
             self.app.r.zadd('{}.users'.format(lst.id), {self.app.user.id.encode(): -time()})
             self.app.r.rpush(self.map_key, lst.id)
-            self.app.user.lists.add(lst, user=self.app.user)
+            self.app.user.lists.add(lst)
             self.app.activity.publish(
                 Event.create('create-list', None, {'lst': lst}, app=self.app))
             return lst
@@ -165,10 +167,22 @@ class Listling(Application):
                 if checked:
                     item.check()
                 if user_assigned:
-                    item.assignees.assign(self.app.user, user=self.app.user)
+                    item.assignees.assign(context.user.get())
                 if user_voted:
-                    item.votes.vote(user=self.app.user)
+                    item.votes.vote()
             return lst
+
+    class Items:
+        def __init__(self, app):
+            self.app = app
+
+        def __getitem__(self, key):
+            if not key.startswith('Item:'):
+                raise KeyError()
+            return self.app.r.oget(key, default=KeyError)
+            #if not self.app.r.sismember('items', key):
+            #    raise KeyError()
+            #return self.app.r.oget(key)
 
     def __init__(self, redis_url='', email='bot@localhost', smtp_url='',
                  render_email_auth_message=None, *, files_path='data', video_service_keys={}):
@@ -178,11 +192,13 @@ class Listling(Application):
             video_service_keys=video_service_keys)
         self.types.update({'User': User, 'List': List, 'Item': Item})
         self.lists = Listling.Lists((self, 'lists'))
+        # self.items = Collection(RedisSortedSet('items'), app=self)
+        self.items = Listling.Items(self)
 
     def do_update(self):
         version = self.r.get('version')
         if not version:
-            self.r.set('version', 9)
+            self.r.set('version', 10)
             return
 
         version = int(version)
@@ -217,6 +233,14 @@ class Listling(Application):
             r.omset({l["id"]: l for l in lists})
             r.set('version', 9)
 
+        # TODO: test
+        if version < 10:
+            lists = r.omget(r.lrange('lists', 0, -1))
+            for lst in lists:
+                lst['trashed'] = False
+            r.omset({lst["id"]: lst for lst in lists})
+            r.set('version', 10)
+
     def create_user(self, data):
         return User(**data)
 
@@ -246,25 +270,44 @@ class User(micro.User):
             super().__init__(RedisSortedSet('{}.lists'.format(user.id), user.app.r), app=user.app)
             setattr(self, 'user', user)
 
-        def add(self, lst, *, user):
+        def add(self, lst):
             """See: :http:post:`/users/(id)/lists`."""
-            if user != getattr(self, 'user'):
+            if context.user.get() != getattr(self, 'user'):
                 raise micro.PermissionError()
-            self.app.r.zadd(self.ids.key, {lst.id: -time()})
 
-        def remove(self, lst, *, user):
+            f = script(self.app.r, """
+                local user_id, list_id, t = ARGV[1], ARGV[2], ARGV[3]
+                redis.call("zadd", user_id .. ".lists", -t, list_id)
+                redis.call("sadd", list_id .. ".of_users", user_id)
+            """)
+            f([], [self.user.id, lst.id, time()])
+
+        def remove(self, lst):
             """See :http:delete:`/users/(id)/lists/(list-id)`.
 
             If *lst* is not in the collection, a :exc:`micro.error.ValueError` is raised.
             """
-            if user != getattr(self, 'user'):
+            if context.user.get() != getattr(self, 'user'):
                 raise micro.PermissionError()
-            if lst.authors[0] == getattr(self, 'user'):
-                raise micro.ValueError(
-                    'user {} is owner of lst {}'.format(getattr(self, 'user').id, lst.id))
-            if self.app.r.zrem(self.ids.key, lst.id) == 0:
+
+            f = script(self.app.r, """
+                local user_id, list_id = ARGV[1], ARGV[2]
+                if cjson.decode(redis.call("get", list_id))["authors"][1] == user_id then
+                    return "owner"
+                end
+                if redis.call("zrem", user_id .. ".lists", list_id) == 0 then
+                    return "no-list"
+                end
+                redis.call("srem", list_id .. ".of_users", user_id)
+                return "ok"
+            """)
+            result = f([], [self.user.id, lst.id]).decode()
+            if result == 'no-list':
                 raise micro.ValueError(
                     'No lst {} in lists of user {}'.format(lst.id, getattr(self, 'user').id))
+            if result == 'owner':
+                raise micro.ValueError(
+                    'user {} is owner of lst {}'.format(getattr(self, 'user').id, lst.id))
 
         def read(self, *, user):
             """Return collection for reading."""
@@ -283,7 +326,7 @@ class User(micro.User):
                if restricted and self.app.user == self else {})
         }
 
-class List(Object, Editable):
+class List(Object, Editable, Trashable):
     """See :ref:`List`."""
 
     _PERMISSIONS = {
@@ -309,6 +352,7 @@ class List(Object, Editable):
                 list_id=self.host[0].id, title=title,
                 location=location.json() if location else None, checked=False)
             self.app.r.oset(item.id, item)
+            # self.app.r.sadd('items', item.id)
             self.app.r.rpush(self.map_key, item.id)
             self.host[0].activity.publish(
                 Event.create('list-create-item', self.host[0], {'item': item}, self.app))
@@ -319,17 +363,17 @@ class List(Object, Editable):
             self.host[0]._check_permission(self.app.user, 'list-modify')
             super().move(item, to)
 
-    def __init__(self, *, id, app, authors, title, description, features, mode, item_template,
-                 activity):
-        super().__init__(id=id, app=app)
-        Editable.__init__(self, authors=authors, activity=activity)
-        self.title = title
-        self.description = description
-        self.features = features
-        self.mode = mode
-        self.item_template = item_template
+    def __init__(self, *, app, **data):
+        super().__init__(id=data['id'], app=app)
+        Editable.__init__(self, authors=data['authors'], activity=data['activity'])
+        Trashable.__init__(self, trashed=data['trashed'], activity=data['activity'])
+        self.title = data['title']
+        self.description = data['description']
+        self.features = data['features']
+        self.mode = data['mode']
+        self.item_template = data['item_template']
         self.items = List.Items((self, 'items'))
-        self.activity = activity
+        self.activity = data['activity']
         self.activity.post = self._on_activity_publish
         self.activity.host = self
 
@@ -375,10 +419,58 @@ class List(Object, Editable):
         if 'item_template' in attrs:
             self.item_template = str_or_none(attrs['item_template'])
 
+    def delete(self):
+        # TODO finally remove list from {owner}.lists
+        f = script(self.app.r, """
+            local list_id = ARGV[1]
+            for _, item_id in ipairs(redis.call("lrange", list_id .. ".items", 0, -1)) do
+                redis.call("del", item_id, item_id .. ".assignees", item_id .. ".votes")
+                -- redis.call("srem", "items", item_id)
+            end
+            redis.call(
+                "del", list_id, list_id .. ".items", list_id .. ".users", list_id .. ".of_users",
+                list_id .. ".activity.items",
+                unpack(redis.call("lrange", list_id .. ".activity.items", 0, -1))
+            )
+            redis.call("lrem", "lists", 1, list_id)
+        """)
+        f([], [self.id])
+
+    def trash(self):
+        # TODO: document that trash and restore are only allowed by list owner
+        if context.user.get() != self.authors[0]:
+            raise micro.PermissionError()
+
+        super().trash()
+        f = script(self.app.r, """
+            local list_id = ARGV[1]
+            local owner_id = cjson.decode(redis.call("get", list_id))["authors"][1]
+            for _, user_id in ipairs(redis.call("smembers", list_id .. ".of_users")) do
+                if user_id ~= owner_id then
+                    redis.call("zrem", user_id .. ".lists", list_id)
+                end
+            end
+        """)
+        f([], [self.id])
+
+    def restore(self):
+        if context.user.get() != self.authors[0]:
+            raise micro.PermissionError()
+
+        super().restore()
+        f = script(self.app.r, """
+            local list_id, t = ARGV[1], ARGV[2]
+            for _, user_id in ipairs(redis.call("smembers", list_id .. ".of_users")) do
+                redis.call("zadd", user_id .. ".lists", -t, list_id)
+            end
+        """)
+        f([], [self.id, time()])
+
     def json(self, restricted=False, include=False, *, rewrite=None):
         return {
             **super().json(restricted=restricted, include=include, rewrite=rewrite),
             **Editable.json(self, restricted=restricted, include=include, rewrite=rewrite),
+            **Trashable.json(self, restricted=restricted, include=include, rewrite=rewrite),
             'title': self.title,
             'description': self.description,
             'features': self.features,
@@ -411,10 +503,10 @@ class Item(Object, Editable, Trashable, WithContent):
             super().__init__(RedisSortedSet('{}.assignees'.format(item.id), app.r), app=app)
             self.item = item
 
-        def assign(self, assignee, *, user):
+        def assign(self, assignee):
             """See :http:post:`/api/lists/(list-id)/items/(id)/assignees`."""
             # pylint: disable=protected-access; Item is a friend
-            self.item._check_permission(user, 'list-modify')
+            self.item._check_permission(context.user.get(), 'list-modify')
             if 'assign' not in self.item.list.features:
                 raise error.ValueError('Disabled item list features assign')
             if self.item.trashed:
@@ -426,10 +518,10 @@ class Item(Object, Editable, Trashable, WithContent):
                 Event.create('item-assignees-assign', self.item, detail={'assignee': assignee},
                              app=self.app))
 
-        def unassign(self, assignee, *, user):
+        def unassign(self, assignee):
             """See :http:delete:`/api/lists/(list-id)/items/(id)/assignees/(assignee-id)`."""
             # pylint: disable=protected-access; Item is a friend
-            self.item._check_permission(user, 'list-modify')
+            self.item._check_permission(context.user.get(), 'list-modify')
             if 'assign' not in self.item.list.features:
                 raise error.ValueError('Disabled item list features assign')
             if self.item.trashed:
@@ -448,8 +540,9 @@ class Item(Object, Editable, Trashable, WithContent):
             super().__init__(RedisSortedSet('{}.votes'.format(item.id), app.r.r), app=app)
             self.item = item
 
-        def vote(self, *, user):
+        def vote(self):
             """See :http:post:`/api/lists/(list-id)/items/(id)/votes`."""
+            user = context.user.get()
             if not user:
                 raise micro.PermissionError()
             if 'vote' not in self.item.list.features:
@@ -458,8 +551,9 @@ class Item(Object, Editable, Trashable, WithContent):
                 self.item.list.activity.publish(
                     Event.create('item-votes-vote', self.item, app=self.app))
 
-        def unvote(self, *, user):
+        def unvote(self):
             """See :http:delete:`/api/lists/(list-id)/items/(id)/votes/user`."""
+            user = context.user.get()
             if not user:
                 raise micro.PermissionError()
             if 'vote' not in self.item.list.features:
@@ -497,8 +591,16 @@ class Item(Object, Editable, Trashable, WithContent):
         return self.app.lists[self._list_id]
 
     def delete(self):
-        self.app.r.lrem(self.list.items.ids.key, 1, self.id.encode())
-        self.app.r.delete(self.id)
+        #self.app.r.lrem(self.list.items.ids.key, 1, self.id.encode())
+        #self.app.r.delete(self.id)
+        # TODO: clean db from x.assignees, x.votes, which we missed to delete...
+        f = script(self.app.r, """
+            local item_id, list_id = ARGV[1], ARGV[2]
+            -- redis.call("srem", "items", item_id)
+            redis.call("del", item_id, item_id .. ".assignees", item_id .. ".votes")
+            redis.call("lrem", list_id .. ".items", 1, item_id)
+        """)
+        f([], [self.id, self._list_id])
 
     def check(self):
         """See :http:post:`/api/lists/(list-id)/items/(id)/check`."""

@@ -83,14 +83,14 @@ class _UserListsEndpoint(CollectionEndpoint):
         except KeyError:
             raise micro.ValueError('No list {}'.format(list_id))
         lists = self.get_collection(id)
-        lists.add(**args, user=self.current_user)
+        lists.add(**args)
         self.write({})
 
 class _UserListEndpoint(Endpoint):
     def delete(self, id, list_id):
         lists = self.app.users[id].lists
         lst = lists[list_id]
-        lists.remove(lst, user=self.current_user)
+        lists.remove(lst)
         self.write({})
 
 class _ListsEndpoint(Endpoint):
@@ -203,7 +203,7 @@ class _ItemAssigneesEndpoint(CollectionEndpoint):
             assignee = self.app.users[assignee_id]
         except KeyError:
             raise error.ValueError('No assignee {}'.format(assignee_id))
-        assignees.assign(assignee, user=self.current_user)
+        assignees.assign(assignee)
         self.set_status(HTTPStatus.CREATED)
         self.write({})
 
@@ -211,7 +211,7 @@ class _ItemAssigneeEndpoint(Endpoint):
     def delete(self, list_id, id, assignee_id):
         assignees = self.app.lists[list_id].items[id].assignees
         assignee = assignees[assignee_id]
-        assignees.unassign(assignee, user=self.current_user)
+        assignees.unassign(assignee)
         self.write({})
 
 class _ItemVotesEndpoint(CollectionEndpoint):
@@ -221,14 +221,14 @@ class _ItemVotesEndpoint(CollectionEndpoint):
 
     def post(self, list_id, id):
         votes = self.get_collection(list_id, id)
-        votes.vote(user=self.current_user)
+        votes.vote()
         self.set_status(HTTPStatus.CREATED)
         self.write({})
 
 class _ItemVoteEndpoint(Endpoint):
     def delete(self, list_id, id):
         votes = self.app.lists[list_id].items[id].votes
-        votes.unvote(user=self.current_user)
+        votes.unvote()
         self.write({})
 
 class _ListPage(UI):

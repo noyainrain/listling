@@ -14,10 +14,12 @@
 
 # pylint: disable=missing-docstring; test module
 
+import gc
 from subprocess import check_call
 from tempfile import mkdtemp
 
 import micro
+from micro.core import context
 from micro.util import ON
 from tornado.testing import AsyncTestCase, gen_test
 
@@ -58,6 +60,7 @@ class ListlingTestCase(AsyncTestCase):
         self.app.r.flushdb()
         self.app.update()
         self.user = self.app.login()
+        context.user.set(self.user)
 
 class ListlingTest(ListlingTestCase):
     @gen_test
@@ -127,61 +130,114 @@ class UserListsTest(ListlingTestCase):
     def test_add(self):
         shared_lst = self.app.lists.create(v=2)
         user = self.app.login()
+        context.user.set(user)
         lst = self.app.lists.create(v=2)
-        user.lists.add(shared_lst, user=user)
+        user.lists.add(shared_lst)
         self.assertEqual(list(user.lists.values()), [shared_lst, lst])
 
     def test_remove(self):
         shared_lst = self.app.lists.create(v=2)
         user = self.app.login()
+        context.user.set(user)
         lst = self.app.lists.create(v=2)
-        user.lists.add(shared_lst, user=user)
-        user.lists.remove(shared_lst, user=user)
+        user.lists.add(shared_lst)
+        user.lists.remove(shared_lst)
         self.assertEqual(list(user.lists.values()), [lst])
 
     def test_remove_as_list_owner(self):
         lst = self.app.lists.create(v=2)
         with self.assertRaisesRegex(ValueError, 'owner'):
-            self.user.lists.remove(lst, user=self.user)
+            self.user.lists.remove(lst)
 
 class ListTest(ListlingTestCase):
+    def setUp(self):
+        super().setUp()
+        self.list = self.app.lists.create()
+
+    def make_lists(self):
+        return lists, users
+
+    @gen_test
+    async def test_delete(self):
+        self.list = self.app.lists.create()
+        # item = await self.list.items.create('Sleep')
+        item = await self.list.items.create('Sleep')
+
+        self.list.delete()
+        with self.assertRaises(KeyError):
+            item_id = item.id
+            del item
+            gc.collect() # TODO see ItemTest.test_delete
+            self.app.items[item_id]
+        self.assertFalse(self.list.items)
+        self.assertFalse(self.list.activity)
+        self.assertNotIn(self.list.id, self.app.lists)
+        # TODO test that list is removed from owner
+        #self.assertFalse(self.list.users()) - normally there is at least on user, the creator, but after
+        # delete there isnt, so this will fail in unpack()
+
     def test_edit(self):
-        lst = self.app.lists.create(v=2)
-        lst.edit(description='What has to be done!', mode='view', item_template="Details:")
-        self.assertEqual(lst.description, 'What has to be done!')
-        self.assertEqual(lst.mode, 'view')
-        self.assertEqual(lst.item_template, 'Details:')
+        self.list = self.app.lists.create(v=2)
+        self.list.edit(description='What has to be done!', mode='view', item_template="Details:")
+        self.assertEqual(self.list.description, 'What has to be done!')
+        self.assertEqual(self.list.mode, 'view')
+        self.assertEqual(self.list.item_template, 'Details:')
 
     def test_edit_as_user(self):
-        lst = self.app.lists.create(v=2)
+        self.list = self.app.lists.create(v=2)
         self.app.login()
-        lst.edit(description='What has to be done!')
-        self.assertEqual(lst.description, 'What has to be done!')
+        self.list.edit(description='What has to be done!')
+        self.assertEqual(self.list.description, 'What has to be done!')
 
     def test_edit_view_mode_as_user(self):
-        lst = self.app.lists.create(v=2)
-        lst.edit(mode='view')
+        self.list = self.app.lists.create(v=2)
+        self.list.edit(mode='view')
         self.app.login()
         with self.assertRaises(micro.PermissionError):
-            lst.edit(description='What has to be done!')
+            self.list.edit(description='What has to be done!')
+
+    def test_trash(self):
+        lists = [self.app.lists.create(), self.list]
+        users = [self.user, self.app.login()]
+        token = context.user.set(users[1])
+        users[1].lists.add(lists[1])
+        users[1].lists.add(lists[0])
+        context.user.reset(token)
+
+        lists[0].trash()
+        self.assertEqual(list(users[0].lists.values()), lists)
+        self.assertEqual(list(users[1].lists.values()), lists[1:])
+
+    def test_restore(self):
+        lists = [self.app.lists.create(), self.list]
+        users = [self.user, self.app.login()]
+        token = context.user.set(users[1])
+        users[1].lists.add(lists[1])
+        users[1].lists.add(lists[0])
+        context.user.reset(token)
+        lists[0].trash()
+
+        lists[0].restore()
+        self.assertEqual(list(users[0].lists.values()), lists)
+        self.assertEqual(list(users[1].lists.values()), lists)
 
     @gen_test
     async def test_query_users_name(self):
-        lst = self.app.lists.create()
+        self.list = self.app.lists.create()
         happy = self.app.login()
         happy.edit(name='Happy')
-        await lst.items.create('Sleep')
+        await self.list.items.create('Sleep')
         grumpy = self.app.login()
         grumpy.edit(name='Grumpy')
-        await lst.items.create('Feast')
-        users = lst.users('U')
+        await self.list.items.create('Feast')
+        users = self.list.users('U')
         self.assertEqual([user.id for user in users], [grumpy.id, self.user.id])
 
     @gen_test
     async def test_items_create(self):
-        lst = self.app.lists.create(v=2)
-        item = await lst.items.create('Sleep')
-        self.assertIn(item.id, lst.items)
+        self.list = self.app.lists.create(v=2)
+        item = await self.list.items.create('Sleep')
+        self.assertIn(item.id, self.list.items)
 
 class ItemTest(ListlingTestCase):
     async def make_item(self, *, use_case='simple', mode=None):
@@ -189,6 +245,32 @@ class ItemTest(ListlingTestCase):
         if mode:
             lst.edit(mode=mode)
         return await lst.items.create('Sleep')
+
+    #@gen_test
+    #async def setUp(self):
+    #    super().setUp()
+    #    self.list = self.app.lists.create('todo', v=2)
+    #    self.item = await self.list.items.create('Sleep')
+
+    @gen_test
+    async def test_delete(self):
+        lst = self.app.lists.create()
+        lst.edit(features=['assign', 'vote'])
+        item = await lst.items.create('Sleep')
+        item.votes.vote()
+        item.assignees.assign(context.user.get())
+
+        item.delete()
+        self.assertFalse(item.assignees)
+        self.assertFalse(item.votes)
+        item_id = item.id
+        # del item.assignees
+        # del item.votes
+        del item
+        gc.collect() # TODO why needed and collected on ref = 0?
+        with self.assertRaises(KeyError):
+            self.app.items[item_id]
+        self.assertNotIn(item_id, lst.items)
 
     @gen_test
     async def test_edit(self):
@@ -235,17 +317,17 @@ class ItemAssigneesTest(ListlingTestCase):
     async def test_assign(self):
         item = await self.app.lists.create('todo').items.create('Sleep')
         user = self.app.login()
-        item.assignees.assign(self.user, user=self.user)
-        item.assignees.assign(user, user=self.user)
+        item.assignees.assign(self.user)
+        item.assignees.assign(user)
         self.assertEqual(list(item.assignees.values()), [user, self.user])
 
     @gen_test
     async def test_unassign(self):
         item = await self.app.lists.create('todo').items.create('Sleep')
         user = self.app.login()
-        item.assignees.assign(self.user, user=self.user)
-        item.assignees.assign(user, user=self.user)
-        item.assignees.unassign(user, user=self.user)
+        item.assignees.assign(self.user)
+        item.assignees.assign(user)
+        item.assignees.unassign(user)
         self.assertEqual(list(item.assignees.values()), [self.user])
 
 class ItemVotesTest(ListlingTestCase):
@@ -253,21 +335,23 @@ class ItemVotesTest(ListlingTestCase):
         lst = self.app.lists.create('poll', v=2)
         item = await lst.items.create('Mouse')
         user = self.app.login()
-        item.votes.vote(user=user)
+        token = context.user.set(user)
+        item.votes.vote()
+        context.user.reset(token)
         return item, user
 
     @gen_test
     async def test_vote(self):
         item, user = await self.make_item()
-        item.votes.vote(user=self.user)
-        item.votes.vote(user=self.user)
+        item.votes.vote()
+        item.votes.vote()
         self.assertEqual(list(item.votes.values()), [self.user, user])
         self.assertTrue(item.votes.has_user_voted(self.user))
 
     @gen_test
     async def test_unvote(self):
         item, user = await self.make_item()
-        item.votes.vote(user=self.user)
-        item.votes.unvote(user=self.user)
+        item.votes.vote()
+        item.votes.unvote()
         self.assertEqual(list(item.votes.values()), [user])
         self.assertFalse(item.votes.has_user_voted(self.user))

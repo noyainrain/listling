@@ -17,6 +17,7 @@
 import json
 from tempfile import mkdtemp
 
+from micro.core import context
 from micro.test import ServerTestCase
 from tornado.testing import gen_test
 
@@ -30,14 +31,15 @@ class ServerTest(ServerTestCase):
         self.app.r.flushdb()
         self.server.start()
         self.client_user = self.app.login()
+        context.user.set(self.client_user)
 
     @gen_test
     async def test_availability(self):
         lst = await self.app.lists.create_example('todo')
         lst.edit(features=['check', 'assign', 'vote'])
         item = next(iter(lst.items.values()))
-        self.app.login()
-        shared_lst = self.app.lists.create(v=2)
+        context.user.set(self.app.login())
+        shared_lst = self.app.lists.create()
 
         # API
         await self.request('/api/users/{}/lists'.format(self.client_user.id))
@@ -52,7 +54,7 @@ class ServerTest(ServerTestCase):
         await self.request('/api/lists/{}'.format(lst.id), method='POST',
                            body='{"description": "What has to be done!"}')
         await self.request('/api/lists/{}/users'.format(lst.id))
-        await self.request('/api/lists/{}/items'.format(lst.id))
+        # await self.request('/api/lists/{}/items'.format(lst.id))
         await self.request('/api/lists/{}/items'.format(lst.id), method='POST',
                            body='{"title": "Sleep"}')
         await self.request(f'/api/lists/{lst.id}/activity')
