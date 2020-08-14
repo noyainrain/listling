@@ -14,16 +14,21 @@
 
 """Open Listling core."""
 
+from __future__ import annotations
+
 import json
 from redis.exceptions import ResponseError
 from time import time
+import typing
+from typing import Dict, cast
 from urllib.parse import urlsplit
 
 import micro
 from micro import (Activity, Application, Collection, Editable, Location, Object, Orderable,
                    Trashable, Settings, Event, WithContent, error)
 from micro.core import context
-from micro.jsonredis import JSONRedis, RedisSortedSet, script
+from micro.jsonredis import JSONRedis, RedisList, RedisSortedSet, script
+from micro.resource import Resource
 from micro.util import parse_isotime, randstr, str_or_none
 
 _USE_CASES = {
@@ -120,8 +125,11 @@ _EXAMPLE_DATA = {
 class Listling(Application):
     """See :ref:`Listling`."""
 
-    class Lists(Collection):
+    class Lists:
         """See :ref:`Lists`."""
+
+        def __init__(self, app: Application) -> None:
+            self.app = app
 
         def create(self, use_case='simple', *, v=2):
             """See :http:post:`/api/lists`."""
@@ -138,10 +146,10 @@ class Listling(Application):
                 id=id, app=self.app, authors=[self.app.user.id], trashed=False, title=data['title'],
                 description=None, features=data['features'], mode=data.get('mode', 'collaborate'),
                 item_template=None,
-                activity=Activity('{}.activity'.format(id), self.app, subscriber_ids=[]))
+                activity=Activity('{}.activity'.format(id), subscriber_ids=[], app=self.app).json())
             self.app.r.oset(lst.id, lst)
             self.app.r.zadd('{}.users'.format(lst.id), {self.app.user.id.encode(): -time()})
-            self.app.r.rpush(self.map_key, lst.id)
+            self.app.r.rpush('lists', lst.id)
             self.app.user.lists.add(lst)
             self.app.activity.publish(
                 Event.create('create-list', None, {'lst': lst}, app=self.app))
@@ -172,17 +180,37 @@ class Listling(Application):
                     item.votes.vote()
             return lst
 
+        def __getitem__(self, key: str) -> List:
+            if not key.startswith('List:'):
+                raise KeyError(key)
+            f = script(self.app.r, """
+                local id = KEYS[1]
+                local user_id = ARGV[1]
+                local list = redis.call("GET", id)
+                if list then
+                    local object = cjson.decode(list)
+                    if object["trashed"] and object["authors"][1] ~= user_id then
+                        return
+                    end
+                end
+                return list
+            """)
+            lst = f([key], [context.user.get().id])
+            if not lst:
+                raise KeyError(key)
+            return List(app=self.app, **json.loads(lst))
+
     class Items:
-        def __init__(self, app):
+        def __init__(self, app: Application) -> None:
             self.app = app
 
-        def __getitem__(self, key):
+        def __getitem__(self, key: str) -> Item:
             if not key.startswith('Item:'):
                 raise KeyError()
-            return self.app.r.oget(key, default=KeyError)
-            #if not self.app.r.sismember('items', key):
-            #    raise KeyError()
-            #return self.app.r.oget(key)
+            item = self.app.r.get(key)
+            if not item:
+                raise KeyError(key)
+            return Item(app=self.app, **json.loads(item))
 
     def __init__(self, redis_url='', email='bot@localhost', smtp_url='',
                  render_email_auth_message=None, *, files_path='data', video_service_keys={}):
@@ -191,7 +219,7 @@ class Listling(Application):
             render_email_auth_message=render_email_auth_message, files_path=files_path,
             video_service_keys=video_service_keys)
         self.types.update({'User': User, 'List': List, 'Item': Item})
-        self.lists = Listling.Lists((self, 'lists'))
+        self.lists = Listling.Lists(self)
         # self.items = Collection(RedisSortedSet('items'), app=self)
         self.items = Listling.Items(self)
 
@@ -253,10 +281,14 @@ class Listling(Application):
             push_vapid_public_key=None, v=2)
 
     def file_references(self):
-        for lst in self.lists[:]:
-            for item in lst.items[:]:
-                if item.resource and urlsplit(item.resource.url).scheme == 'file':
-                    yield item.resource.url
+        #lists = [
+        #    List(app=self, **json.loads(self.r.get(id))) for id in self.r.lrange('lists', 0, -1)]
+        # for lst in lists:
+        #    for item in lst.items[:]:
+        items = [Item(app=self, **json.loads(self.r.get(id))) for id in self.r.smembers('items')]
+        for item in items:
+            if item.resource and urlsplit(item.resource.url).scheme == 'file':
+                yield item.resource.url
 
 class User(micro.User):
     """See :ref:`User`."""
@@ -337,10 +369,15 @@ class List(Object, Editable, Trashable):
     class Items(Collection, Orderable):
         """See :ref:`Items`."""
 
-        async def create(self, title, *, text=None, resource=None, location=None):
+        def __init__(self, lst: List) -> None:
+            super().__init__(RedisList(f'{lst.id}.items', lst.app.r), app=lst.app)
+            self.list = lst
+
+        async def create(self, title: str, *, text: str = None, resource: str = None,
+                         location: Location = None) -> Item:
             """See :http:post:`/api/lists/(id)/items`."""
             # pylint: disable=protected-access; List is a friend
-            self.host[0]._check_permission(self.app.user, 'list-modify')
+            self.list._check_permission(self.app.user, 'list-modify')
             attrs = await WithContent.process_attrs({'text': text, 'resource': resource},
                                                     app=self.app)
             if str_or_none(title) is None:
@@ -348,34 +385,48 @@ class List(Object, Editable, Trashable):
 
             item = Item(
                 id='Item:{}'.format(randstr()), app=self.app, authors=[self.app.user.id],
-                trashed=False, text=attrs['text'], resource=attrs['resource'],
-                list_id=self.host[0].id, title=title,
-                location=location.json() if location else None, checked=False)
-            self.app.r.oset(item.id, item)
-            # self.app.r.sadd('items', item.id)
-            self.app.r.rpush(self.map_key, item.id)
-            self.host[0].activity.publish(
-                Event.create('list-create-item', self.host[0], {'item': item}, self.app))
+                trashed=False, text=attrs['text'],
+                resource=attrs['resource'].json() if attrs['resource'] else None,
+                list_id=self.list.id, title=title, location=location.json() if location else None,
+                checked=False)
+            f = script(self.app.r, """
+                local item_id, item, list_id = ARGV[1], ARGV[2], ARGV[3]
+                if cjson.decode(redis.call("get", list_id))["trashed"] then
+                    return "trashed-list"
+                end
+                redis.call("set", item_id, item)
+                redis.call("sadd", "items", item_id)
+                redis.call("rpush", list_id .. ".items", item_id)
+                return "ok"
+            """)
+            if f([], [item.id, json.dumps(item.json()), self.list.id]) == "trashed-list":
+                raise micro.ValueError(f'Trashed list {self.list.id}')
+            self.list.activity.publish(
+                Event.create('list-create-item', self.list, {'item': item}, self.app))
             return item
 
         def move(self, item, to):
             # pylint: disable=protected-access; List is a friend
-            self.host[0]._check_permission(self.app.user, 'list-modify')
+            self.list._check_permission(self.app.user, 'list-modify')
+            if self.list.trashed:
+                raise micro.ValueError(f'Trashed list {self.list.id}')
             super().move(item, to)
 
-    def __init__(self, *, app, **data):
+    def __init__(self, *, app: Application, **data: object) -> None:
+        activity = Activity(cast(Dict[str, str], data['activity'])['id'], app,
+                            cast(Dict[str, typing.List[str]], data['activity'])['subscriber_ids'])
+        activity.post = self._on_activity_publish
+        activity.host = self
         super().__init__(id=data['id'], app=app)
-        Editable.__init__(self, authors=data['authors'], activity=data['activity'])
-        Trashable.__init__(self, trashed=data['trashed'], activity=data['activity'])
+        Editable.__init__(self, authors=data['authors'], activity=activity)
+        Trashable.__init__(self, trashed=data['trashed'], activity=activity)
         self.title = data['title']
         self.description = data['description']
         self.features = data['features']
         self.mode = data['mode']
         self.item_template = data['item_template']
-        self.items = List.Items((self, 'items'))
-        self.activity = data['activity']
-        self.activity.post = self._on_activity_publish
-        self.activity.host = self
+        self.items = List.Items(self)
+        self.activity = activity
 
     def users(self, name=''):
         """See :http:get:`/api/lists/(id)/users?name=`."""
@@ -425,7 +476,7 @@ class List(Object, Editable, Trashable):
             local list_id = ARGV[1]
             for _, item_id in ipairs(redis.call("lrange", list_id .. ".items", 0, -1)) do
                 redis.call("del", item_id, item_id .. ".assignees", item_id .. ".votes")
-                -- redis.call("srem", "items", item_id)
+                redis.call("srem", "items", item_id)
             end
             redis.call(
                 "del", list_id, list_id .. ".items", list_id .. ".users", list_id .. ".of_users",
@@ -572,16 +623,15 @@ class Item(Object, Editable, Trashable, WithContent):
                 **({'user_voted': self.has_user_voted(self.app.user)} if restricted else {})
             }
 
-    def __init__(self, *, id, app, authors, trashed, text, resource, list_id, title, location,
-                 checked):
-        super().__init__(id, app)
-        Editable.__init__(self, authors, lambda: self.list.activity)
-        Trashable.__init__(self, trashed, lambda: self.list.activity)
-        WithContent.__init__(self, text=text, resource=resource)
-        self._list_id = list_id
-        self.title = title
-        self.location = Location.parse(location) if location else None
-        self.checked = checked
+    def __init__(self, *, app, **data: object) -> None:
+        super().__init__(data['id'], app)
+        Editable.__init__(self, authors=data['authors'], activity=lambda: self.list.activity)
+        Trashable.__init__(self, trashed=data['trashed'], activity=lambda: self.list.activity)
+        WithContent.__init__(self, **data)
+        self._list_id = data['list_id']
+        self.title = data['title']
+        self.location = Location.parse(data['location']) if data['location'] else None
+        self.checked = data['checked']
         self.assignees = Item.Assignees(self, app=app)
         self.votes = Item.Votes(self, app=app)
 
@@ -596,7 +646,7 @@ class Item(Object, Editable, Trashable, WithContent):
         # TODO: clean db from x.assignees, x.votes, which we missed to delete...
         f = script(self.app.r, """
             local item_id, list_id = ARGV[1], ARGV[2]
-            -- redis.call("srem", "items", item_id)
+            redis.call("srem", "items", item_id)
             redis.call("del", item_id, item_id .. ".assignees", item_id .. ".votes")
             redis.call("lrem", list_id .. ".items", 1, item_id)
         """)

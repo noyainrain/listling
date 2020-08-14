@@ -73,21 +73,33 @@ class ListlingTest(ListlingTestCase):
         await lst.items.create('Sleep', resource=urls[0])
         await lst.items.create('Feast', resource=urls[1])
         await lst.items.create('Cuddle')
-        references = list(self.app.file_references())
-        self.assertEqual(references, urls)
+        references = set(self.app.file_references())
+        self.assertEqual(references, set(urls))
+
+class ListsTest(ListlingTestCase):
+    def test_getitem_trashed_list(self):
+        lst = self.app.lists.create()
+        lst.trash()
+        context.user.set(self.app.login())
+        with self.assertRaises(KeyError):
+            self.app.lists[lst.id]
+
+    def test_getitem_trashed_list_as_owner(self):
+        lst = self.app.lists.create()
+        lst.trash()
+        self.assertTrue(self.app.lists[lst.id])
 
     def test_lists_create(self):
         lst = self.app.lists.create(v=2)
         self.assertEqual(lst.title, 'New list')
-        self.assertIn(lst.id, self.app.lists)
+        self.assertTrue(self.app.lists[lst.id])
         self.assertIn(lst.id, self.user.lists)
 
     @gen_test
     async def test_lists_create_example(self):
         lst = await self.app.lists.create_example('shopping')
         self.assertEqual(lst.title, 'Kitchen shopping list')
-        self.assertTrue(lst.items)
-        self.assertIn(lst.id, self.app.lists)
+        self.assertTrue(self.app.lists[lst.id])
 
 class ListlingUpdateTest(AsyncTestCase):
     @staticmethod
@@ -108,7 +120,8 @@ class ListlingUpdateTest(AsyncTestCase):
         app = Listling(redis_url='15', files_path=mkdtemp())
         app.update()
 
-        for l in app.lists[:]:
+        lists = app.r.omget([id.decode() for id in app.r.lrange('lists', 0, -1)])
+        for l in lists:
             self.assertEqual(l.item_template, None)
 
     def test_update_db_version_first(self):
@@ -118,12 +131,13 @@ class ListlingUpdateTest(AsyncTestCase):
 
         # Update to version 7
         user = app.settings.staff[0]
-        self.assertEqual(set(user.lists.values()), set(app.lists[0:2]))
+        lists = app.r.omget([id.decode() for id in app.r.lrange('lists', 0, -1)])
+        self.assertEqual(set(user.lists.values()), set(lists[0:2]))
         # Update to version 8
-        self.assertEqual([user.id for user in app.lists[1].users()],
+        self.assertEqual([user.id for user in lists[1].users()],
                          [user.id for user in reversed(app.users[0:2])])
         # Update to version 9
-        for l in app.lists[:]:
+        for l in lists:
             self.assertEqual(l.item_template, None)
 
 class UserListsTest(ListlingTestCase):
@@ -159,22 +173,23 @@ class ListTest(ListlingTestCase):
 
     @gen_test
     async def test_delete(self):
-        self.list = self.app.lists.create()
         # item = await self.list.items.create('Sleep')
         item = await self.list.items.create('Sleep')
 
         self.list.delete()
         with self.assertRaises(KeyError):
-            item_id = item.id
-            del item
-            gc.collect() # TODO see ItemTest.test_delete
-            self.app.items[item_id]
+            self.app.items[item.id]
         self.assertFalse(self.list.items)
         self.assertFalse(self.list.activity)
-        self.assertNotIn(self.list.id, self.app.lists)
+        with self.assertRaises(KeyError):
+            self.app.lists[self.list.id]
+
         # TODO test that list is removed from owner
         #self.assertFalse(self.list.users()) - normally there is at least on user, the creator, but after
         # delete there isnt, so this will fail in unpack()
+        # item_id = item.id
+        # del item
+        # gc.collect() # TODO see ItemTest.test_delete
 
     def test_edit(self):
         self.list = self.app.lists.create(v=2)
