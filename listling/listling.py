@@ -382,6 +382,7 @@ class List(Object, Editable, Trashable):
                                                     app=self.app)
             if str_or_none(title) is None:
                 raise micro.ValueError('title_empty')
+            self.list.check_trashed()
 
             item = Item(
                 id='Item:{}'.format(randstr()), app=self.app, authors=[self.app.user.id],
@@ -391,16 +392,11 @@ class List(Object, Editable, Trashable):
                 checked=False)
             f = script(self.app.r, """
                 local item_id, item, list_id = ARGV[1], ARGV[2], ARGV[3]
-                if cjson.decode(redis.call("get", list_id))["trashed"] then
-                    return "trashed-list"
-                end
                 redis.call("set", item_id, item)
                 redis.call("sadd", "items", item_id)
                 redis.call("rpush", list_id .. ".items", item_id)
-                return "ok"
             """)
-            if f([], [item.id, json.dumps(item.json()), self.list.id]) == "trashed-list":
-                raise micro.ValueError(f'Trashed list {self.list.id}')
+            f([], [item.id, json.dumps(item.json()), self.list.id])
             self.list.activity.publish(
                 Event.create('list-create-item', self.list, {'item': item}, self.app))
             return item
@@ -408,8 +404,7 @@ class List(Object, Editable, Trashable):
         def move(self, item, to):
             # pylint: disable=protected-access; List is a friend
             self.list._check_permission(self.app.user, 'list-modify')
-            if self.list.trashed:
-                raise micro.ValueError(f'Trashed list {self.list.id}')
+            self.list.check_trashed()
             super().move(item, to)
 
     def __init__(self, *, app: Application, **data: object) -> None:
@@ -560,8 +555,7 @@ class Item(Object, Editable, Trashable, WithContent):
             self.item._check_permission(context.user.get(), 'list-modify')
             if 'assign' not in self.item.list.features:
                 raise error.ValueError('Disabled item list features assign')
-            if self.item.trashed:
-                raise error.ValueError('Trashed item')
+            self.item.check_trashed()
             if not self.app.r.zadd(self.ids.key, {assignee.id.encode(): -time()}):
                 raise error.ValueError(
                     'assignee {} already in assignees of item {}'.format(assignee.id, self.item.id))
@@ -575,8 +569,7 @@ class Item(Object, Editable, Trashable, WithContent):
             self.item._check_permission(context.user.get(), 'list-modify')
             if 'assign' not in self.item.list.features:
                 raise error.ValueError('Disabled item list features assign')
-            if self.item.trashed:
-                raise error.ValueError('Trashed item')
+            self.item.check_trashed()
             if not self.app.r.zrem(self.ids.key, assignee.id.encode()):
                 raise error.ValueError(
                     'No assignee {} in assignees of item {}'.format(assignee.id, self.item.id))
@@ -598,6 +591,7 @@ class Item(Object, Editable, Trashable, WithContent):
                 raise micro.PermissionError()
             if 'vote' not in self.item.list.features:
                 raise error.ValueError('Disabled item list features vote')
+            self.item.check_trashed()
             if self.app.r.zadd(self.ids.key, {user.id.encode(): -time()}):
                 self.item.list.activity.publish(
                     Event.create('item-votes-vote', self.item, app=self.app))
@@ -609,6 +603,7 @@ class Item(Object, Editable, Trashable, WithContent):
                 raise micro.PermissionError()
             if 'vote' not in self.item.list.features:
                 raise error.ValueError('Disabled item list features vote')
+            self.item.check_trashed()
             if self.app.r.zrem(self.ids.key, user.id.encode()):
                 self.item.list.activity.publish(
                     Event.create('item-votes-unvote', self.item, app=self.app))
@@ -656,6 +651,7 @@ class Item(Object, Editable, Trashable, WithContent):
         """See :http:post:`/api/lists/(list-id)/items/(id)/check`."""
         _check_feature(self.app.user, 'check', self)
         self._check_permission(self.app.user, 'item-modify')
+        self.check_trashed()
         self.checked = True
         self.app.r.oset(self.id, self)
         self.list.activity.publish(Event.create('item-check', self, app=self.app))
@@ -664,6 +660,7 @@ class Item(Object, Editable, Trashable, WithContent):
         """See :http:post:`/api/lists/(list-id)/items/(id)/uncheck`."""
         _check_feature(self.app.user, 'check', self)
         self._check_permission(self.app.user, 'item-modify')
+        self.check_trashed()
         self.checked = False
         self.app.r.oset(self.id, self)
         self.list.activity.publish(Event.create('item-uncheck', self, app=self.app))
