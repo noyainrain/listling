@@ -122,7 +122,7 @@ listling.components.list.AssignDialog = class extends HTMLElement {
                         e instanceof micro.APIError && e.error.__type__ === "ValueError" &&
                         e.message.includes("assignees")
                     ) {
-                        // Ignore if user has already been assigned
+                        // Continue as usual to update the UI
                     } else {
                         throw e;
                     }
@@ -130,6 +130,11 @@ listling.components.list.AssignDialog = class extends HTMLElement {
                 this._input.value = "";
                 this._input.valueAsObject = null;
                 this.querySelector("micro-options").activate();
+                ui.page.activity.events.dispatchEvent({
+                    type: "item-assignees-assign",
+                    object: this._data.itemElement.item,
+                    detail: {assignee}
+                });
             },
 
             remove: async assignee => {
@@ -140,11 +145,16 @@ listling.components.list.AssignDialog = class extends HTMLElement {
                     );
                 } catch (e) {
                     if (e instanceof micro.APIError && e.error.__type__ === "NotFoundError") {
-                        // Ignore if user has already been unassigned
+                        // Continue as usual to update the UI
                     } else {
                         throw e;
                     }
                 }
+                ui.page.activity.events.dispatchEvent({
+                    type: "item-assignees-unassign",
+                    object: this._data.itemElement.item,
+                    detail: {assignee}
+                });
             },
 
             close: () => this.remove(),
