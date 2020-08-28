@@ -17,7 +17,7 @@
 from subprocess import check_call
 from tempfile import mkdtemp
 
-import micro
+from micro import error
 from micro.util import ON
 from tornado.testing import AsyncTestCase, gen_test
 
@@ -162,7 +162,7 @@ class ListTest(ListlingTestCase):
         lst = self.app.lists.create(v=2)
         lst.edit(mode='view')
         self.app.login()
-        with self.assertRaises(micro.PermissionError):
+        with self.assertRaises(error.PermissionError):
             lst.edit(description='What has to be done!')
 
     @gen_test
@@ -220,7 +220,7 @@ class ItemTest(ListlingTestCase):
     async def test_check_view_mode_as_user(self):
         item = await self.make_item(use_case='todo', mode='view')
         self.app.login()
-        with self.assertRaises(micro.PermissionError):
+        with self.assertRaises(error.PermissionError):
             item.check()
 
     @gen_test

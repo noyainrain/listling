@@ -80,8 +80,8 @@ class _UserListsEndpoint(CollectionEndpoint):
         list_id = args.pop('list_id')
         try:
             args['lst'] = self.app.lists[list_id]
-        except KeyError:
-            raise micro.ValueError('No list {}'.format(list_id))
+        except KeyError as e:
+            raise micro.ValueError(f'No list {list_id}') from e
         lists = self.get_collection(id)
         lists.add(**args, user=self.current_user)
         self.write({})
@@ -151,8 +151,8 @@ class _ListItemsEndpoint(Endpoint):
         if args.get('location') is not None:
             try:
                 args['location'] = Location.parse(args['location'])
-            except TypeError:
-                raise micro.ValueError('bad_location_type')
+            except TypeError as e:
+                raise micro.ValueError('bad_location_type') from e
         item = await lst.items.create(**args)
         self.write(item.json(restricted=True, include=True, rewrite=self.server.rewrite))
 
@@ -174,8 +174,8 @@ class _ItemEndpoint(Endpoint):
         if args.get('location') is not None:
             try:
                 args['location'] = Location.parse(args['location'])
-            except TypeError:
-                raise micro.ValueError('bad_location_type')
+            except TypeError as e:
+                raise micro.ValueError('bad_location_type') from e
         await item.edit(asynchronous=ON, **args)
         self.write(item.json(restricted=True, include=True, rewrite=self.server.rewrite))
 
@@ -201,8 +201,8 @@ class _ItemAssigneesEndpoint(CollectionEndpoint):
         try:
             assignee_id = self.get_arg('assignee_id', Expect.str)
             assignee = self.app.users[assignee_id]
-        except KeyError:
-            raise error.ValueError('No assignee {}'.format(assignee_id))
+        except KeyError as e:
+            raise error.ValueError(f'No assignee {assignee_id}') from e
         assignees.assign(assignee, user=self.current_user)
         self.set_status(HTTPStatus.CREATED)
         self.write({})

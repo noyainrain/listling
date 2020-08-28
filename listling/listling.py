@@ -126,7 +126,7 @@ class Listling(Application):
             # pylint: disable=unused-argument; former feature toggle
             # Compatibility for endpoint version (deprecated since 0.22.0)
             if not self.app.user:
-                raise micro.PermissionError()
+                raise error.PermissionError()
             if use_case not in _USE_CASES:
                 raise micro.ValueError('use_case_unknown')
 
@@ -249,7 +249,7 @@ class User(micro.User):
         def add(self, lst, *, user):
             """See: :http:post:`/users/(id)/lists`."""
             if user != getattr(self, 'user'):
-                raise micro.PermissionError()
+                raise error.PermissionError()
             self.app.r.zadd(self.ids.key, {lst.id: -time()})
 
         def remove(self, lst, *, user):
@@ -258,7 +258,7 @@ class User(micro.User):
             If *lst* is not in the collection, a :exc:`micro.error.ValueError` is raised.
             """
             if user != getattr(self, 'user'):
-                raise micro.PermissionError()
+                raise error.PermissionError()
             if lst.authors[0] == getattr(self, 'user'):
                 raise micro.ValueError(
                     'user {} is owner of lst {}'.format(getattr(self, 'user').id, lst.id))
@@ -269,7 +269,7 @@ class User(micro.User):
         def read(self, *, user):
             """Return collection for reading."""
             if user != getattr(self, 'user'):
-                raise micro.PermissionError()
+                raise error.PermissionError()
             return self
 
     def __init__(self, *, app, **data):
@@ -395,7 +395,7 @@ class List(Object, Editable):
                 op in permissions['user'] or
                 user == self.authors[0] or
                 user in self.app.settings.staff)):
-            raise micro.PermissionError()
+            raise error.PermissionError()
 
     def _on_activity_publish(self, event):
         self.app.r.zadd('{}.users'.format(self.id), {event.user.id.encode(): -time()})
@@ -451,7 +451,7 @@ class Item(Object, Editable, Trashable, WithContent):
         def vote(self, *, user):
             """See :http:post:`/api/lists/(list-id)/items/(id)/votes`."""
             if not user:
-                raise micro.PermissionError()
+                raise error.PermissionError()
             if 'vote' not in self.item.list.features:
                 raise error.ValueError('Disabled item list features vote')
             if self.app.r.zadd(self.ids.key, {user.id.encode(): -time()}):
@@ -461,7 +461,7 @@ class Item(Object, Editable, Trashable, WithContent):
         def unvote(self, *, user):
             """See :http:delete:`/api/lists/(list-id)/items/(id)/votes/user`."""
             if not user:
-                raise micro.PermissionError()
+                raise error.PermissionError()
             if 'vote' not in self.item.list.features:
                 raise error.ValueError('Disabled item list features vote')
             if self.app.r.zrem(self.ids.key, user.id.encode()):
@@ -564,10 +564,10 @@ class Item(Object, Editable, Trashable, WithContent):
                 op in permissions['user'] or
                 user == lst.authors[0] or
                 user in self.app.settings.staff)):
-            raise micro.PermissionError()
+            raise error.PermissionError()
 
 def _check_feature(user, feature, item):
     if feature not in item.list.features:
         raise micro.ValueError('feature_disabled')
     if not user:
-        raise micro.PermissionError()
+        raise error.PermissionError()
