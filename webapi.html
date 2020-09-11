@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>2. Web API &#8212; Open Listling 0.32.1 documentation</title>
+    <title>2. Web API &#8212; Open Listling 0.33.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -927,7 +927,7 @@ with <em>list_id</em>, a <a class="reference internal" href="#valueerror"><span 
 <dt>
 <code class="sig-name descname">features</code></dt>
 <dd><p>Set of features enabled for the list.</p>
-<p>Available features are <code class="docutils literal notranslate"><span class="pre">check</span></code>, <code class="docutils literal notranslate"><span class="pre">vote</span></code>, <code class="docutils literal notranslate"><span class="pre">location</span></code> and <code class="docutils literal notranslate"><span class="pre">play</span></code>.</p>
+<p>Available features are <code class="docutils literal notranslate"><span class="pre">check</span></code>, <code class="docutils literal notranslate"><span class="pre">vote</span></code>, <code class="docutils literal notranslate"><span class="pre">value</span></code>, <code class="docutils literal notranslate"><span class="pre">location</span></code> and <code class="docutils literal notranslate"><span class="pre">play</span></code>.</p>
 </dd></dl>
 
 <dl class="describe">
@@ -1026,7 +1026,7 @@ the list. In <code class="docutils literal notranslate"><span class="pre">view</
 <dl class="post">
 <dt id="post--api-lists-(id)-items">
 <code class="sig-name descname">POST </code><code class="sig-name descname">/api/lists/</code><span class="sig-paren">(</span><em class="sig-param">id</em><span class="sig-paren">)</span><code class="sig-name descname">/items</code><a class="headerlink" href="#post--api-lists-(id)-items" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="docutils literal notranslate"><span class="pre">{&quot;title&quot;,</span> <span class="pre">&quot;text&quot;:</span> <span class="pre">null,</span> <span class="pre">&quot;location&quot;:</span> <span class="pre">null}</span></code></p>
+<dd><p><code class="docutils literal notranslate"><span class="pre">{&quot;title&quot;,</span> <span class="pre">&quot;text&quot;:</span> <span class="pre">null,</span> <span class="pre">&quot;resource&quot;:</span> <span class="pre">null,</span> <span class="pre">&quot;value&quot;:</span> <span class="pre">null,</span> <span class="pre">&quot;location&quot;:</span> <span class="pre">null}</span></code></p>
 <p>Create an <a class="reference internal" href="#item"><span class="std std-ref">Item</span></a> and return it.</p>
 <p>Permission: Authenticated users.</p>
 </dd></dl>
@@ -1100,6 +1100,12 @@ the list. In <code class="docutils literal notranslate"><span class="pre">view</
 <dt>
 <code class="sig-name descname">title</code></dt>
 <dd><p>Title of the item as <em>markup text</em>.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="sig-name descname">value</code></dt>
+<dd><p>Decimal value associated with the item. May be <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
 </dd></dl>
 
 <dl class="describe">

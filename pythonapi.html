@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>3. Python API &#8212; Open Listling 0.32.1 documentation</title>
+    <title>3. Python API &#8212; Open Listling 0.33.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -40,7 +40,7 @@
 <p>Web app to make and edit lists collaboratively.</p>
 <dl class="class">
 <dt id="listling.Item">
-<em class="property">class </em><code class="sig-prename descclassname">listling.</code><code class="sig-name descname">Item</code><span class="sig-paren">(</span><em class="sig-param">*</em>, <em class="sig-param">id</em>, <em class="sig-param">app</em>, <em class="sig-param">authors</em>, <em class="sig-param">trashed</em>, <em class="sig-param">text</em>, <em class="sig-param">resource</em>, <em class="sig-param">list_id</em>, <em class="sig-param">title</em>, <em class="sig-param">location</em>, <em class="sig-param">checked</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">listling.</code><code class="sig-name descname">Item</code><span class="sig-paren">(</span><em class="sig-param">*</em>, <em class="sig-param">app: listling.listling.Listling</em>, <em class="sig-param">**data: object</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#item"><span class="std std-ref">Item</span></a>.</p>
 <dl class="class">
 <dt id="listling.Item.Assignees">
@@ -111,7 +111,7 @@
 
 <dl class="method">
 <dt id="listling.Item.do_edit">
-<em class="property">async </em><code class="sig-name descname">do_edit</code><span class="sig-paren">(</span><em class="sig-param">**attrs</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.do_edit" title="Permalink to this definition">¶</a></dt>
+<em class="property">async </em><code class="sig-name descname">do_edit</code><span class="sig-paren">(</span><em class="sig-param">**attrs: Any</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#listling.Item.do_edit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Subclass API: Perform the edit operation.</p>
 <p>More precisely, validate and then set the given <em>attrs</em>.</p>
 <p>Must be overridden by host. Called by <code class="xref py py-meth docutils literal notranslate"><span class="pre">edit()</span></code>, which takes care of basic permission
@@ -132,7 +132,7 @@ checking, managing <em>authors</em> and storing the updated object in the databa
 
 <dl class="method">
 <dt id="listling.Item.json">
-<code class="sig-name descname">json</code><span class="sig-paren">(</span><em class="sig-param">restricted=False</em>, <em class="sig-param">include=False</em>, <em class="sig-param">*</em>, <em class="sig-param">rewrite=None</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.json" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">json</code><span class="sig-paren">(</span><em class="sig-param">restricted: bool = False, include: bool = False, *, rewrite: Optional[Callable[[str], str]] = None</em><span class="sig-paren">)</span> &#x2192; Dict[str, object]<a class="headerlink" href="#listling.Item.json" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <code class="xref py py-meth docutils literal notranslate"><span class="pre">JSONifiable.json()</span></code>.</p>
 <p>Subclass API: May be overridden by subclass. The default implementation returns the
 attributes of <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code>. <em>restricted</em> and <em>include</em> are ignored.</p>
@@ -146,17 +146,17 @@ attributes of <code class="xref py py-class docutils literal notranslate"><span 
 <dd><p>See <a class="reference internal" href="webapi.html#list"><span class="std std-ref">List</span></a>.</p>
 <dl class="class">
 <dt id="listling.List.Items">
-<em class="property">class </em><code class="sig-name descname">Items</code><span class="sig-paren">(</span><em class="sig-param">*args: object, check: Callable[[Union[int, slice, str]], None] = None, expect: Callable[[object], O] = &lt;function expect_type.&lt;locals&gt;._f&gt;, **kwargs: object</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List.Items" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-name descname">Items</code><span class="sig-paren">(</span><em class="sig-param">lst: listling.listling.List</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List.Items" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#items"><span class="std std-ref">Items</span></a>.</p>
 <dl class="method">
 <dt id="listling.List.Items.create">
-<em class="property">async </em><code class="sig-name descname">create</code><span class="sig-paren">(</span><em class="sig-param">title</em>, <em class="sig-param">*</em>, <em class="sig-param">text=None</em>, <em class="sig-param">resource=None</em>, <em class="sig-param">location=None</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List.Items.create" title="Permalink to this definition">¶</a></dt>
+<em class="property">async </em><code class="sig-name descname">create</code><span class="sig-paren">(</span><em class="sig-param">title: str</em>, <em class="sig-param">*</em>, <em class="sig-param">text: Optional[str] = None</em>, <em class="sig-param">resource: Optional[str] = None</em>, <em class="sig-param">value: Optional[float] = None</em>, <em class="sig-param">location: Optional[micro.micro.Location] = None</em><span class="sig-paren">)</span> &#x2192; listling.listling.Item<a class="headerlink" href="#listling.List.Items.create" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#post--api-lists-(id)-items" title="POST /api/lists/(id)/items"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/lists/(id)/items</span></code></a>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="listling.List.Items.move">
-<code class="sig-name descname">move</code><span class="sig-paren">(</span><em class="sig-param">item</em>, <em class="sig-param">to</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List.Items.move" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">move</code><span class="sig-paren">(</span><em class="sig-param">item: micro.micro.Object, to: Optional[micro.micro.Object]</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#listling.List.Items.move" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#post--api-(collection-path)-move" title="POST /api/(collection-path)/move"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/(collection-path)/move</span></code></a>.</p>
 </dd></dl>
 
@@ -170,7 +170,7 @@ attributes of <code class="xref py py-class docutils literal notranslate"><span 
 
 <dl class="method">
 <dt id="listling.List.do_edit">
-<code class="sig-name descname">do_edit</code><span class="sig-paren">(</span><em class="sig-param">**attrs</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List.do_edit" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">do_edit</code><span class="sig-paren">(</span><em class="sig-param">**attrs: Any</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#listling.List.do_edit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Subclass API: Perform the edit operation.</p>
 <p>More precisely, validate and then set the given <em>attrs</em>.</p>
 <p>Must be overridden by host. Called by <code class="xref py py-meth docutils literal notranslate"><span class="pre">edit()</span></code>, which takes care of basic permission
