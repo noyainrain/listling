@@ -100,15 +100,14 @@ class ListlingUpdateTest(AsyncTestCase):
         app.update()
         self.assertEqual(app.settings.title, 'My Open Listling')
 
-    def test_update_db_version_previous(self):
-        self.setup_db('0.26.1')
+    def test_update_db_version_previous(self) -> None:
+        self.setup_db('0.32.1')
         app = Listling(redis_url='15', files_path=mkdtemp())
         app.update()
 
-        for l in app.lists[:]:
-            self.assertEqual(l.item_template, None)
+        self.assertIsNone(app.lists[0].items[0].value)
 
-    def test_update_db_version_first(self):
+    def test_update_db_version_first(self) -> None:
         self.setup_db('0.13.0')
         app = Listling(redis_url='15', files_path=mkdtemp())
         app.update()
@@ -122,6 +121,8 @@ class ListlingUpdateTest(AsyncTestCase):
         # Update to version 9
         for l in app.lists[:]:
             self.assertEqual(l.item_template, None)
+        # Item.value
+        self.assertIsNone(app.lists[0].items[0].value)
 
 class UserListsTest(ListlingTestCase):
     def test_add(self):
@@ -145,10 +146,12 @@ class UserListsTest(ListlingTestCase):
             self.user.lists.remove(lst, user=self.user)
 
 class ListTest(ListlingTestCase):
-    def test_edit(self):
+    def test_edit(self) -> None:
         lst = self.app.lists.create(v=2)
-        lst.edit(description='What has to be done!', mode='view', item_template="Details:")
+        lst.edit(description='What has to be done!', features=['value'], mode='view',
+                 item_template="Details:")
         self.assertEqual(lst.description, 'What has to be done!')
+        self.assertEqual(lst.features, ['value'])
         self.assertEqual(lst.mode, 'view')
         self.assertEqual(lst.item_template, 'Details:')
 
@@ -177,11 +180,13 @@ class ListTest(ListlingTestCase):
         users = lst.users('U')
         self.assertEqual([user.id for user in users], [grumpy.id, self.user.id])
 
+class ListItemsTest(ListlingTestCase):
     @gen_test
-    async def test_items_create(self):
+    async def test_create(self) -> None:
         lst = self.app.lists.create(v=2)
-        item = await lst.items.create('Sleep')
+        item = await lst.items.create('Sleep', value=42)
         self.assertIn(item.id, lst.items)
+        self.assertEqual(item.value, 42)
 
 class ItemTest(ListlingTestCase):
     async def make_item(self, *, use_case='simple', mode=None):
@@ -191,10 +196,11 @@ class ItemTest(ListlingTestCase):
         return await lst.items.create('Sleep')
 
     @gen_test
-    async def test_edit(self):
+    async def test_edit(self) -> None:
         item = await self.make_item()
-        await item.edit(text='Very important!', asynchronous=ON)
+        await item.edit(text='Very important!', value=42, asynchronous=ON)
         self.assertEqual(item.text, 'Very important!')
+        self.assertEqual(item.value, 42)
 
     @gen_test
     async def test_check(self):

@@ -125,7 +125,7 @@ List
 
    Set of features enabled for the list.
 
-   Available features are ``check``, ``vote``, ``location`` and ``play``.
+   Available features are ``check``, ``vote``, ``value``, ``location`` and ``play``.
 
 .. describe:: mode
 
@@ -196,7 +196,7 @@ Items
 
 .. http:post:: /api/lists/(id)/items
 
-   ``{"title", "text": null, "location": null}``
+   ``{"title", "text": null, "resource": null, "value": null, "location": null}``
 
    Create an :ref:`Item` and return it.
 
@@ -228,6 +228,10 @@ Item
 .. describe:: title
 
    Title of the item as *markup text*.
+
+.. describe:: value
+
+   Decimal value associated with the item. May be ``null``.
 
 .. describe:: location
 

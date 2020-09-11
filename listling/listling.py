@@ -14,14 +14,21 @@
 
 """Open Listling core."""
 
+from __future__ import annotations
+
 import json
+from logging import getLogger
 from time import time
+import typing
+from typing import Any, Dict, Optional, cast
 from urllib.parse import urlsplit
 
 import micro
 from micro import (Activity, Application, Collection, Editable, Location, Object, Orderable,
                    Trashable, Settings, Event, WithContent, error)
-from micro.jsonredis import JSONRedis, RedisSortedSet, script
+from micro.core import RewriteFunc
+from micro.jsonredis import JSONRedis, RedisList, RedisSortedSet, script
+from micro.resource import Resource
 from micro.util import parse_isotime, randstr, str_or_none
 
 _USE_CASES = {
@@ -217,6 +224,35 @@ class Listling(Application):
             r.omset({l["id"]: l for l in lists})
             r.set('version', 9)
 
+        f = script(self.r, """
+            local updates = {Item=0}
+
+            local list_ids = redis.call('lrange', 'lists', 0, -1)
+            for _, list_id in ipairs(list_ids) do
+                local item_ids = redis.call('lrange', list_id .. '.items', 0, -1)
+                for _, item_id in ipairs(item_ids) do
+                    local update = false
+                    local item = cjson.decode(redis.call('get', item_id))
+
+                    -- Deprecated since 0.33.0
+                    if item.value == nil then
+                        item.value = cjson.null
+                        update = true
+                    end
+
+                    if update then
+                        redis.call('set', item.id, cjson.encode(item))
+                        updates['Item'] = updates['Item'] + 1
+                    end
+                end
+            end
+
+            return {{'Item', updates['Item']}}
+        """)
+        updates = {k.decode(): v for k, v in f()}
+        getLogger(__name__).info('Updated database\n%s',
+                                 '\n'.join(f'{name}: {n}' for name, n in updates.items()))
+
     def create_user(self, data):
         return User(**data)
 
@@ -294,10 +330,18 @@ class List(Object, Editable):
     class Items(Collection, Orderable):
         """See :ref:`Items`."""
 
-        async def create(self, title, *, text=None, resource=None, location=None):
+        app: Listling
+
+        def __init__(self, lst: List) -> None:
+            super().__init__(RedisList(f'{lst.id}.items', lst.app.r.r), app=lst.app)
+            self.lst = lst
+
+        async def create(self, title: str, *, text: str = None, resource: str = None,
+                         value: float = None, location: Location = None) -> Item:
             """See :http:post:`/api/lists/(id)/items`."""
             # pylint: disable=protected-access; List is a friend
-            self.host[0]._check_permission(self.app.user, 'list-modify')
+            self.lst._check_permission(self.app.user, 'list-modify')
+            assert self.app.user
             attrs = await WithContent.process_attrs({'text': text, 'resource': resource},
                                                     app=self.app)
             if str_or_none(title) is None:
@@ -305,18 +349,18 @@ class List(Object, Editable):
 
             item = Item(
                 id='Item:{}'.format(randstr()), app=self.app, authors=[self.app.user.id],
-                trashed=False, text=attrs['text'], resource=attrs['resource'],
-                list_id=self.host[0].id, title=title,
-                location=location.json() if location else None, checked=False)
+                trashed=False, text=attrs['text'], resource=attrs['resource'], list_id=self.lst.id,
+                title=title, value=value, location=location.json() if location else None,
+                checked=False)
             self.app.r.oset(item.id, item)
             self.app.r.rpush(self.map_key, item.id)
-            self.host[0].activity.publish(
-                Event.create('list-create-item', self.host[0], {'item': item}, self.app))
+            self.lst.activity.publish(
+                Event.create('list-create-item', self.lst, {'item': item}, self.app))
             return item
 
-        def move(self, item, to):
+        def move(self, item: Object, to: Optional[Object]) -> None:
             # pylint: disable=protected-access; List is a friend
-            self.host[0]._check_permission(self.app.user, 'list-modify')
+            self.lst._check_permission(self.app.user, 'list-modify')
             super().move(item, to)
 
     def __init__(self, *, id, app, authors, title, description, features, mode, item_template,
@@ -328,7 +372,7 @@ class List(Object, Editable):
         self.features = features
         self.mode = mode
         self.item_template = item_template
-        self.items = List.Items((self, 'items'))
+        self.items = List.Items(self)
         self.activity = activity
         self.activity.post = self._on_activity_publish
         self.activity.host = self
@@ -354,12 +398,12 @@ class List(Object, Editable):
         users = f(['{}.users'.format(self.id)], [name])
         return [User(app=self.app, **json.loads(user.decode())) for user in users]
 
-    def do_edit(self, **attrs):
+    def do_edit(self, **attrs: Any) -> None:
         self._check_permission(self.app.user, 'list-modify')
         if 'title' in attrs and str_or_none(attrs['title']) is None:
             raise micro.ValueError('title_empty')
-        if ('features' in attrs and
-                not set(attrs['features']) <= {'check', 'assign', 'vote', 'location', 'play'}):
+        features = {'check', 'assign', 'vote', 'value', 'location', 'play'}
+        if 'features' in attrs and not set(attrs['features']) <= features:
             raise micro.ValueError('feature_unknown')
         if 'mode' in attrs and attrs['mode'] not in {'collaborate', 'view'}:
             raise micro.ValueError('Unknown mode')
@@ -478,16 +522,20 @@ class Item(Object, Editable, Trashable, WithContent):
                 **({'user_voted': self.has_user_voted(self.app.user)} if restricted else {})
             }
 
-    def __init__(self, *, id, app, authors, trashed, text, resource, list_id, title, location,
-                 checked):
-        super().__init__(id, app)
-        Editable.__init__(self, authors, lambda: self.list.activity)
-        Trashable.__init__(self, trashed, lambda: self.list.activity)
-        WithContent.__init__(self, text=text, resource=resource)
-        self._list_id = list_id
-        self.title = title
-        self.location = Location.parse(location) if location else None
-        self.checked = checked
+    def __init__(self, *, app: Listling, **data: object) -> None:
+        super().__init__(id=cast(str, data['id']), app=app)
+        Editable.__init__(self, authors=cast(typing.List[str], data['authors']),
+                          activity=lambda: self.list.activity)
+        Trashable.__init__(self, trashed=cast(bool, data['trashed']),
+                           activity=lambda: self.list.activity)
+        WithContent.__init__(self, text=cast(Optional[str], data['text']),
+                             resource=cast(Optional[Resource], data['resource']))
+        self._list_id = cast(str, data['list_id'])
+        self.title = cast(str, data['title'])
+        self.value = cast(Optional[float], data['value'])
+        self.location = (
+            Location.parse(cast(Dict[str, object], data['location'])) if data['location'] else None)
+        self.checked = cast(bool, data['checked'])
         self.assignees = Item.Assignees(self, app=app)
         self.votes = Item.Votes(self, app=app)
 
@@ -516,15 +564,17 @@ class Item(Object, Editable, Trashable, WithContent):
         self.app.r.oset(self.id, self)
         self.list.activity.publish(Event.create('item-uncheck', self, app=self.app))
 
-    async def do_edit(self, **attrs):
+    async def do_edit(self, **attrs: Any) -> None:
         self._check_permission(self.app.user, 'item-modify')
-        attrs = await WithContent.pre_edit(self, attrs)
+        attrs = cast(Dict[str, Any], await WithContent.pre_edit(self, attrs))
         if 'title' in attrs and str_or_none(attrs['title']) is None:
             raise micro.ValueError('title_empty')
 
         WithContent.do_edit(self, **attrs)
         if 'title' in attrs:
             self.title = attrs['title']
+        if 'value' in attrs:
+            self.value = attrs['value']
         if 'location' in attrs:
             self.location = attrs['location']
 
@@ -536,7 +586,8 @@ class Item(Object, Editable, Trashable, WithContent):
         self._check_permission(self.app.user, 'item-modify')
         super().restore()
 
-    def json(self, restricted=False, include=False, *, rewrite=None):
+    def json(self, restricted: bool = False, include: bool = False, *,
+             rewrite: RewriteFunc = None) -> Dict[str, object]:
         return {
             **super().json(restricted=restricted, include=include, rewrite=rewrite),
             **Editable.json(self, restricted=restricted, include=include, rewrite=rewrite),
@@ -544,6 +595,7 @@ class Item(Object, Editable, Trashable, WithContent):
             **WithContent.json(self, restricted=restricted, include=include, rewrite=rewrite),
             'list_id': self._list_id,
             'title': self.title,
+            'value': self.value,
             'location': self.location.json() if self.location else None,
             'checked': self.checked,
             **(

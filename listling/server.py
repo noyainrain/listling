@@ -131,6 +131,8 @@ class _ListUsersEndpoint(Endpoint):
         self.write({'items': [user.json(restricted=True, include=True) for user in users]})
 
 class _ListItemsEndpoint(Endpoint):
+    app: Listling
+
     def get(self, id):
         lst = self.app.lists[id]
         self.write(
@@ -138,7 +140,7 @@ class _ListItemsEndpoint(Endpoint):
                 [item.json(restricted=True, include=True, rewrite=self.server.rewrite)
                  for item in lst.items[:]]))
 
-    async def post(self, id):
+    async def post(self, id: str) -> None:
         lst = self.app.lists[id]
         args = self.check_args({
             'text': (str, None, 'opt'),
@@ -148,20 +150,23 @@ class _ListItemsEndpoint(Endpoint):
         })
         if args.get('resource') is not None:
             args['resource'] = self.server.rewrite(args['resource'], reverse=True)
+        value = self.get_arg('value', Expect.opt(Expect.float), default=None)
         if args.get('location') is not None:
             try:
                 args['location'] = Location.parse(args['location'])
             except TypeError as e:
                 raise micro.ValueError('bad_location_type') from e
-        item = await lst.items.create(**args)
+        item = await lst.items.create(value=value, **args)
         self.write(item.json(restricted=True, include=True, rewrite=self.server.rewrite))
 
 class _ItemEndpoint(Endpoint):
+    app: Listling
+
     def get(self, list_id, id):
         item = self.app.lists[list_id].items[id]
         self.write(item.json(restricted=True, include=True, rewrite=self.server.rewrite))
 
-    async def post(self, list_id, id):
+    async def post(self, list_id: str, id: str) -> None:
         item = self.app.lists[list_id].items[id]
         args = self.check_args({
             'text': (str, None, 'opt'),
@@ -171,6 +176,8 @@ class _ItemEndpoint(Endpoint):
         })
         if args.get('resource') is not None:
             args['resource'] = self.server.rewrite(args['resource'], reverse=True)
+        if 'value' in self.args:
+            args['value'] = self.get_arg('value', Expect.opt(Expect.float))
         if args.get('location') is not None:
             try:
                 args['location'] = Location.parse(args['location'])

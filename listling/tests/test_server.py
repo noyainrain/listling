@@ -54,11 +54,11 @@ class ServerTest(ServerTestCase):
         await self.request('/api/lists/{}/users'.format(lst.id))
         await self.request('/api/lists/{}/items'.format(lst.id))
         await self.request('/api/lists/{}/items'.format(lst.id), method='POST',
-                           body='{"title": "Sleep"}')
+                           body='{"title": "Sleep", "value": 42}')
         await self.request(f'/api/lists/{lst.id}/activity')
         await self.request('/api/lists/{}/items/{}'.format(lst.id, item.id))
-        await self.request('/api/lists/{}/items/{}'.format(lst.id, item.id), method='POST',
-                           body='{"text": "Very important!"}')
+        await self.request(f'/api/lists/{lst.id}/items/{item.id}', method='POST',
+                           body='{"text": "Very important!", "value": null}')
         await self.request('/api/lists/{}/items/{}/check'.format(lst.id, item.id), method='POST',
                            body='')
         await self.request('/api/lists/{}/items/{}/uncheck'.format(lst.id, item.id), method='POST',
