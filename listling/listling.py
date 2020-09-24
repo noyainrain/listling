@@ -20,12 +20,12 @@ import json
 from logging import getLogger
 from time import time
 import typing
-from typing import Any, Dict, Optional, cast
+from typing import Any, Callable, Dict, Optional, cast
 from urllib.parse import urlsplit
 
 import micro
-from micro import (Activity, Application, Collection, Editable, Location, Object, Orderable,
-                   Trashable, Settings, Event, WithContent, error)
+from micro import (Activity, Application, AuthRequest, Collection, Editable, Location, Object,
+                   Orderable, Trashable, Settings, Event, WithContent, error)
 from micro.core import RewriteFunc
 from micro.jsonredis import JSONRedis, RedisList, RedisSortedSet, script
 from micro.resource import Resource
@@ -125,17 +125,17 @@ _EXAMPLE_DATA = {
 class Listling(Application):
     """See :ref:`Listling`."""
 
-    class Lists(Collection):
+    class Lists(Collection['List']):
         """See :ref:`Lists`."""
 
-        def create(self, use_case='simple', *, v=2):
+        def create(self, use_case: str = 'simple', *, v: int = 2) -> List:
             """See :http:post:`/api/lists`."""
             # pylint: disable=unused-argument; former feature toggle
             # Compatibility for endpoint version (deprecated since 0.22.0)
             if not self.app.user:
                 raise error.PermissionError()
             if use_case not in _USE_CASES:
-                raise micro.ValueError('use_case_unknown')
+                raise error.ValueError('use_case_unknown')
 
             data = _USE_CASES[use_case]
             id = 'List:{}'.format(randstr())
@@ -146,7 +146,7 @@ class Listling(Application):
                 activity=Activity('{}.activity'.format(id), self.app, subscriber_ids=[]))
             self.app.r.oset(lst.id, lst)
             self.app.r.zadd('{}.users'.format(lst.id), {self.app.user.id.encode(): -time()})
-            self.app.r.rpush(self.map_key, lst.id)
+            self.app.r.rpush(self.ids.key, lst.id)
             self.app.user.lists.add(lst, user=self.app.user)
             self.app.activity.publish(
                 Event.create('create-list', None, {'lst': lst}, app=self.app))
@@ -155,14 +155,14 @@ class Listling(Application):
         async def create_example(self, use_case):
             """See :http:post:`/api/lists/create-example`."""
             if use_case not in _EXAMPLE_DATA:
-                raise micro.ValueError('use_case_unknown')
+                raise error.ValueError('use_case_unknown')
             data = _EXAMPLE_DATA[use_case]
             description = (
                 '{}\n\n*This example was created just for you, so please feel free to play around.*'
                 .format(data[1]))
 
             lst = self.create(use_case, v=2)
-            lst.edit(title=data[0], description=description)
+            await lst.edit(title=data[0], description=description)
             for item in data[2]:
                 args = dict(item)
                 checked = args.pop('checked', False)
@@ -177,14 +177,16 @@ class Listling(Application):
                     item.votes.vote(user=self.app.user)
             return lst
 
-    def __init__(self, redis_url='', email='bot@localhost', smtp_url='',
-                 render_email_auth_message=None, *, files_path='data', video_service_keys={}):
+    def __init__(
+            self, redis_url: str = '', email: str = 'bot@localhost', smtp_url: str = '',
+            render_email_auth_message: Callable[[str, AuthRequest, str], str] = None, *,
+            files_path: str = 'data', video_service_keys: Dict[str, str] = {}) -> None:
         super().__init__(
             redis_url=redis_url, email=email, smtp_url=smtp_url,
             render_email_auth_message=render_email_auth_message, files_path=files_path,
             video_service_keys=video_service_keys)
         self.types.update({'User': User, 'List': List, 'Item': Item})
-        self.lists = Listling.Lists((self, 'lists'))
+        self.lists = Listling.Lists(RedisList('lists', self.r.r), app=self)
 
     def do_update(self):
         version = self.r.get('version')
@@ -212,7 +214,7 @@ class Listling(Application):
                 self.r.zadd(users_key, {lst['authors'][0].encode(): 0})
                 events = r.omget(r.lrange('{}.activity.items'.format(lst['id']), 0, -1))
                 for event in reversed(events):
-                    t = parse_isotime(event['time'], aware=True).timestamp()
+                    t = parse_isotime(event['time']).timestamp()
                     self.r.zadd(users_key, {event['user'].encode(): -t})
             r.set('version', 8)
 
@@ -256,13 +258,13 @@ class Listling(Application):
     def create_user(self, data):
         return User(**data)
 
-    def create_settings(self):
+    def create_settings(self) -> Settings:
         # pylint: disable=unexpected-keyword-arg; decorated
         return Settings(
             id='Settings', app=self, authors=[], title='My Open Listling', icon=None,
             icon_small=None, icon_large=None, provider_name=None, provider_url=None,
-            provider_description={}, feedback_url=None, staff=[], push_vapid_private_key=None,
-            push_vapid_public_key=None, v=2)
+            provider_description={}, feedback_url=None, staff=[], push_vapid_private_key='',
+            push_vapid_public_key='')
 
     def file_references(self):
         for lst in self.lists[:]:
@@ -296,10 +298,10 @@ class User(micro.User):
             if user != getattr(self, 'user'):
                 raise error.PermissionError()
             if lst.authors[0] == getattr(self, 'user'):
-                raise micro.ValueError(
+                raise error.ValueError(
                     'user {} is owner of lst {}'.format(getattr(self, 'user').id, lst.id))
             if self.app.r.zrem(self.ids.key, lst.id) == 0:
-                raise micro.ValueError(
+                raise error.ValueError(
                     'No lst {} in lists of user {}'.format(lst.id, getattr(self, 'user').id))
 
         def read(self, *, user):
@@ -345,7 +347,7 @@ class List(Object, Editable):
             attrs = await WithContent.process_attrs({'text': text, 'resource': resource},
                                                     app=self.app)
             if str_or_none(title) is None:
-                raise micro.ValueError('title_empty')
+                raise error.ValueError('title_empty')
 
             item = Item(
                 id='Item:{}'.format(randstr()), app=self.app, authors=[self.app.user.id],
@@ -353,7 +355,7 @@ class List(Object, Editable):
                 title=title, value=value, location=location.json() if location else None,
                 checked=False)
             self.app.r.oset(item.id, item)
-            self.app.r.rpush(self.map_key, item.id)
+            self.app.r.rpush(self.ids.key, item.id)
             self.lst.activity.publish(
                 Event.create('list-create-item', self.lst, {'item': item}, self.app))
             return item
@@ -401,12 +403,12 @@ class List(Object, Editable):
     def do_edit(self, **attrs: Any) -> None:
         self._check_permission(self.app.user, 'list-modify')
         if 'title' in attrs and str_or_none(attrs['title']) is None:
-            raise micro.ValueError('title_empty')
+            raise error.ValueError('title_empty')
         features = {'check', 'assign', 'vote', 'value', 'location', 'play'}
         if 'features' in attrs and not set(attrs['features']) <= features:
-            raise micro.ValueError('feature_unknown')
+            raise error.ValueError('feature_unknown')
         if 'mode' in attrs and attrs['mode'] not in {'collaborate', 'view'}:
-            raise micro.ValueError('Unknown mode')
+            raise error.ValueError('Unknown mode')
 
         if 'title' in attrs:
             self.title = attrs['title']
@@ -568,7 +570,7 @@ class Item(Object, Editable, Trashable, WithContent):
         self._check_permission(self.app.user, 'item-modify')
         attrs = cast(Dict[str, Any], await WithContent.pre_edit(self, attrs))
         if 'title' in attrs and str_or_none(attrs['title']) is None:
-            raise micro.ValueError('title_empty')
+            raise error.ValueError('title_empty')
 
         WithContent.do_edit(self, **attrs)
         if 'title' in attrs:
@@ -620,6 +622,6 @@ class Item(Object, Editable, Trashable, WithContent):
 
 def _check_feature(user, feature, item):
     if feature not in item.list.features:
-        raise micro.ValueError('feature_disabled')
+        raise error.ValueError('feature_disabled')
     if not user:
         raise error.PermissionError()

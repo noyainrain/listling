@@ -32,10 +32,10 @@ class ServerTest(ServerTestCase):
         self.client_user = self.app.login()
 
     @gen_test
-    async def test_availability(self):
+    async def test_availability(self) -> None:
         lst = await self.app.lists.create_example('todo')
-        lst.edit(features=['check', 'assign', 'vote'])
-        item = next(iter(lst.items.values()))
+        await lst.edit(features=['check', 'assign', 'vote'])
+        item = lst.items[0]
         self.app.login()
         shared_lst = self.app.lists.create(v=2)
 

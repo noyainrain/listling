@@ -21,11 +21,10 @@
 from http import HTTPStatus
 import json
 
-import micro
 from micro import Location, error
 from micro.server import (Endpoint, CollectionEndpoint, Server, UI, make_activity_endpoints,
                           make_orderable_endpoints, make_trashable_endpoints)
-from micro.util import Expect, ON
+from micro.util import Expect
 
 from . import Listling
 
@@ -81,7 +80,7 @@ class _UserListsEndpoint(CollectionEndpoint):
         try:
             args['lst'] = self.app.lists[list_id]
         except KeyError as e:
-            raise micro.ValueError(f'No list {list_id}') from e
+            raise error.ValueError(f'No list {list_id}') from e
         lists = self.get_collection(id)
         lists.add(**args, user=self.current_user)
         self.write({})
@@ -107,11 +106,13 @@ class _ListsCreateExampleEndpoint(Endpoint):
         self.write(lst.json(restricted=True, include=True))
 
 class _ListEndpoint(Endpoint):
+    app: Listling
+
     def get(self, id):
         lst = self.app.lists[id]
         self.write(lst.json(restricted=True, include=True))
 
-    def post(self, id):
+    async def post(self, id: str) -> None:
         lst = self.app.lists[id]
         args = self.check_args({
             'title': (str, 'opt'),
@@ -120,7 +121,7 @@ class _ListEndpoint(Endpoint):
             'mode': (str, 'opt'),
             'item_template': (str, None, 'opt')
         })
-        lst.edit(**args)
+        await lst.edit(**args)
         self.write(lst.json(restricted=True, include=True))
 
 class _ListUsersEndpoint(Endpoint):
@@ -155,7 +156,7 @@ class _ListItemsEndpoint(Endpoint):
             try:
                 args['location'] = Location.parse(args['location'])
             except TypeError as e:
-                raise micro.ValueError('bad_location_type') from e
+                raise error.ValueError('bad_location_type') from e
         item = await lst.items.create(value=value, **args)
         self.write(item.json(restricted=True, include=True, rewrite=self.server.rewrite))
 
@@ -182,8 +183,8 @@ class _ItemEndpoint(Endpoint):
             try:
                 args['location'] = Location.parse(args['location'])
             except TypeError as e:
-                raise micro.ValueError('bad_location_type') from e
-        await item.edit(asynchronous=ON, **args)
+                raise error.ValueError('bad_location_type') from e
+        await item.edit(**args)
         self.write(item.json(restricted=True, include=True, rewrite=self.server.rewrite))
 
 class _ItemCheckEndpoint(Endpoint):

@@ -86,7 +86,7 @@ class UpdateTest(AsyncTestCase):
 
         # Update to version 7
         user = app.settings.staff[0]
-        self.assertEqual(set(user.lists.values()), set(app.lists[0:2]))
+        self.assertEqual(set(user.lists), set(app.lists[0:2]))
         # Update to version 8
         self.assertEqual([user.id for user in app.lists[1].users()],
                          [user.id for user in reversed(app.users[0:2])])

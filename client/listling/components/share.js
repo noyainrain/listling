@@ -70,6 +70,7 @@ listling.components.share.SharePage = class extends micro.Page {
     }
 
     attachedCallback() {
+        super.attachedCallback();
         this._onMessage = event => {
             if (event.data.type === "share") {
                 this._share = event.data.data;

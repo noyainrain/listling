@@ -508,7 +508,7 @@ listling.ItemElement = class extends HTMLLIElement {
                         text,
                         resource: resource && resource.url,
                         title: this._form.elements.title.value,
-                        location: this._form.elements.location.wrapper.value
+                        location: this._form.elements.location.wrapper.valueAsObject
                     });
                 } catch (e) {
                     if (
@@ -685,7 +685,7 @@ listling.ItemElement = class extends HTMLLIElement {
         this.addEventListener("click", event => {
             if (
                 !this._data.expanded &&
-                !micro.findAncestor(event.target, elem => elem.tabIndex !== -1, this)
+                !micro.keyboard.findAncestor(event.target, elem => elem.tabIndex !== -1, this)
             ) {
                 this._data.expanded = true;
             }

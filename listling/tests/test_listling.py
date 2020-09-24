@@ -20,7 +20,7 @@ from micro import error
 from micro.util import ON
 from tornado.testing import AsyncTestCase, gen_test
 
-from listling import Listling
+from listling import Item, Listling
 
 class ListlingTestCase(AsyncTestCase):
     def setUp(self):
@@ -58,20 +58,20 @@ class ListlingTest(ListlingTestCase):
         self.assertIn(lst.id, self.app.lists)
 
 class UserListsTest(ListlingTestCase):
-    def test_add(self):
+    def test_add(self) -> None:
         shared_lst = self.app.lists.create(v=2)
         user = self.app.login()
         lst = self.app.lists.create(v=2)
         user.lists.add(shared_lst, user=user)
-        self.assertEqual(list(user.lists.values()), [shared_lst, lst])
+        self.assertEqual(list(user.lists), [shared_lst, lst])
 
-    def test_remove(self):
+    def test_remove(self) -> None:
         shared_lst = self.app.lists.create(v=2)
         user = self.app.login()
         lst = self.app.lists.create(v=2)
         user.lists.add(shared_lst, user=user)
         user.lists.remove(shared_lst, user=user)
-        self.assertEqual(list(user.lists.values()), [lst])
+        self.assertEqual(list(user.lists), [lst])
 
     def test_remove_as_list_owner(self):
         lst = self.app.lists.create(v=2)
@@ -79,36 +79,39 @@ class UserListsTest(ListlingTestCase):
             self.user.lists.remove(lst, user=self.user)
 
 class ListTest(ListlingTestCase):
-    def test_edit(self) -> None:
+    @gen_test
+    async def test_edit(self) -> None:
         lst = self.app.lists.create(v=2)
-        lst.edit(description='What has to be done!', features=['value'], mode='view',
-                 item_template="Details:")
+        await lst.edit(description='What has to be done!', features=['value'], mode='view',
+                       item_template="Details:")
         self.assertEqual(lst.description, 'What has to be done!')
         self.assertEqual(lst.features, ['value'])
         self.assertEqual(lst.mode, 'view')
         self.assertEqual(lst.item_template, 'Details:')
 
-    def test_edit_as_user(self):
+    @gen_test
+    async def test_edit_as_user(self) -> None:
         lst = self.app.lists.create(v=2)
         self.app.login()
-        lst.edit(description='What has to be done!')
+        await lst.edit(description='What has to be done!')
         self.assertEqual(lst.description, 'What has to be done!')
 
-    def test_edit_view_mode_as_user(self):
+    @gen_test
+    async def test_edit_view_mode_as_user(self) -> None:
         lst = self.app.lists.create(v=2)
-        lst.edit(mode='view')
+        await lst.edit(mode='view')
         self.app.login()
         with self.assertRaises(error.PermissionError):
-            lst.edit(description='What has to be done!')
+            await lst.edit(description='What has to be done!')
 
     @gen_test
-    async def test_query_users_name(self):
+    async def test_query_users_name(self) -> None:
         lst = self.app.lists.create()
         happy = self.app.login()
-        happy.edit(name='Happy')
+        await happy.edit(name='Happy')
         await lst.items.create('Sleep')
         grumpy = self.app.login()
-        grumpy.edit(name='Grumpy')
+        await grumpy.edit(name='Grumpy')
         await lst.items.create('Feast')
         users = lst.users('U')
         self.assertEqual([user.id for user in users], [grumpy.id, self.user.id])
@@ -122,10 +125,10 @@ class ListItemsTest(ListlingTestCase):
         self.assertEqual(item.value, 42)
 
 class ItemTest(ListlingTestCase):
-    async def make_item(self, *, use_case='simple', mode=None):
+    async def make_item(self, *, use_case: str = 'simple', mode: str = None) -> Item:
         lst = self.app.lists.create(use_case, v=2)
         if mode:
-            lst.edit(mode=mode)
+            await lst.edit(mode=mode)
         return await lst.items.create('Sleep')
 
     @gen_test
@@ -171,21 +174,21 @@ class ItemTest(ListlingTestCase):
 
 class ItemAssigneesTest(ListlingTestCase):
     @gen_test
-    async def test_assign(self):
+    async def test_assign(self) -> None:
         item = await self.app.lists.create('todo').items.create('Sleep')
         user = self.app.login()
         item.assignees.assign(self.user, user=self.user)
         item.assignees.assign(user, user=self.user)
-        self.assertEqual(list(item.assignees.values()), [user, self.user])
+        self.assertEqual(list(item.assignees), [user, self.user])
 
     @gen_test
-    async def test_unassign(self):
+    async def test_unassign(self) -> None:
         item = await self.app.lists.create('todo').items.create('Sleep')
         user = self.app.login()
         item.assignees.assign(self.user, user=self.user)
         item.assignees.assign(user, user=self.user)
         item.assignees.unassign(user, user=self.user)
-        self.assertEqual(list(item.assignees.values()), [self.user])
+        self.assertEqual(list(item.assignees), [self.user])
 
 class ItemVotesTest(ListlingTestCase):
     async def make_item(self):
@@ -196,17 +199,17 @@ class ItemVotesTest(ListlingTestCase):
         return item, user
 
     @gen_test
-    async def test_vote(self):
+    async def test_vote(self) -> None:
         item, user = await self.make_item()
         item.votes.vote(user=self.user)
         item.votes.vote(user=self.user)
-        self.assertEqual(list(item.votes.values()), [self.user, user])
+        self.assertEqual(list(item.votes), [self.user, user])
         self.assertTrue(item.votes.has_user_voted(self.user))
 
     @gen_test
-    async def test_unvote(self):
+    async def test_unvote(self) -> None:
         item, user = await self.make_item()
         item.votes.vote(user=self.user)
         item.votes.unvote(user=self.user)
-        self.assertEqual(list(item.votes.values()), [user])
+        self.assertEqual(list(item.votes), [user])
         self.assertFalse(item.votes.has_user_voted(self.user))
