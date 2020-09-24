@@ -14,7 +14,6 @@
 
 # pylint: disable=missing-docstring; test module
 
-from subprocess import check_call
 from tempfile import mkdtemp
 
 from micro import error
@@ -22,34 +21,6 @@ from micro.util import ON
 from tornado.testing import AsyncTestCase, gen_test
 
 from listling import Listling
-
-SETUP_DB_SCRIPT = """\
-from asyncio import get_event_loop
-from listling import Listling
-
-async def main():
-    app = Listling(redis_url='15')
-    app.r.flushdb()
-    app.update()
-
-    app.login()
-    # Compatibility with synchronous execution (deprecated since 0.22.0)
-    try:
-        await app.lists.create_example('todo')
-    except TypeError:
-        pass
-    lst = app.lists.create(v=2)
-    app.login()
-    app.lists.create(v=2)
-    # Compatibility with synchronous execution (deprecated since 0.22.0)
-    try:
-        await lst.items.create('Sleep')
-    except TypeError:
-        pass
-    app.login()
-
-get_event_loop().run_until_complete(main())
-"""
 
 class ListlingTestCase(AsyncTestCase):
     def setUp(self):
@@ -85,44 +56,6 @@ class ListlingTest(ListlingTestCase):
         self.assertEqual(lst.title, 'Kitchen shopping list')
         self.assertTrue(lst.items)
         self.assertIn(lst.id, self.app.lists)
-
-class ListlingUpdateTest(AsyncTestCase):
-    @staticmethod
-    def setup_db(tag):
-        d = mkdtemp()
-        check_call(['git', '-c', 'advice.detachedHead=false', 'clone', '-q', '--single-branch',
-                    '--branch', tag, '.', d])
-        check_call(['python3', '-c', SETUP_DB_SCRIPT], cwd=d)
-
-    def test_update_db_fresh(self):
-        app = Listling(redis_url='15', files_path=mkdtemp())
-        app.r.flushdb()
-        app.update()
-        self.assertEqual(app.settings.title, 'My Open Listling')
-
-    def test_update_db_version_previous(self) -> None:
-        self.setup_db('0.32.1')
-        app = Listling(redis_url='15', files_path=mkdtemp())
-        app.update()
-
-        self.assertIsNone(app.lists[0].items[0].value)
-
-    def test_update_db_version_first(self) -> None:
-        self.setup_db('0.13.0')
-        app = Listling(redis_url='15', files_path=mkdtemp())
-        app.update()
-
-        # Update to version 7
-        user = app.settings.staff[0]
-        self.assertEqual(set(user.lists.values()), set(app.lists[0:2]))
-        # Update to version 8
-        self.assertEqual([user.id for user in app.lists[1].users()],
-                         [user.id for user in reversed(app.users[0:2])])
-        # Update to version 9
-        for l in app.lists[:]:
-            self.assertEqual(l.item_template, None)
-        # Item.value
-        self.assertIsNone(app.lists[0].items[0].value)
 
 class UserListsTest(ListlingTestCase):
     def test_add(self):
