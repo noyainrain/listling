@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>2. Web API &#8212; Open Listling 0.33.0 documentation</title>
+    <title>2. Web API &#8212; Open Listling 0.34.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -476,15 +476,6 @@ the items from index 10 up to including 19.</p>
 <div class="section" id="valueerror">
 <span id="id14"></span><h3><span class="section-number">2.14.1. </span>ValueError<a class="headerlink" href="#valueerror" title="Permalink to this headline">¶</a></h3>
 <p>Returned for value-related errors.</p>
-<dl class="describe">
-<dt>
-<code class="sig-name descname">code</code></dt>
-<dd><p>Error string providing more information about the problem.</p>
-<div class="deprecated">
-<p><span class="versionmodified deprecated">Deprecated since version 0.27.0: </span>Use <code class="xref py py-attr docutils literal notranslate"><span class="pre">message</span></code> instead.</p>
-</div>
-</dd></dl>
-
 </div>
 <div class="section" id="inputerror">
 <span id="id15"></span><h3><span class="section-number">2.14.2. </span>InputError<a class="headerlink" href="#inputerror" title="Permalink to this headline">¶</a></h3>
@@ -547,6 +538,15 @@ the items from index 10 up to including 19.</p>
 <dt id="get--api-activity">
 <code class="sig-name descname">GET </code><code class="sig-name descname">/api/activity</code><a class="headerlink" href="#get--api-activity" title="Permalink to this definition">¶</a></dt>
 <dd><p>Global <a class="reference internal" href="#activity"><span class="std std-ref">Activity</span></a> feed.</p>
+</dd></dl>
+
+<dl class="get">
+<dt id="get--api-activity-v2">
+<code class="sig-name descname">GET </code><code class="sig-name descname">/api/activity/v2</code><a class="headerlink" href="#get--api-activity-v2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Global <a class="reference internal" href="#activity"><span class="std std-ref">Activity</span></a> feed.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 0.57.0: </span>Use <a class="reference internal" href="#get--api-activity" title="GET /api/activity"><code class="xref http http-get docutils literal notranslate"><span class="pre">GET</span> <span class="pre">/api/activity</span></code></a> instead.</p>
+</div>
 </dd></dl>
 
 <dl class="post">
@@ -835,15 +835,6 @@ with <em>list_id</em>, a <a class="reference internal" href="#valueerror"><span 
 <dt>
 <code class="sig-name descname">push_vapid_public_key</code></dt>
 <dd><p>VAPID public key used for sending device notifications.</p>
-</dd></dl>
-
-<dl class="describe">
-<dt>
-<code class="sig-name descname">favicon</code></dt>
-<dd><p>URL of the site icon optimized for a small size. May be <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
-<div class="deprecated">
-<p><span class="versionmodified deprecated">Deprecated since version 0.13.0: </span>Use <em>icon_small</em> instead.</p>
-</div>
 </dd></dl>
 
 <dl class="post">
