@@ -50,7 +50,7 @@ class ServerTest(ServerTestCase):
                            body='{"use_case": "shopping"}')
         await self.request('/api/lists/{}'.format(lst.id))
         await self.request('/api/lists/{}'.format(lst.id), method='POST',
-                           body='{"description": "What has to be done!"}')
+                           body='{"description": "What has to be done!", "value_unit": "min"}')
         await self.request('/api/lists/{}/users'.format(lst.id))
         await self.request('/api/lists/{}/items'.format(lst.id))
         await self.request('/api/lists/{}/items'.format(lst.id), method='POST',

@@ -36,7 +36,7 @@ _USE_CASES = {
     'todo': {'title': 'New to-do list', 'features': ['check', 'assign']},
     'poll': {'title': 'New poll', 'features': ['vote'], 'mode': 'view'},
     'shopping': {'title': 'New shopping list', 'features': ['check']},
-    'meeting-agenda': {'title': 'New meeting agenda', 'features': []},
+    'meeting-agenda': {'title': 'New meeting agenda', 'value_unit': 'min', 'features': ['value']},
     'playlist': {'title': 'New playlist', 'features': ['play']},
     'map': {'title': 'New map', 'features': ['location']}
 }
@@ -74,8 +74,12 @@ _EXAMPLE_DATA = {
         'We meet on Monday and discuss important issues.',
         [
             {'title': 'Round of introductions'},
-            {'title': 'Lunch poll', 'text': 'Where will we have lunch today?'},
-            {'title': 'Next meeting', 'text': 'When and where will our next meeting be?'}
+            {'title': 'Lunch poll', 'text': 'Where will we have lunch today?', 'value': 45},
+            {
+                'title': 'Next meeting',
+                'text': 'When and where will our next meeting be?',
+                'value': 5
+            }
         ]
     ),
     'playlist': (
@@ -128,6 +132,8 @@ class Listling(Application):
     class Lists(Collection['List']):
         """See :ref:`Lists`."""
 
+        app: Listling
+
         def create(self, use_case: str = 'simple', *, v: int = 2) -> List:
             """See :http:post:`/api/lists`."""
             # pylint: disable=unused-argument; former feature toggle
@@ -141,8 +147,8 @@ class Listling(Application):
             id = 'List:{}'.format(randstr())
             lst = List(
                 id=id, app=self.app, authors=[self.app.user.id], title=data['title'],
-                description=None, features=data['features'], mode=data.get('mode', 'collaborate'),
-                item_template=None,
+                description=None, value_unit=data.get('value_unit'), features=data['features'],
+                mode=data.get('mode', 'collaborate'), item_template=None,
                 activity=Activity('{}.activity'.format(id), self.app, subscriber_ids=[]))
             self.app.r.oset(lst.id, lst)
             self.app.r.zadd('{}.users'.format(lst.id), {self.app.user.id.encode(): -time()})
@@ -188,27 +194,27 @@ class Listling(Application):
         self.types.update({'User': User, 'List': List, 'Item': Item})
         self.lists = Listling.Lists(RedisList('lists', self.r.r), app=self)
 
-    def do_update(self):
+    def do_update(self) -> None:
         version = self.r.get('version')
         if not version:
             self.r.set('version', 9)
             return
 
         version = int(version)
-        r = JSONRedis(self.r.r)
+        r: JSONRedis[Dict[str, object]] = JSONRedis(self.r.r)
         r.caching = False
 
         # Deprecated since 0.14.0
         if version < 7:
             now = time()
-            lists = r.omget(r.lrange('lists', 0, -1))
+            lists = r.omget(r.lrange('lists', 0, -1), default=AssertionError)
             for lst in lists:
                 r.zadd('{}.lists'.format(lst['authors'][0]), {lst['id']: -now})
             r.set('version', 7)
 
         # Deprecated since 0.23.0
         if version < 8:
-            lists = r.omget(r.lrange('lists', 0, -1))
+            lists = r.omget(r.lrange('lists', 0, -1), default=AssertionError)
             for lst in lists:
                 users_key = '{}.users'.format(lst['id'])
                 self.r.zadd(users_key, {lst['authors'][0].encode(): 0})
@@ -226,32 +232,25 @@ class Listling(Application):
             r.omset({l["id"]: l for l in lists})
             r.set('version', 9)
 
-        f = script(self.r, """
-            local updates = {Item=0}
+        list_updates = {}
+        item_updates = {}
+        lists = r.omget(r.lrange('lists', 0, -1), default=AssertionError)
+        for lst in lists:
+            # Deprecated since 0.35.0
+            if 'value_unit' not in lst:
+                lst['value_unit'] = None
+                list_updates[cast(str, lst['id'])] = lst
 
-            local list_ids = redis.call('lrange', 'lists', 0, -1)
-            for _, list_id in ipairs(list_ids) do
-                local item_ids = redis.call('lrange', list_id .. '.items', 0, -1)
-                for _, item_id in ipairs(item_ids) do
-                    local update = false
-                    local item = cjson.decode(redis.call('get', item_id))
+            items = r.omget(r.lrange(f"{lst['id']}.items", 0, -1), default=AssertionError)
+            for item in items:
+                # Deprecated since 0.33.0
+                if 'value' not in item:
+                    item['value'] = None
+                    item_updates[cast(str, item['id'])] = item
+        r.omset(list_updates)
+        r.omset(item_updates)
 
-                    -- Deprecated since 0.33.0
-                    if item.value == nil then
-                        item.value = cjson.null
-                        update = true
-                    end
-
-                    if update then
-                        redis.call('set', item.id, cjson.encode(item))
-                        updates['Item'] = updates['Item'] + 1
-                    end
-                end
-            end
-
-            return {{'Item', updates['Item']}}
-        """)
-        updates = {k.decode(): v for k, v in f()}
+        updates = {'List': len(list_updates), 'Item': len(item_updates)}
         getLogger(__name__).info('Updated database\n%s',
                                  '\n'.join(f'{name}: {n}' for name, n in updates.items()))
 
@@ -365,15 +364,16 @@ class List(Object, Editable):
             self.lst._check_permission(self.app.user, 'list-modify')
             super().move(item, to)
 
-    def __init__(self, *, id, app, authors, title, description, features, mode, item_template,
-                 activity):
-        super().__init__(id=id, app=app)
-        Editable.__init__(self, authors=authors, activity=activity)
-        self.title = title
-        self.description = description
-        self.features = features
-        self.mode = mode
-        self.item_template = item_template
+    def __init__(self, *, app: Listling, **data: object) -> None:
+        activity = cast(Activity, data['activity'])
+        super().__init__(id=cast(str, data['id']), app=app)
+        Editable.__init__(self, authors=cast(typing.List[str], data['authors']), activity=activity)
+        self.title = cast(str, data['title'])
+        self.description = cast(Optional[str], data['description'])
+        self.value_unit = cast(Optional[str], data['value_unit'])
+        self.features = cast(typing.List[str], data['features'])
+        self.mode = cast(str, data['mode'])
+        self.item_template = cast(Optional[str], data['item_template'])
         self.items = List.Items(self)
         self.activity = activity
         self.activity.post = self._on_activity_publish
@@ -414,6 +414,8 @@ class List(Object, Editable):
             self.title = attrs['title']
         if 'description' in attrs:
             self.description = str_or_none(attrs['description'])
+        if 'value_unit' in attrs:
+            self.value_unit = str_or_none(attrs['value_unit'])
         if 'features' in attrs:
             self.features = attrs['features']
         if 'mode' in attrs:
@@ -427,6 +429,7 @@ class List(Object, Editable):
             **Editable.json(self, restricted=restricted, include=include, rewrite=rewrite),
             'title': self.title,
             'description': self.description,
+            'value_unit': self.value_unit,
             'features': self.features,
             'mode': self.mode,
             'item_template': self.item_template,

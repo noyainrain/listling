@@ -121,6 +121,8 @@ class _ListEndpoint(Endpoint):
             'mode': (str, 'opt'),
             'item_template': (str, None, 'opt')
         })
+        if 'value_unit' in self.args:
+            args['value_unit'] = self.get_arg('value_unit', Expect.opt(Expect.str))
         await lst.edit(**args)
         self.write(lst.json(restricted=True, include=True))
 

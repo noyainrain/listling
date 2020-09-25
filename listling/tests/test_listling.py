@@ -82,9 +82,10 @@ class ListTest(ListlingTestCase):
     @gen_test
     async def test_edit(self) -> None:
         lst = self.app.lists.create(v=2)
-        await lst.edit(description='What has to be done!', features=['value'], mode='view',
-                       item_template="Details:")
+        await lst.edit(description='What has to be done!', value_unit='min', features=['value'],
+                       mode='view', item_template="Details:")
         self.assertEqual(lst.description, 'What has to be done!')
+        self.assertEqual(lst.value_unit, 'min')
         self.assertEqual(lst.features, ['value'])
         self.assertEqual(lst.mode, 'view')
         self.assertEqual(lst.item_template, 'Details:')

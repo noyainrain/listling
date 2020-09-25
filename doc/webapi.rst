@@ -121,6 +121,10 @@ List
 
    Description of the list as *markup text*. May be ``null``.
 
+.. describe:: value_unit
+
+   Unit of :ref:`Item` *value* s. May be ``null``.
+
 .. describe:: features
 
    Set of features enabled for the list.
