@@ -12,3 +12,19 @@ html {
     font-size: 0.875em;
     text-align: right;
 }
+
+label.micro-block {
+    margin: var(--micro-size-s) 0;
+}
+
+dt {
+    text-align: center;
+}
+
+label > small:first-of-type {
+    padding-top: 0;
+}
+
+.micro-disabled {
+    color: var(--micro-color-text-subtle);
+}

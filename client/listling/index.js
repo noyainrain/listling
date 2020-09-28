@@ -142,6 +142,7 @@ listling.ListPage = class extends micro.Page {
             trashedItemsCount: 0,
             locations: null,
             locationEnabled: false,
+            valueFeature: false,
             editMode: true,
             trashExpanded: false,
             creatingItem: false,
@@ -177,6 +178,7 @@ listling.ListPage = class extends micro.Page {
                     const list = await ui.call("POST", `/api/lists/${this._data.lst.id}`, {
                         title: this._form.elements.title.value,
                         description: this._form.elements.description.value,
+                        value_unit: this._form.elements["value-unit"].value || null,
                         features:
                             Array.from(this._form.elements.features, e => e.checked && e.value)
                                 .filter(feature => feature),
@@ -247,6 +249,10 @@ listling.ListPage = class extends micro.Page {
                 ol.children[i + (event.detail.dir === "up" ? -1 : 1)].focus();
             },
 
+            onValueFeatureChange: event => {
+                this._data.valueFeature = event.target.checked;
+            },
+
             may: (ctx, op, mode) => {
                 // eslint-disable-next-line no-underscore-dangle
                 const permissions = listling.ListPage._PERMISSIONS[mode || "view"];
@@ -262,7 +268,7 @@ listling.ListPage = class extends micro.Page {
             this.classList.toggle("listling-list-has-trashed-items", this._data.trashedItemsCount);
             this.classList.toggle("listling-list-mode-view", !this._data.editMode);
             this.classList.toggle("listling-list-mode-edit", this._data.editMode);
-            for (let feature of ["check", "assign", "vote", "location", "play"]) {
+            for (let feature of ["check", "assign", "vote", "value", "location", "play"]) {
                 this.classList.toggle(
                     `listling-list-feature-${feature}`,
                     this._data.lst && this._data.lst.features.includes(feature)
@@ -406,6 +412,7 @@ listling.ListPage = class extends micro.Page {
         this._data.lst = value;
         this._data.locationEnabled =
             Boolean(ui.mapServiceKey) && this._data.lst.features.includes("location");
+        this._data.valueFeature = value.features.includes("value");
         this._data.editMode = !this._data.lst;
         this.caption = this._data.lst.title;
         ui.url = listling.util.makeListURL(this._data.lst) + location.hash;
@@ -418,16 +425,16 @@ listling.ListPage = class extends micro.Page {
     /**
      * Start to create an :ref:`Item` via editor.
      *
-     * *title*, *text*, *resource* and *location* correspond to the arguments of
+     * *title*, *text*, *resource*, *value* and *location* correspond to the arguments of
      * :meth:`ItemElement.startEdit`. *text* defaults to :attr:`list` *item_template*.
      */
-    startCreateItem({title = null, text, resource = null, location = null} = {}) {
+    startCreateItem({title = null, text, resource = null, value = null, location = null} = {}) {
         if (text === undefined) {
             text = this._data.lst.item_template;
         }
         this._data.creatingItem = true;
         const elem = this.querySelector(".listling-list-create-item [is=listling-item]");
-        elem.startEdit({title, text, resource, location});
+        elem.startEdit({title, text, resource, value, location});
         elem.scrollIntoView(false);
     }
 
@@ -498,6 +505,10 @@ listling.ItemElement = class extends HTMLLIElement {
             edit: async() => {
                 const input = this.querySelector("micro-content-input");
                 const {text, resource} = input.valueAsObject;
+                let value = this._form.elements.value.valueAsNumber;
+                if (isNaN(value)) {
+                    value = null;
+                }
                 const url = this._data.item
                     ? `/api/lists/${this._data.lst.id}/items/${this._data.item.id}`
                     : `/api/lists/${this._data.lst.id}/items`;
@@ -508,6 +519,7 @@ listling.ItemElement = class extends HTMLLIElement {
                         text,
                         resource: resource && resource.url,
                         title: this._form.elements.title.value,
+                        value,
                         location: this._form.elements.location.wrapper.valueAsObject
                     });
                 } catch (e) {
@@ -633,8 +645,12 @@ listling.ItemElement = class extends HTMLLIElement {
             },
 
             hasContent: (ctx, item, lst, assigneesCount) =>
-                item && (item.text || item.resource || item.location) || lst &&
-                lst.features.includes("assign") && assigneesCount > 0,
+                item && lst && (
+                    item.text || item.resource ||
+                    lst.features.includes("value") && item.value !== null ||
+                    lst.features.includes("location") && item.location ||
+                    lst.features.includes("assign") && assigneesCount > 0
+                ),
 
             may: (ctx, op, mode) => {
                 // eslint-disable-next-line no-underscore-dangle
@@ -838,11 +854,11 @@ listling.ItemElement = class extends HTMLLIElement {
     /**
      * Start to edit :attr:`item` via edit mode.
      *
-     * The form is populated with *title*, *text*, *resource* and *location*. *resource* may also be
-     * a URL or :class:`File` to attach. They default to the corresponding :attr:`item` attributes
-     * or ``null``.
+     * The form is populated with *title*, *text*, *resource*, *value* and *location*. *resource*
+     * may also be a URL or :class:`File` to attach. They default to the corresponding :attr:`item`
+     * attributes or ``null``.
      */
-    startEdit({title, text, resource, location} = {}) {
+    startEdit({title, text, resource, value, location} = {}) {
         if (title === undefined) {
             title = this._data.item && this._data.item.title;
         }
@@ -852,6 +868,9 @@ listling.ItemElement = class extends HTMLLIElement {
         if (resource === undefined) {
             resource = this._data.item && this._data.item.resource;
         }
+        if (value === undefined) {
+            value = this._data.item && this._data.item.value;
+        }
         if (location === undefined) {
             location = this._data.item && this._data.item.location;
         }
@@ -859,6 +878,8 @@ listling.ItemElement = class extends HTMLLIElement {
         // Populate the form directly without data binding because attach() is used
         this._data.editMode = true;
         this._form.elements.title.value = title || "";
+        // Work around Safari not accepting NaN for valueAsNumber
+        this._form.elements.value.value = value === null ? "" : value.toString();
         this.querySelector("micro-location-input").valueAsObject = location;
         const contentInput = this.querySelector("micro-content-input");
         if (typeof resource === "string" || resource instanceof File) {
@@ -869,6 +890,11 @@ listling.ItemElement = class extends HTMLLIElement {
         }
         this._form.elements.title.focus();
     }
+};
+
+/** Test if *a* and *b* are (strictly) unequal. */
+micro.bind.transforms.neq = function(ctx, a, b) {
+    return a !== b;
 };
 
 document.registerElement("listling-ui", {prototype: listling.UI.prototype, extends: "body"});
