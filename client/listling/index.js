@@ -123,9 +123,7 @@ listling.IntroPage = class extends micro.Page {
 listling.ListPage = class extends micro.Page {
     static async make(url, id) {
         let page = document.createElement("listling-list-page");
-        if (id !== "new") {
-            page.list = await ui.call("GET", `/api/lists/List:${id}`);
-        }
+        page.list = await ui.call("GET", `/api/lists/List:${id}`);
         return page;
     }
 
@@ -149,8 +147,6 @@ listling.ListPage = class extends micro.Page {
             startCreateItem: this.startCreateItem.bind(this),
             settingsExpanded: false,
             share: listling.components.list.share,
-            presentation: new listling.components.list.Presentation(this),
-            presentationMode: false,
             quickNavigate: micro.keyboard.quickNavigate,
             playlist: null,
             playlistPlaying: null,
@@ -261,6 +257,11 @@ listling.ListPage = class extends micro.Page {
                     this._data.lst && ui.user.id === this._data.lst.authors[0].id
                 );
             }
+        });
+        Object.assign(this._data, {
+            presentation: new listling.components.list.Presentation(this),
+            presentationMode: false,
+            presentationShortURL: null
         });
         micro.bind.bind(this.children, this._data);
 

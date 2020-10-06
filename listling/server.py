@@ -18,13 +18,19 @@
 
 """Open Listling server."""
 
+from datetime import timedelta
 from http import HTTPStatus
 import json
+from urllib.parse import urlsplit
+
+from tornado.web import HTTPError, RequestHandler
 
 from micro import Location, error
+from micro.jsonredis import script
+from micro.ratelimit import RateLimit, RateLimitError
 from micro.server import (Endpoint, CollectionEndpoint, Server, UI, make_activity_endpoints,
                           make_orderable_endpoints, make_trashable_endpoints)
-from micro.util import Expect
+from micro.util import Expect, randstr
 
 from . import Listling
 
@@ -55,6 +61,8 @@ def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='', 
         (r'/api/lists/([^/]+)/items/([^/]+)/votes', _ItemVotesEndpoint),
         (r'/api/lists/([^/]+)/items/([^/]+)/votes/user', _ItemVoteEndpoint),
         # UI
+        (r'/s$', _Shorts),
+        (r'/s/(.*)$', _Short),
         (r'/lists/([^/]+)(?:/[^/]+)?$', _ListPage)
     ]
     return Server(app, handlers, port=port, url=url, debug=debug, client_config={
@@ -240,6 +248,43 @@ class _ItemVoteEndpoint(Endpoint):
         votes = self.app.lists[list_id].items[id].votes
         votes.unvote(user=self.current_user)
         self.write({})
+
+class _Shorts(RequestHandler):
+    def post(self) -> None:
+        try:
+            url = self.request.body.decode()
+        except UnicodeDecodeError as e:
+            raise HTTPError(HTTPStatus.BAD_REQUEST) from e
+        # Relative URL may produce redirect loop
+        components = urlsplit(url)
+        if not (components.scheme or components.netloc or components.path.startswith('/')):
+            raise HTTPError(HTTPStatus.BAD_REQUEST)
+
+        # Choose short length n such that (1 - (1 - s / 26 ** n) ** r) <= p, where the probability
+        # to find any short p = 1‰, the presumed number of active shorts s = 50 and the rate limit
+        # r = 100
+        short = randstr(5)
+        f = script(self.application.settings['server'].app.r, """
+            local key, url = KEYS[1], ARGV[1]
+            redis.call('SET', key, url)
+            redis.call('EXPIRE', key, 24 * 60 * 60)
+        """)
+        f([f'short:{short}'], [url])
+        self.set_status(HTTPStatus.CREATED)
+        self.set_header('Location', f'/s/{short}')
+
+class _Short(RequestHandler):
+    def get(self, short: str) -> None:
+        app = self.application.settings['server'].app
+        try:
+            app.rate_limiter.count(RateLimit('shorts.get', 100, timedelta(days=1)),
+                                   self.request.remote_ip)
+        except RateLimitError as e:
+            raise HTTPError(HTTPStatus.TOO_MANY_REQUESTS) from e
+        url = app.r.get(f'short:{short}')
+        if not url:
+            raise HTTPError(HTTPStatus.NOT_FOUND)
+        self.redirect(url, permanent=True)
 
 class _ListPage(UI):
     def get_meta(self, *args: str):

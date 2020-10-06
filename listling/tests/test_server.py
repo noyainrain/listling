@@ -76,4 +76,7 @@ class ServerTest(ServerTestCase):
                            method='DELETE')
 
         # UI
-        await self.request('/lists/{}'.format(lst.id))
+        response = await self.request('/s', method='POST', body=f'/lists/{lst.id}')
+        short_url = response.headers['Location']
+        await self.request(short_url)
+        await self.request(f'/lists/{lst.id}')

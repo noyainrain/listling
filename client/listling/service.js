@@ -36,6 +36,13 @@ listling.service = {};
  */
 listling.service.Service = class extends micro.service.Service {
     constructor() {
+        addEventListener("fetch", event => {
+            const url = new URL(event.request.url);
+            if (url.origin === location.origin && url.pathname.match(/^\/s(\/.*)?$/u)) {
+                event.respondWith(fetch(event.request));
+            }
+        });
+
         super();
 
         async function renderItemNotification(event, body) {
