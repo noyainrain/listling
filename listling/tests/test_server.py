@@ -17,6 +17,7 @@
 import json
 from tempfile import mkdtemp
 
+from micro.core import context
 from micro.test import ServerTestCase
 from tornado.testing import gen_test
 
@@ -30,13 +31,15 @@ class ServerTest(ServerTestCase):
         self.app.r.flushdb()
         self.server.start()
         self.client_user = self.app.login()
+        context.user.set(self.client_user)
 
     @gen_test
     async def test_availability(self) -> None:
         lst = await self.app.lists.create_example('todo')
         await lst.edit(features=['check', 'assign', 'vote'])
         item = lst.items[0]
-        self.app.login()
+        user = self.app.login()
+        context.user.set(user)
         shared_lst = self.app.lists.create(v=2)
 
         # API
@@ -51,6 +54,9 @@ class ServerTest(ServerTestCase):
         await self.request('/api/lists/{}'.format(lst.id))
         await self.request('/api/lists/{}'.format(lst.id), method='POST',
                            body='{"description": "What has to be done!", "value_unit": "min"}')
+        await self.request(f'/api/lists/{lst.id}/owners', method='POST',
+                           body=json.dumps({'user_id': user.id}))
+        await self.request(f'/api/lists/{lst.id}/owners/{user.id}', method='DELETE')
         await self.request('/api/lists/{}/users'.format(lst.id))
         await self.request('/api/lists/{}/items'.format(lst.id))
         await self.request('/api/lists/{}/items'.format(lst.id), method='POST',

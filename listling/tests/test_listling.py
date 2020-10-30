@@ -17,6 +17,7 @@
 from tempfile import mkdtemp
 
 from micro import error
+from micro.core import context
 from micro.util import ON
 from tornado.testing import AsyncTestCase, gen_test
 
@@ -29,6 +30,7 @@ class ListlingTestCase(AsyncTestCase):
         self.app.r.flushdb()
         self.app.update()
         self.user = self.app.login()
+        context.user.set(self.user)
 
 class ListlingTest(ListlingTestCase):
     @gen_test
@@ -47,6 +49,7 @@ class ListlingTest(ListlingTestCase):
     def test_lists_create(self):
         lst = self.app.lists.create(v=2)
         self.assertEqual(lst.title, 'New list')
+        self.assertEqual(list(lst.owners), [self.user])
         self.assertIn(lst.id, self.app.lists)
         self.assertIn(lst.id, self.user.lists)
 
@@ -59,24 +62,26 @@ class ListlingTest(ListlingTestCase):
 
 class UserListsTest(ListlingTestCase):
     def test_add(self) -> None:
-        shared_lst = self.app.lists.create(v=2)
+        shared_lst = self.app.lists.create()
         user = self.app.login()
-        lst = self.app.lists.create(v=2)
-        user.lists.add(shared_lst, user=user)
+        context.user.set(user)
+        lst = self.app.lists.create()
+        user.lists.add(shared_lst)
         self.assertEqual(list(user.lists), [shared_lst, lst])
 
     def test_remove(self) -> None:
-        shared_lst = self.app.lists.create(v=2)
+        shared_lst = self.app.lists.create()
         user = self.app.login()
-        lst = self.app.lists.create(v=2)
-        user.lists.add(shared_lst, user=user)
-        user.lists.remove(shared_lst, user=user)
+        context.user.set(user)
+        lst = self.app.lists.create()
+        user.lists.add(shared_lst)
+        user.lists.remove(shared_lst)
         self.assertEqual(list(user.lists), [lst])
 
     def test_remove_as_list_owner(self):
-        lst = self.app.lists.create(v=2)
+        lst = self.app.lists.create()
         with self.assertRaisesRegex(ValueError, 'owner'):
-            self.user.lists.remove(lst, user=self.user)
+            self.user.lists.remove(lst)
 
 class ListTest(ListlingTestCase):
     @gen_test

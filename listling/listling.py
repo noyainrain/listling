@@ -20,16 +20,18 @@ import json
 from logging import getLogger
 from time import time
 import typing
-from typing import Any, Callable, Dict, Optional, cast
+from typing import Any, Callable, Dict, Optional, Set, cast
 from urllib.parse import urlsplit
 
 import micro
 from micro import (Activity, Application, AuthRequest, Collection, Editable, Location, Object,
                    Orderable, Trashable, Settings, Event, WithContent, error)
-from micro.core import RewriteFunc
+from micro.core import RewriteFunc, context
 from micro.jsonredis import JSONRedis, RedisList, RedisSortedSet, script
 from micro.resource import Resource
 from micro.util import parse_isotime, randstr, str_or_none
+
+from .list import Owners, OwnersEvent
 
 _USE_CASES = {
     'simple': {'title': 'New list', 'features': []},
@@ -138,22 +140,25 @@ class Listling(Application):
             """See :http:post:`/api/lists`."""
             # pylint: disable=unused-argument; former feature toggle
             # Compatibility for endpoint version (deprecated since 0.22.0)
-            if not self.app.user:
+            user = context.user.get()
+            if not user:
                 raise error.PermissionError()
             if use_case not in _USE_CASES:
                 raise error.ValueError('use_case_unknown')
 
             data = _USE_CASES[use_case]
             id = 'List:{}'.format(randstr())
+            now = time()
             lst = List(
-                id=id, app=self.app, authors=[self.app.user.id], title=data['title'],
-                description=None, value_unit=data.get('value_unit'), features=data['features'],
+                id=id, app=self.app, authors=[user.id], title=data['title'], description=None,
+                value_unit=data.get('value_unit'), features=data['features'],
                 mode=data.get('mode', 'collaborate'), item_template=None,
                 activity=Activity('{}.activity'.format(id), self.app, subscriber_ids=[]))
             self.app.r.oset(lst.id, lst)
-            self.app.r.zadd('{}.users'.format(lst.id), {self.app.user.id.encode(): -time()})
+            self.app.r.zadd(f'{lst.id}.owners', {user.id.encode(): -now})
+            self.app.r.zadd(f'{lst.id}.users', {user.id.encode(): -now})
             self.app.r.rpush(self.ids.key, lst.id)
-            self.app.user.lists.add(lst, user=self.app.user)
+            user.lists.add(lst)
             self.app.activity.publish(
                 Event.create('create-list', None, {'lst': lst}, app=self.app))
             return lst
@@ -191,7 +196,7 @@ class Listling(Application):
             redis_url=redis_url, email=email, smtp_url=smtp_url,
             render_email_auth_message=render_email_auth_message, files_path=files_path,
             video_service_keys=video_service_keys)
-        self.types.update({'User': User, 'List': List, 'Item': Item})
+        self.types.update({'User': User, 'List': List, 'Item': Item, 'OwnersEvent': OwnersEvent})
         self.lists = Listling.Lists(RedisList('lists', self.r.r), app=self)
 
     def do_update(self) -> None:
@@ -233,6 +238,7 @@ class Listling(Application):
             r.set('version', 9)
 
         list_updates = {}
+        list_rel_updates = set()
         item_updates = {}
         lists = r.omget(r.lrange('lists', 0, -1), default=AssertionError)
         for lst in lists:
@@ -240,6 +246,12 @@ class Listling(Application):
             if 'value_unit' not in lst:
                 lst['value_unit'] = None
                 list_updates[cast(str, lst['id'])] = lst
+
+            # Deprecated since 0.36.0
+            owners_key = f"{lst['id']}.owners"
+            if not r.zcard(owners_key):
+                r.zadd(owners_key, {cast(typing.List[str], lst['authors'])[0]: 0})
+                list_rel_updates.add(lst['id'])
 
             items = r.omget(r.lrange(f"{lst['id']}.items", 0, -1), default=AssertionError)
             for item in items:
@@ -250,7 +262,7 @@ class Listling(Application):
         r.omset(list_updates)
         r.omset(item_updates)
 
-        updates = {'List': len(list_updates), 'Item': len(item_updates)}
+        updates = {'List': len(set(list_updates) | list_rel_updates), 'Item': len(item_updates)}
         getLogger(__name__).info('Updated database\n%s',
                                  '\n'.join(f'{name}: {n}' for name, n in updates.items()))
 
@@ -274,7 +286,7 @@ class Listling(Application):
 class User(micro.User):
     """See :ref:`User`."""
 
-    class Lists(Collection):
+    class Lists(Collection['List']):
         """See :ref:`UserLists`."""
         # We use setattr / getattr to work around a Pylint error for Generic classes (see
         # https://github.com/PyCQA/pylint/issues/2443)
@@ -283,22 +295,21 @@ class User(micro.User):
             super().__init__(RedisSortedSet('{}.lists'.format(user.id), user.app.r), app=user.app)
             setattr(self, 'user', user)
 
-        def add(self, lst, *, user):
+        def add(self, lst: List) -> None:
             """See: :http:post:`/users/(id)/lists`."""
-            if user != getattr(self, 'user'):
+            if context.user.get() != getattr(self, 'user'):
                 raise error.PermissionError()
             self.app.r.zadd(self.ids.key, {lst.id: -time()})
 
-        def remove(self, lst, *, user):
+        def remove(self, lst: List) -> None:
             """See :http:delete:`/users/(id)/lists/(list-id)`.
 
             If *lst* is not in the collection, a :exc:`micro.error.ValueError` is raised.
             """
-            if user != getattr(self, 'user'):
+            if context.user.get() != getattr(self, 'user'):
                 raise error.PermissionError()
-            if lst.authors[0] == getattr(self, 'user'):
-                raise error.ValueError(
-                    'user {} is owner of lst {}'.format(getattr(self, 'user').id, lst.id))
+            if getattr(self, 'user') in lst.owners:
+                raise error.ValueError(f"user {getattr(self, 'user').id} is owner of lst {lst.id}")
             if self.app.r.zrem(self.ids.key, lst.id) == 0:
                 raise error.ValueError(
                     'No lst {} in lists of user {}'.format(lst.id, getattr(self, 'user').id))
@@ -309,7 +320,7 @@ class User(micro.User):
                 raise error.PermissionError()
             return self
 
-    def __init__(self, *, app, **data):
+    def __init__(self, *, app: Application, **data: object) -> None:
         super().__init__(app=app, **data)
         self.lists = User.Lists(self)
 
@@ -323,7 +334,7 @@ class User(micro.User):
 class List(Object, Editable):
     """See :ref:`List`."""
 
-    _PERMISSIONS = {
+    _PERMISSIONS: Dict[str, Dict[str, Set[str]]] = {
         'collaborate': {'user': {'list-modify', 'item-modify'}},
         'view':        {'user': set()}
     }
@@ -364,6 +375,9 @@ class List(Object, Editable):
             self.lst._check_permission(self.app.user, 'list-modify')
             super().move(item, to)
 
+    class _ListOwners(Owners):
+        post_grant_script = 'redis.call("ZADD", user_id .. ".lists", -now, object_id)'
+
     def __init__(self, *, app: Listling, **data: object) -> None:
         activity = cast(Activity, data['activity'])
         super().__init__(id=cast(str, data['id']), app=app)
@@ -373,6 +387,7 @@ class List(Object, Editable):
         self.value_unit = cast(Optional[str], data['value_unit'])
         self.features = cast(typing.List[str], data['features'])
         self.mode = cast(str, data['mode'])
+        self.owners = List._ListOwners(self)
         self.item_template = cast(Optional[str], data['item_template'])
         self.items = List.Items(self)
         self.activity = activity
@@ -434,15 +449,20 @@ class List(Object, Editable):
             'mode': self.mode,
             'item_template': self.item_template,
             'activity': self.activity.json(restricted=restricted, rewrite=rewrite),
-            **({'items': self.items.json(restricted=restricted, include=include, rewrite=rewrite)}
-               if restricted else {}),
+            **(
+                {
+                    'owners': self.owners.json(restricted=restricted, include=include,
+                                               rewrite=rewrite),
+                    'items': self.items.json(restricted=restricted, include=include,
+                                             rewrite=rewrite)
+                } if restricted else {})
         }
 
-    def _check_permission(self, user, op):
+    def _check_permission(self, user: User, op: str) -> None:
         permissions = List._PERMISSIONS[self.mode]
         if not (user and (
                 op in permissions['user'] or
-                user == self.authors[0] or
+                user in self.owners or
                 user in self.app.settings.staff)):
             raise error.PermissionError()
 
@@ -613,13 +633,13 @@ class Item(Object, Editable, Trashable, WithContent):
                 if include else {})
         }
 
-    def _check_permission(self, user, op):
+    def _check_permission(self, user: User, op: str) -> None:
         lst = self.list
         # pylint: disable=protected-access; List is a friend
         permissions = List._PERMISSIONS[lst.mode]
         if not (user and (
                 op in permissions['user'] or
-                user == lst.authors[0] or
+                user in lst.owners or
                 user in self.app.settings.staff)):
             raise error.PermissionError()
 

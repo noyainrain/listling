@@ -150,6 +150,10 @@ List
 
    Template for *text* content of new items as *markup text*. May be ``null``.
 
+.. describe:: owners
+
+   List :ref:`ListOwners`.
+
 .. describe:: items
 
    List :ref:`Items`.
@@ -177,6 +181,56 @@ Events:
 .. describe:: item-votes-unvote
 
    Published when an item has been unvoted.
+
+.. _ListOwners:
+
+Owners
+^^^^^^
+
+:ref:`Collection` of :ref:`User` s who hold ownership of an object.
+
+The object has at least one owner.
+
+Events:
+
+.. describe:: object-owners-grant
+
+   Published when ownership of the object has been granted to a user.
+
+.. describe:: object-owners-revoke
+
+   Published when ownership of the object has been revoked from a user.
+
+.. include:: micro/collection-endpoints.inc
+
+*user_owner* indicates if the user is owner of the object.
+
+.. http:post:: /api/(owners-url)
+
+   ``{user_id}``
+
+   Grant ownership of the object to the :ref:`User` with *user_id*.
+
+   Permission: Object owners.
+
+.. http:delete:: /api/(owners-url)/(id)
+
+   Revoke ownership of the object from the :ref:`User` with *id*.
+
+   Permission: Object owners.
+
+OwnersEvent
+"""""""""""
+
+:ref:`Event` related to Owners.
+
+.. describe:: owner_id
+
+   ID of the affected :ref:`User`.
+
+.. describe:: owner
+
+   Affected :ref:`User`.
 
 .. _ListUsers:
 

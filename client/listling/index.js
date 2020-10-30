@@ -135,6 +135,7 @@ listling.ListPage = class extends micro.Page {
             lst: null,
             modes: ["collaborate", "view"],
             modeToText: (ctx, mode) => ({collaborate: "Collaborate", view: "View"}[mode]),
+            owners: null,
             presentItems: null,
             trashedItems: null,
             trashedItemsCount: 0,
@@ -252,9 +253,9 @@ listling.ListPage = class extends micro.Page {
             may: (ctx, op, mode) => {
                 // eslint-disable-next-line no-underscore-dangle
                 const permissions = listling.ListPage._PERMISSIONS[mode || "view"];
-                return (
+                return Boolean(
                     permissions.user.has(op) ||
-                    this._data.lst && ui.user.id === this._data.lst.authors[0].id
+                    this._data.lst && this._data.lst.owners.user_owner
                 );
             }
         });
@@ -298,9 +299,12 @@ listling.ListPage = class extends micro.Page {
         ui.addEventListener("list-items-move", this);
 
         this.ready.when((async() => {
-            try {
+            const setUpItems = async() => {
                 const items = await ui.call("GET", `/api/lists/${this._data.lst.id}/items`);
                 this._items = new micro.bind.Watchable(items);
+            };
+            try {
+                await Promise.all([this._data.owners.fetch(), setUpItems()]);
             } catch (e) {
                 ui.handleCallError(e);
                 return;
@@ -411,6 +415,7 @@ listling.ListPage = class extends micro.Page {
         }
 
         this._data.lst = value;
+        this._data.owners = new micro.Collection(`/api/lists/${this._data.lst.id}/owners`);
         this._data.locationEnabled =
             Boolean(ui.mapServiceKey) && this._data.lst.features.includes("location");
         this._data.valueFeature = value.features.includes("value");
@@ -656,9 +661,9 @@ listling.ItemElement = class extends HTMLLIElement {
             may: (ctx, op, mode) => {
                 // eslint-disable-next-line no-underscore-dangle
                 const permissions = listling.ListPage._PERMISSIONS[mode || "view"];
-                return (
+                return Boolean(
                     permissions.user.has(op) ||
-                    this._data.lst && ui.user.id === this._data.lst.authors[0].id
+                    this._data.lst && this._data.lst.owners.user_owner
                 );
             }
         });

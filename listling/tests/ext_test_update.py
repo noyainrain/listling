@@ -73,11 +73,12 @@ class UpdateTest(AsyncTestCase):
         self.assertEqual(app.settings.title, 'My Open Listling')
 
     def test_update_db_version_previous(self) -> None:
-        self.setup_db('0.34.0')
+        self.setup_db('0.35.3')
         app = Listling(redis_url='15', files_path=mkdtemp())
         app.update()
 
-        self.assertIsNone(app.lists[0].value_unit)
+        lst = app.lists[0]
+        self.assertEqual(list(lst.owners), [lst.authors[0]])
 
     def test_update_db_version_first(self) -> None:
         self.setup_db('0.13.0')
@@ -94,6 +95,9 @@ class UpdateTest(AsyncTestCase):
         for l in app.lists[:]:
             self.assertEqual(l.item_template, None)
         # Item.value
-        self.assertIsNone(app.lists[0].items[0].value)
+        lst = app.lists[0]
+        self.assertIsNone(lst.items[0].value)
         # List.value_unit
-        self.assertIsNone(app.lists[0].value_unit)
+        self.assertIsNone(lst.value_unit)
+        # List.owners
+        self.assertEqual(list(lst.owners), [lst.authors[0]])

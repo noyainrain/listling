@@ -438,10 +438,12 @@
 
         <aside class="listling-list-mode-view micro-interactive">
             <i class="fa fa-user-cog"></i> List by
-            <micro-user data-user="lst.authors.0"></micro-user> · <i class="fa fa-pencil-alt"></i>
-            Edited by
-            <span data-content="join lst.authors 'user'">
-                <template><micro-user data-user="user"></micro-user></template>
+            <span data-content="list owners.items 'user'">
+                <template><span><micro-user data-user="user"></micro-user> </span></template>
+            </span>
+            · <i class="fa fa-pencil-alt"></i> Edited by
+            <span data-content="list lst.authors 'user'">
+                <template><span><micro-user data-user="user"></micro-user> </span></template>
             </span>
         </aside>
 
@@ -540,6 +542,10 @@
 
         .listling-list-settings {
             border-top: 1px solid var(--micro-color-delimiter);
+        }
+
+        .listling-list-settings label {
+            margin: var(--micro-size-s) 0;
         }
 
         .listling-list-items,

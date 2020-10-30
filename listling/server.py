@@ -21,6 +21,7 @@
 from datetime import timedelta
 from http import HTTPStatus
 import json
+from typing import Callable, List
 from urllib.parse import urlsplit
 
 from tornado.web import HTTPError, RequestHandler
@@ -28,11 +29,13 @@ from tornado.web import HTTPError, RequestHandler
 from micro import Location, error
 from micro.jsonredis import script
 from micro.ratelimit import RateLimit, RateLimitError
-from micro.server import (Endpoint, CollectionEndpoint, Server, UI, make_activity_endpoints,
-                          make_orderable_endpoints, make_trashable_endpoints)
+from micro.server import (
+    Endpoint, CollectionEndpoint, Handler, Server, UI, make_activity_endpoints,
+    make_orderable_endpoints, make_trashable_endpoints)
 from micro.util import Expect, randstr
 
 from . import Listling
+from .list import Owners
 
 def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='', files_path='data',
                 video_service_keys={}, client_map_service_key=None):
@@ -46,6 +49,7 @@ def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='', 
         (r'/api/lists$', _ListsEndpoint),
         (r'/api/lists/create-example$', _ListsCreateExampleEndpoint),
         (r'/api/lists/([^/]+)$', _ListEndpoint),
+        *_make_owners_endpoints(r'/api/lists/([^/]+)/owners', lambda id: app.lists[id].owners),
         (r'/api/lists/([^/]+)/users$', _ListUsersEndpoint),
         (r'/api/lists/([^/]+)/items$', _ListItemsEndpoint),
         *make_orderable_endpoints(r'/api/lists/([^/]+)/items', lambda id: app.lists[id].items),
@@ -78,26 +82,28 @@ def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='', 
     })
 
 class _UserListsEndpoint(CollectionEndpoint):
+    app: Listling
+
     def initialize(self):
         super().initialize(
             get_collection=lambda id: self.app.users[id].lists.read(user=self.current_user))
 
-    def post(self, id):
-        args = self.check_args({'list_id': str})
-        list_id = args.pop('list_id')
-        try:
-            args['lst'] = self.app.lists[list_id]
-        except KeyError as e:
-            raise error.ValueError(f'No list {list_id}') from e
+    def post(self, id: str) -> None:
         lists = self.get_collection(id)
-        lists.add(**args, user=self.current_user)
+        try:
+            lst = self.app.lists[self.get_arg('list_id', Expect.str)]
+        except KeyError as e:
+            raise error.ValueError(f'No list {e}') from e
+        lists.add(lst)
         self.write({})
 
 class _UserListEndpoint(Endpoint):
-    def delete(self, id, list_id):
+    app: Listling
+
+    def delete(self, id: str, list_id: str) -> None:
         lists = self.app.users[id].lists
         lst = lists[list_id]
-        lists.remove(lst, user=self.current_user)
+        lists.remove(lst)
         self.write({})
 
 class _ListsEndpoint(Endpoint):
@@ -133,6 +139,29 @@ class _ListEndpoint(Endpoint):
             args['value_unit'] = self.get_arg('value_unit', Expect.opt(Expect.str))
         await lst.edit(**args)
         self.write(lst.json(restricted=True, include=True))
+
+def _make_owners_endpoints(url: str, get_owners: Callable[..., Owners]) -> List[Handler]:
+    return [(fr'{url}$', _OwnersEndpoint, {'get_collection': get_owners}),
+            (fr'{url}/([^/]+)$', _OwnerEndpoint, {'get_owners': get_owners})]
+
+class _OwnersEndpoint(CollectionEndpoint):
+    def post(self, *args: str) -> None:
+        owners = self.get_collection(*args)
+        try:
+            user = self.app.users[self.get_arg('user_id', Expect.str)]
+        except KeyError as e:
+            raise error.ValueError(f'No user {e}') from e
+        owners.grant(user)
+
+class _OwnerEndpoint(Endpoint):
+    def initialize(self, *, get_owners: Callable[..., Owners]) -> None: # type: ignore[override]
+        super().initialize()
+        self.get_owners = get_owners
+
+    def delete(self, *args: str) -> None:
+        owners = self.get_owners(*args[:-1])
+        user = owners[args[-1]]
+        owners.revoke(user)
 
 class _ListUsersEndpoint(Endpoint):
     def get(self, id):
