@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>2. Web API &#8212; Open Listling 0.35.3 documentation</title>
+    <title>2. Web API &#8212; Open Listling 0.36.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -157,15 +157,6 @@ application.</p>
 <dd><p>Unique ID of the object.</p>
 </dd></dl>
 
-<dl class="describe">
-<dt>
-<code class="sig-name descname">trashed</code></dt>
-<dd><p>Indicates if the object has been trashed (deleted).</p>
-<div class="deprecated">
-<p><span class="versionmodified deprecated">Deprecated since version 0.6.0: </span>For non-trashable objects.</p>
-</div>
-</dd></dl>
-
 </div>
 <div class="section" id="activity">
 <span id="id4"></span><h2><span class="section-number">2.8. </span>Activity<a class="headerlink" href="#activity" title="Permalink to this headline">¶</a></h2>
@@ -208,15 +199,6 @@ application.</p>
 <dt>
 <code class="sig-name descname">id</code></dt>
 <dd><p>Unique ID of the object.</p>
-</dd></dl>
-
-<dl class="describe">
-<dt>
-<code class="sig-name descname">trashed</code></dt>
-<dd><p>Indicates if the object has been trashed (deleted).</p>
-<div class="deprecated">
-<p><span class="versionmodified deprecated">Deprecated since version 0.6.0: </span>For non-trashable objects.</p>
-</div>
 </dd></dl>
 
 <dl class="describe">
@@ -412,15 +394,6 @@ if the event is global.</p>
 
 <dl class="describe">
 <dt>
-<code class="sig-name descname">trashed</code></dt>
-<dd><p>Indicates if the object has been trashed (deleted).</p>
-<div class="deprecated">
-<p><span class="versionmodified deprecated">Deprecated since version 0.6.0: </span>For non-trashable objects.</p>
-</div>
-</dd></dl>
-
-<dl class="describe">
-<dt>
 <code class="sig-name descname">url</code></dt>
 <dd><p>Absolute referrer URL.</p>
 </dd></dl>
@@ -569,15 +542,6 @@ registered as staff member.</p>
 <dt>
 <code class="sig-name descname">id</code></dt>
 <dd><p>Unique ID of the object.</p>
-</dd></dl>
-
-<dl class="describe">
-<dt>
-<code class="sig-name descname">trashed</code></dt>
-<dd><p>Indicates if the object has been trashed (deleted).</p>
-<div class="deprecated">
-<p><span class="versionmodified deprecated">Deprecated since version 0.6.0: </span>For non-trashable objects.</p>
-</div>
 </dd></dl>
 
 <dl class="describe">
@@ -763,15 +727,6 @@ with <em>list_id</em>, a <a class="reference internal" href="#valueerror"><span 
 
 <dl class="describe">
 <dt>
-<code class="sig-name descname">trashed</code></dt>
-<dd><p>Indicates if the object has been trashed (deleted).</p>
-<div class="deprecated">
-<p><span class="versionmodified deprecated">Deprecated since version 0.6.0: </span>For non-trashable objects.</p>
-</div>
-</dd></dl>
-
-<dl class="describe">
-<dt>
 <code class="sig-name descname">authors</code></dt>
 <dd><p><a class="reference internal" href="#user"><span class="std std-ref">User</span></a> s who edited the object.</p>
 </dd></dl>
@@ -889,15 +844,6 @@ with <em>list_id</em>, a <a class="reference internal" href="#valueerror"><span 
 
 <dl class="describe">
 <dt>
-<code class="sig-name descname">trashed</code></dt>
-<dd><p>Indicates if the object has been trashed (deleted).</p>
-<div class="deprecated">
-<p><span class="versionmodified deprecated">Deprecated since version 0.6.0: </span>For non-trashable objects.</p>
-</div>
-</dd></dl>
-
-<dl class="describe">
-<dt>
 <code class="sig-name descname">authors</code></dt>
 <dd><p><a class="reference internal" href="#user"><span class="std std-ref">User</span></a> s who edited the object.</p>
 </dd></dl>
@@ -956,6 +902,12 @@ the list. In <code class="docutils literal notranslate"><span class="pre">view</
 
 <dl class="describe">
 <dt>
+<code class="sig-name descname">owners</code></dt>
+<dd><p>List <a class="reference internal" href="#listowners"><span class="std std-ref">Owners</span></a>.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
 <code class="sig-name descname">items</code></dt>
 <dd><p>List <a class="reference internal" href="#items"><span class="std std-ref">Items</span></a>.</p>
 </dd></dl>
@@ -1001,8 +953,69 @@ the list. In <code class="docutils literal notranslate"><span class="pre">view</
 <dd><p>Published when an item has been unvoted.</p>
 </dd></dl>
 
+<div class="section" id="owners">
+<span id="listowners"></span><h3><span class="section-number">2.19.1. </span>Owners<a class="headerlink" href="#owners" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference internal" href="#collection"><span class="std std-ref">Collection</span></a> of <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> s who hold ownership of an object.</p>
+<p>The object has at least one owner.</p>
+<p>Events:</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">object-owners-grant</code></dt>
+<dd><p>Published when ownership of the object has been granted to a user.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="sig-name descname">object-owners-revoke</code></dt>
+<dd><p>Published when ownership of the object has been revoked from a user.</p>
+</dd></dl>
+
+<dl class="get">
+<dt id="get--api-(resource-url)?slice">
+<code class="sig-name descname">GET </code><code class="sig-name descname">/api/(resource-url)?slice</code><a class="headerlink" href="#get--api-(resource-url)?slice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query the collection for a <em>slice</em> of items.</p>
+<p><em>slice</em> is a <em>slice string</em>. The maximum number of items is limited to a <em>limit</em> of 100, i.e.
+<em>stop</em> is capped at <em>start</em> + <em>limit</em>. Defaults to <code class="docutils literal notranslate"><span class="pre">:</span></code>.</p>
+<p>Example: <code class="docutils literal notranslate"><span class="pre">/api/cats</span></code> (which is equivalent to <code class="docutils literal notranslate"><span class="pre">/api/cats?slice=:</span></code> or
+<code class="docutils literal notranslate"><span class="pre">/api/cats?slice=0:100</span></code>) returns the first hundred items and <code class="docutils literal notranslate"><span class="pre">/api/cats?slice=10:20</span></code> returns
+the items from index 10 up to including 19.</p>
+</dd></dl>
+
+<p><em>user_owner</em> indicates if the user is owner of the object.</p>
+<dl class="post">
+<dt id="post--api-(owners-url)">
+<code class="sig-name descname">POST </code><code class="sig-name descname">/api/(owners-url)</code><a class="headerlink" href="#post--api-(owners-url)" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">{user_id}</span></code></p>
+<p>Grant ownership of the object to the <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> with <em>user_id</em>.</p>
+<p>Permission: Object owners.</p>
+</dd></dl>
+
+<dl class="delete">
+<dt id="delete--api-(owners-url)-(id)">
+<code class="sig-name descname">DELETE </code><code class="sig-name descname">/api/(owners-url)/</code><span class="sig-paren">(</span><em class="sig-param">id</em><span class="sig-paren">)</span><a class="headerlink" href="#delete--api-(owners-url)-(id)" title="Permalink to this definition">¶</a></dt>
+<dd><p>Revoke ownership of the object from the <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> with <em>id</em>.</p>
+<p>Permission: Object owners.</p>
+</dd></dl>
+
+<div class="section" id="ownersevent">
+<h4><span class="section-number">2.19.1.1. </span>OwnersEvent<a class="headerlink" href="#ownersevent" title="Permalink to this headline">¶</a></h4>
+<p><a class="reference internal" href="#event"><span class="std std-ref">Event</span></a> related to Owners.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">owner_id</code></dt>
+<dd><p>ID of the affected <a class="reference internal" href="#user"><span class="std std-ref">User</span></a>.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="sig-name descname">owner</code></dt>
+<dd><p>Affected <a class="reference internal" href="#user"><span class="std std-ref">User</span></a>.</p>
+</dd></dl>
+
+</div>
+</div>
 <div class="section" id="users">
-<span id="listusers"></span><h3><span class="section-number">2.19.1. </span>Users<a class="headerlink" href="#users" title="Permalink to this headline">¶</a></h3>
+<span id="listusers"></span><h3><span class="section-number">2.19.2. </span>Users<a class="headerlink" href="#users" title="Permalink to this headline">¶</a></h3>
 <dl class="get">
 <dt id="get--api-lists-(id)-users?name=">
 <code class="sig-name descname">GET </code><code class="sig-name descname">/api/lists/</code><span class="sig-paren">(</span><em class="sig-param">id</em><span class="sig-paren">)</span><code class="sig-name descname">/users?name=</code><a class="headerlink" href="#get--api-lists-(id)-users?name=" title="Permalink to this definition">¶</a></dt>
@@ -1052,15 +1065,6 @@ the list. In <code class="docutils literal notranslate"><span class="pre">view</
 <dt>
 <code class="sig-name descname">id</code></dt>
 <dd><p>Unique ID of the object.</p>
-</dd></dl>
-
-<dl class="describe">
-<dt>
-<code class="sig-name descname">trashed</code></dt>
-<dd><p>Indicates if the object has been trashed (deleted).</p>
-<div class="deprecated">
-<p><span class="versionmodified deprecated">Deprecated since version 0.6.0: </span>For non-trashable objects.</p>
-</div>
 </dd></dl>
 
 <dl class="describe">

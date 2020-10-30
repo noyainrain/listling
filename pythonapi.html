@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>3. Python API &#8212; Open Listling 0.35.3 documentation</title>
+    <title>3. Python API &#8212; Open Listling 0.36.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -246,7 +246,7 @@ iterator.</p>
 
 <dl class="class">
 <dt id="listling.User">
-<em class="property">class </em><code class="sig-prename descclassname">listling.</code><code class="sig-name descname">User</code><span class="sig-paren">(</span><em class="sig-param">*</em>, <em class="sig-param">app</em>, <em class="sig-param">**data</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.User" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">listling.</code><code class="sig-name descname">User</code><span class="sig-paren">(</span><em class="sig-param">*</em>, <em class="sig-param">app: micro.micro.Application</em>, <em class="sig-param">**data: object</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.User" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#user"><span class="std std-ref">User</span></a>.</p>
 <dl class="class">
 <dt id="listling.User.Lists">
@@ -254,13 +254,13 @@ iterator.</p>
 <dd><p>See <a class="reference internal" href="webapi.html#userlists"><span class="std std-ref">Lists</span></a>.</p>
 <dl class="method">
 <dt id="listling.User.Lists.add">
-<code class="sig-name descname">add</code><span class="sig-paren">(</span><em class="sig-param">lst</em>, <em class="sig-param">*</em>, <em class="sig-param">user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.User.Lists.add" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">add</code><span class="sig-paren">(</span><em class="sig-param">lst: listling.listling.List</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#listling.User.Lists.add" title="Permalink to this definition">¶</a></dt>
 <dd><p>See: <a class="reference internal" href="webapi.html#post--users-(id)-lists" title="POST /users/(id)/lists"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/users/(id)/lists</span></code></a>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="listling.User.Lists.remove">
-<code class="sig-name descname">remove</code><span class="sig-paren">(</span><em class="sig-param">lst</em>, <em class="sig-param">*</em>, <em class="sig-param">user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.User.Lists.remove" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">remove</code><span class="sig-paren">(</span><em class="sig-param">lst: listling.listling.List</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#listling.User.Lists.remove" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#delete--users-(id)-lists-(list-id)" title="DELETE /users/(id)/lists/(list-id)"><code class="xref http http-delete docutils literal notranslate"><span class="pre">DELETE</span> <span class="pre">/users/(id)/lists/(list-id)</span></code></a>.</p>
 <p>If <em>lst</em> is not in the collection, a <code class="xref py py-exc docutils literal notranslate"><span class="pre">micro.error.ValueError</span></code> is raised.</p>
 </dd></dl>
