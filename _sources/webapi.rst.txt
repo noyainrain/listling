@@ -27,6 +27,8 @@ Listling user.
 
 .. include:: micro/user-endpoints.inc
 
+.. include:: micro/user-devices.inc
+
 .. _UserLists:
 
 Lists
