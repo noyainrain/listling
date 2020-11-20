@@ -199,7 +199,7 @@ listling.ListPage = class extends micro.Page {
                 const op = this._data.lst.activity.user_subscribed ? "unsubscribe" : "subscribe";
                 if (op === "subscribe") {
                     const pushSubscription = await ui.service.pushManager.getSubscription();
-                    if (!pushSubscription || !ui.user.push_subscription) {
+                    if (!pushSubscription || !ui.device.push_subscription) {
                         const result = await ui.enableDeviceNotifications();
                         if (result === "error") {
                             return;

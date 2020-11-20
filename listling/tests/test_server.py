@@ -16,38 +16,40 @@
 
 import json
 from tempfile import mkdtemp
+from typing import cast
 
 from micro.core import context
 from micro.test import ServerTestCase
 from tornado.testing import gen_test
 
+from listling import Listling
 from listling.server import make_server
 
 class ServerTest(ServerTestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
         self.server = make_server(port=16160, redis_url='15', files_path=mkdtemp())
-        self.app = self.server.app
+        self.app = cast(Listling, self.server.app)
         self.app.r.flushdb()
         self.server.start()
-        self.client_user = self.app.login()
-        context.user.set(self.client_user)
+        self.client_device = self.app.devices.sign_in()
+        self.user = self.client_device.user
+        context.user.set(self.user)
 
     @gen_test
     async def test_availability(self) -> None:
         lst = await self.app.lists.create_example('todo')
         await lst.edit(features=['check', 'assign', 'vote'])
         item = lst.items[0]
-        user = self.app.login()
+        user = self.app.devices.sign_in().user
         context.user.set(user)
         shared_lst = self.app.lists.create(v=2)
 
         # API
-        await self.request('/api/users/{}/lists'.format(self.client_user.id))
-        await self.request('/api/users/{}/lists'.format(self.client_user.id), method='POST',
+        await self.request(f'/api/users/{self.user.id}/lists')
+        await self.request(f'/api/users/{self.user.id}/lists', method='POST',
                            body=json.dumps({'list_id': shared_lst.id}))
-        await self.request('/api/users/{}/lists/{}'.format(self.client_user.id, shared_lst.id),
-                           method='DELETE')
+        await self.request(f'/api/users/{self.user.id}/lists/{shared_lst.id}', method='DELETE')
         await self.request('/api/lists', method='POST', body='{"v": 2}')
         await self.request('/api/lists/create-example', method='POST',
                            body='{"use_case": "shopping"}')
@@ -70,11 +72,10 @@ class ServerTest(ServerTestCase):
         await self.request('/api/lists/{}/items/{}/uncheck'.format(lst.id, item.id), method='POST',
                            body='')
         await self.request('/api/lists/{}/items/{}/assignees'.format(lst.id, item.id))
-        await self.request('/api/lists/{}/items/{}/assignees'.format(lst.id, item.id),
-                           method='POST', body=json.dumps({'assignee_id': self.client_user.id}))
-        await self.request(
-            '/api/lists/{}/items/{}/assignees/{}'.format(lst.id, item.id, self.client_user.id),
-            method='DELETE')
+        await self.request(f'/api/lists/{lst.id}/items/{item.id}/assignees', method='POST',
+                           body=json.dumps({'assignee_id': self.user.id}))
+        await self.request(f'/api/lists/{lst.id}/items/{item.id}/assignees/{self.user.id}',
+                           method='DELETE')
         await self.request('/api/lists/{}/items/{}/votes'.format(lst.id, item.id))
         await self.request('/api/lists/{}/items/{}/votes'.format(lst.id, item.id), method='POST',
                            body='')

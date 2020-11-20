@@ -21,7 +21,7 @@
 from datetime import timedelta
 from http import HTTPStatus
 import json
-from typing import Callable, List
+from typing import Callable, Dict, List, Optional
 from urllib.parse import urlsplit
 
 from tornado.web import HTTPError, RequestHandler
@@ -37,8 +37,10 @@ from micro.util import Expect, randstr
 from . import Listling
 from .list import Owners
 
-def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='', files_path='data',
-                video_service_keys={}, client_map_service_key=None):
+def make_server(
+        *, port: int = 8080, url: str = None, debug: bool = False, redis_url: str = '',
+        smtp_url: str = '', files_path: str = 'data', video_service_keys: Dict[str, str] = {},
+        client_map_service_key: Optional[str] = None) -> Server:
     """Create an Open Listling server."""
     app = Listling(redis_url=redis_url, smtp_url=smtp_url, files_path=files_path,
                    video_service_keys=video_service_keys)

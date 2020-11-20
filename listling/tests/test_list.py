@@ -25,19 +25,19 @@ class OwnersTest(ListlingTestCase):
         self.owners = self.app.lists.create().owners
 
     def test_grant(self) -> None:
-        user = self.app.login()
+        user = self.app.devices.sign_in().user
         self.owners.grant(user)
         self.assertEqual(list(self.owners), [user, self.user])
         self.assertIn(self.owners.object, user.lists)
 
     def test_grant_as_user(self) -> None:
-        user = self.app.login()
+        user = self.app.devices.sign_in().user
         context.user.set(user)
         with self.assertRaises(error.PermissionError):
             self.owners.grant(user)
 
     def test_revoke(self) -> None:
-        user = self.app.login()
+        user = self.app.devices.sign_in().user
         self.owners.grant(user)
         self.owners.revoke(user)
         self.assertEqual(list(self.owners), [self.user])
@@ -47,6 +47,6 @@ class OwnersTest(ListlingTestCase):
             self.owners.revoke(self.user)
 
     def test_revoke_as_user(self) -> None:
-        context.user.set(self.app.login())
+        context.user.set(self.app.devices.sign_in().user)
         with self.assertRaises(error.PermissionError):
             self.owners.revoke(self.user)

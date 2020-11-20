@@ -17,7 +17,6 @@
 from __future__ import annotations
 
 import json
-from logging import getLogger
 from time import time
 import typing
 from typing import Any, Callable, Dict, Optional, Set, cast
@@ -199,11 +198,11 @@ class Listling(Application):
         self.types.update({'User': User, 'List': List, 'Item': Item, 'OwnersEvent': OwnersEvent})
         self.lists = Listling.Lists(RedisList('lists', self.r.r), app=self)
 
-    def do_update(self) -> None:
+    def do_update(self) -> Dict[str, int]:
         version = self.r.get('version')
         if not version:
             self.r.set('version', 9)
-            return
+            return {}
 
         version = int(version)
         r: JSONRedis[Dict[str, object]] = JSONRedis(self.r.r)
@@ -262,9 +261,7 @@ class Listling(Application):
         r.omset(list_updates)
         r.omset(item_updates)
 
-        updates = {'List': len(set(list_updates) | list_rel_updates), 'Item': len(item_updates)}
-        getLogger(__name__).info('Updated database\n%s',
-                                 '\n'.join(f'{name}: {n}' for name, n in updates.items()))
+        return {'List': len(set(list_updates) | list_rel_updates), 'Item': len(item_updates)}
 
     def create_user(self, data):
         return User(**data)

@@ -29,7 +29,7 @@ class ListlingTestCase(AsyncTestCase):
         self.app = Listling(redis_url='15', files_path=mkdtemp())
         self.app.r.flushdb()
         self.app.update()
-        self.user = self.app.login()
+        self.user = self.app.devices.sign_in().user
         context.user.set(self.user)
 
 class ListlingTest(ListlingTestCase):
@@ -63,7 +63,7 @@ class ListlingTest(ListlingTestCase):
 class UserListsTest(ListlingTestCase):
     def test_add(self) -> None:
         shared_lst = self.app.lists.create()
-        user = self.app.login()
+        user = self.app.devices.sign_in().user
         context.user.set(user)
         lst = self.app.lists.create()
         user.lists.add(shared_lst)
@@ -71,7 +71,7 @@ class UserListsTest(ListlingTestCase):
 
     def test_remove(self) -> None:
         shared_lst = self.app.lists.create()
-        user = self.app.login()
+        user = self.app.devices.sign_in().user
         context.user.set(user)
         lst = self.app.lists.create()
         user.lists.add(shared_lst)
@@ -98,7 +98,7 @@ class ListTest(ListlingTestCase):
     @gen_test
     async def test_edit_as_user(self) -> None:
         lst = self.app.lists.create(v=2)
-        self.app.login()
+        context.user.set(self.app.devices.sign_in().user)
         await lst.edit(description='What has to be done!')
         self.assertEqual(lst.description, 'What has to be done!')
 
@@ -106,17 +106,19 @@ class ListTest(ListlingTestCase):
     async def test_edit_view_mode_as_user(self) -> None:
         lst = self.app.lists.create(v=2)
         await lst.edit(mode='view')
-        self.app.login()
+        context.user.set(self.app.devices.sign_in().user)
         with self.assertRaises(error.PermissionError):
             await lst.edit(description='What has to be done!')
 
     @gen_test
     async def test_query_users_name(self) -> None:
         lst = self.app.lists.create()
-        happy = self.app.login()
+        happy = self.app.devices.sign_in().user
+        context.user.set(happy)
         await happy.edit(name='Happy')
         await lst.items.create('Sleep')
-        grumpy = self.app.login()
+        grumpy = self.app.devices.sign_in().user
+        context.user.set(grumpy)
         await grumpy.edit(name='Grumpy')
         await lst.items.create('Feast')
         users = lst.users('U')
@@ -160,14 +162,14 @@ class ItemTest(ListlingTestCase):
     @gen_test
     async def test_check_as_user(self):
         item = await self.make_item(use_case='todo')
-        self.app.login()
+        context.user.set(self.app.devices.sign_in().user)
         item.check()
         self.assertTrue(item.checked)
 
     @gen_test
     async def test_check_view_mode_as_user(self):
         item = await self.make_item(use_case='todo', mode='view')
-        self.app.login()
+        context.user.set(self.app.devices.sign_in().user)
         with self.assertRaises(error.PermissionError):
             item.check()
 
@@ -182,7 +184,7 @@ class ItemAssigneesTest(ListlingTestCase):
     @gen_test
     async def test_assign(self) -> None:
         item = await self.app.lists.create('todo').items.create('Sleep')
-        user = self.app.login()
+        user = self.app.devices.sign_in().user
         item.assignees.assign(self.user, user=self.user)
         item.assignees.assign(user, user=self.user)
         self.assertEqual(list(item.assignees), [user, self.user])
@@ -190,7 +192,7 @@ class ItemAssigneesTest(ListlingTestCase):
     @gen_test
     async def test_unassign(self) -> None:
         item = await self.app.lists.create('todo').items.create('Sleep')
-        user = self.app.login()
+        user = self.app.devices.sign_in().user
         item.assignees.assign(self.user, user=self.user)
         item.assignees.assign(user, user=self.user)
         item.assignees.unassign(user, user=self.user)
@@ -200,7 +202,8 @@ class ItemVotesTest(ListlingTestCase):
     async def make_item(self):
         lst = self.app.lists.create('poll', v=2)
         item = await lst.items.create('Mouse')
-        user = self.app.login()
+        user = self.app.devices.sign_in().user
+        context.user.set(user)
         item.votes.vote(user=user)
         return item, user
 
