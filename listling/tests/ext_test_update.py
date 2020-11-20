@@ -89,8 +89,9 @@ class UpdateTest(AsyncTestCase):
         user = app.settings.staff[0]
         self.assertEqual(set(user.lists), set(app.lists[0:2]))
         # Update to version 8
+        users = sorted(app.users, key=lambda user: user.create_time)
         self.assertEqual([user.id for user in app.lists[1].users()],
-                         [user.id for user in reversed(app.users[0:2])])
+                         [user.id for user in reversed(users[0:2])])
         # Update to version 9
         for l in app.lists[:]:
             self.assertEqual(l.item_template, None)
