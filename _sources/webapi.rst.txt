@@ -25,6 +25,11 @@ Listling user.
 
    :ref:`UserLists` of the user.
 
+.. _Users:
+
+Users
+-----
+
 .. include:: micro/user-endpoints.inc
 
 .. include:: micro/user-devices.inc

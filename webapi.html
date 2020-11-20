@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>2. Web API &#8212; Open Listling 0.37.0 documentation</title>
+    <title>2. Web API &#8212; Open Listling 0.37.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -697,6 +697,9 @@ registered as staff member.</p>
 <dd><p><a class="reference internal" href="#userlists"><span class="std std-ref">Lists</span></a> of the user.</p>
 </dd></dl>
 
+</div>
+<div class="section" id="users">
+<span id="id28"></span><h2><span class="section-number">2.19. </span>Users<a class="headerlink" href="#users" title="Permalink to this headline">¶</a></h2>
 <dl class="get">
 <dt id="get--api-users-(id)">
 <code class="sig-name descname">GET </code><code class="sig-name descname">/api/users/</code><span class="sig-paren">(</span><em class="sig-param">id</em><span class="sig-paren">)</span><a class="headerlink" href="#get--api-users-(id)" title="Permalink to this definition">¶</a></dt>
@@ -761,7 +764,7 @@ the given email address is already associated with another user, a <a class="ref
 </dd></dl>
 
 <div class="section" id="userdevices">
-<span id="id28"></span><h3><span class="section-number">2.18.1. </span>Devices<a class="headerlink" href="#userdevices" title="Permalink to this headline">¶</a></h3>
+<span id="id29"></span><h3><span class="section-number">2.19.1. </span>Devices<a class="headerlink" href="#userdevices" title="Permalink to this headline">¶</a></h3>
 <p>Collection of registered user <a class="reference internal" href="#device"><span class="std std-ref">Device</span></a> s.</p>
 <dl class="get">
 <dt id="get--api-(resource-url)?slice">
@@ -776,7 +779,7 @@ the items from index 10 up to including 19.</p>
 
 </div>
 <div class="section" id="lists">
-<span id="userlists"></span><h3><span class="section-number">2.18.2. </span>Lists<a class="headerlink" href="#lists" title="Permalink to this headline">¶</a></h3>
+<span id="userlists"></span><h3><span class="section-number">2.19.2. </span>Lists<a class="headerlink" href="#lists" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="#list"><span class="std std-ref">List</span></a> <a class="reference internal" href="#collection"><span class="std std-ref">Collection</span></a> of the user, ordered by time added, latest first.</p>
 <p>Lists created by the user are added automatically.</p>
 <dl class="describe">
@@ -829,7 +832,7 @@ with <em>list_id</em>, a <a class="reference internal" href="#valueerror"><span 
 </div>
 </div>
 <div class="section" id="settings">
-<span id="id29"></span><h2><span class="section-number">2.19. </span>Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h2>
+<span id="id30"></span><h2><span class="section-number">2.20. </span>Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h2>
 <p>App settings.</p>
 <dl class="describe">
 <dt>
@@ -915,8 +918,8 @@ with <em>list_id</em>, a <a class="reference internal" href="#valueerror"><span 
 </dd></dl>
 
 </div>
-<div class="section" id="id30">
-<span id="id31"></span><h2><span class="section-number">2.20. </span>Lists<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id31">
+<span id="id32"></span><h2><span class="section-number">2.21. </span>Lists<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h2>
 <dl class="post">
 <dt id="post--api-lists">
 <code class="sig-name descname">POST </code><code class="sig-name descname">/api/lists</code><a class="headerlink" href="#post--api-lists" title="Permalink to this definition">¶</a></dt>
@@ -947,7 +950,7 @@ with <em>list_id</em>, a <a class="reference internal" href="#valueerror"><span 
 
 </div>
 <div class="section" id="list">
-<span id="id32"></span><h2><span class="section-number">2.21. </span>List<a class="headerlink" href="#list" title="Permalink to this headline">¶</a></h2>
+<span id="id33"></span><h2><span class="section-number">2.22. </span>List<a class="headerlink" href="#list" title="Permalink to this headline">¶</a></h2>
 <dl class="describe">
 <dt>
 <code class="sig-name descname">id</code></dt>
@@ -992,15 +995,15 @@ with <em>list_id</em>, a <a class="reference internal" href="#valueerror"><span 
 the list. In <code class="docutils literal notranslate"><span class="pre">view</span></code> mode, users only view the list.</p>
 <p>The following permissions apply:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">collaborate</span></code>: Authenticated users may modify <a class="footnote-reference brackets" href="#id35" id="id33">1</a> the list and modify <a class="footnote-reference brackets" href="#id36" id="id34">2</a> items</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">collaborate</span></code>: Authenticated users may modify <a class="footnote-reference brackets" href="#id36" id="id34">1</a> the list and modify <a class="footnote-reference brackets" href="#id37" id="id35">2</a> items</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">view</span></code>: None</p></li>
 </ul>
 <p>List owners always have full permissions.</p>
 <dl class="footnote brackets">
-<dt class="label" id="id35"><span class="brackets"><a class="fn-backref" href="#id33">1</a></span></dt>
+<dt class="label" id="id36"><span class="brackets"><a class="fn-backref" href="#id34">1</a></span></dt>
 <dd><p>Edit the list and create and move items</p>
 </dd>
-<dt class="label" id="id36"><span class="brackets"><a class="fn-backref" href="#id34">2</a></span></dt>
+<dt class="label" id="id37"><span class="brackets"><a class="fn-backref" href="#id35">2</a></span></dt>
 <dd><p>Edit, trash, restore, check, uncheck, assign to and unassign from items</p>
 </dd>
 </dl>
@@ -1066,7 +1069,7 @@ the list. In <code class="docutils literal notranslate"><span class="pre">view</
 </dd></dl>
 
 <div class="section" id="owners">
-<span id="listowners"></span><h3><span class="section-number">2.21.1. </span>Owners<a class="headerlink" href="#owners" title="Permalink to this headline">¶</a></h3>
+<span id="listowners"></span><h3><span class="section-number">2.22.1. </span>Owners<a class="headerlink" href="#owners" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="#collection"><span class="std std-ref">Collection</span></a> of <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> s who hold ownership of an object.</p>
 <p>The object has at least one owner.</p>
 <p>Events:</p>
@@ -1110,7 +1113,7 @@ the items from index 10 up to including 19.</p>
 </dd></dl>
 
 <div class="section" id="ownersevent">
-<h4><span class="section-number">2.21.1.1. </span>OwnersEvent<a class="headerlink" href="#ownersevent" title="Permalink to this headline">¶</a></h4>
+<h4><span class="section-number">2.22.1.1. </span>OwnersEvent<a class="headerlink" href="#ownersevent" title="Permalink to this headline">¶</a></h4>
 <p><a class="reference internal" href="#event"><span class="std std-ref">Event</span></a> related to Owners.</p>
 <dl class="describe">
 <dt>
@@ -1126,8 +1129,8 @@ the items from index 10 up to including 19.</p>
 
 </div>
 </div>
-<div class="section" id="users">
-<span id="listusers"></span><h3><span class="section-number">2.21.2. </span>Users<a class="headerlink" href="#users" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="listusers">
+<span id="id38"></span><h3><span class="section-number">2.22.2. </span>Users<a class="headerlink" href="#listusers" title="Permalink to this headline">¶</a></h3>
 <dl class="get">
 <dt id="get--api-lists-(id)-users?name=">
 <code class="sig-name descname">GET </code><code class="sig-name descname">/api/lists/</code><span class="sig-paren">(</span><em class="sig-param">id</em><span class="sig-paren">)</span><code class="sig-name descname">/users?name=</code><a class="headerlink" href="#get--api-lists-(id)-users?name=" title="Permalink to this definition">¶</a></dt>
@@ -1138,7 +1141,7 @@ the items from index 10 up to including 19.</p>
 </div>
 </div>
 <div class="section" id="items">
-<span id="id37"></span><h2><span class="section-number">2.22. </span>Items<a class="headerlink" href="#items" title="Permalink to this headline">¶</a></h2>
+<span id="id39"></span><h2><span class="section-number">2.23. </span>Items<a class="headerlink" href="#items" title="Permalink to this headline">¶</a></h2>
 <dl class="get">
 <dt id="get--api-lists-(id)-items">
 <code class="sig-name descname">GET </code><code class="sig-name descname">/api/lists/</code><span class="sig-paren">(</span><em class="sig-param">id</em><span class="sig-paren">)</span><code class="sig-name descname">/items</code><a class="headerlink" href="#get--api-lists-(id)-items" title="Permalink to this definition">¶</a></dt>
@@ -1172,7 +1175,7 @@ the items from index 10 up to including 19.</p>
 
 </div>
 <div class="section" id="item">
-<span id="id38"></span><h2><span class="section-number">2.23. </span>Item<a class="headerlink" href="#item" title="Permalink to this headline">¶</a></h2>
+<span id="id40"></span><h2><span class="section-number">2.24. </span>Item<a class="headerlink" href="#item" title="Permalink to this headline">¶</a></h2>
 <dl class="describe">
 <dt>
 <code class="sig-name descname">id</code></dt>
@@ -1291,7 +1294,7 @@ returned.</p>
 </dd></dl>
 
 <div class="section" id="assignees">
-<span id="itemassignees"></span><h3><span class="section-number">2.23.1. </span>Assignees<a class="headerlink" href="#assignees" title="Permalink to this headline">¶</a></h3>
+<span id="itemassignees"></span><h3><span class="section-number">2.24.1. </span>Assignees<a class="headerlink" href="#assignees" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="#collection"><span class="std std-ref">Collection</span></a> of <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> s assigned to the item.</p>
 <dl class="get">
 <dt id="get--api-(resource-url)?slice">
@@ -1324,7 +1327,7 @@ the items from index 10 up to including 19.</p>
 
 </div>
 <div class="section" id="votes">
-<span id="itemvotes"></span><h3><span class="section-number">2.23.2. </span>Votes<a class="headerlink" href="#votes" title="Permalink to this headline">¶</a></h3>
+<span id="itemvotes"></span><h3><span class="section-number">2.24.2. </span>Votes<a class="headerlink" href="#votes" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="#collection"><span class="std std-ref">Collection</span></a> of <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> s who voted for the item, latest first.</p>
 <dl class="describe">
 <dt>
@@ -1415,11 +1418,12 @@ the items from index 10 up to including 19.</p>
 <li class="toctree-l2"><a class="reference internal" href="#errors">2.16. Errors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#listling">2.17. Listling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#user">2.18. User</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#settings">2.19. Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id30">2.20. Lists</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#list">2.21. List</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#items">2.22. Items</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#item">2.23. Item</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#users">2.19. Users</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#settings">2.20. Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id31">2.21. Lists</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#list">2.22. List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#items">2.23. Items</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#item">2.24. Item</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="pythonapi.html">3. Python API</a></li>
