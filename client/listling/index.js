@@ -113,12 +113,17 @@ listling.IntroPage = class extends micro.Page {
     }
 };
 
+/**
+ * List page.
+ *
+ * .. attribute:: activity
+ *
+ *    List :ref:`Activity` stream.
+ */
 listling.ListPage = class extends micro.Page {
     static async make(url, id) {
         let page = document.createElement("listling-list-page");
-        if (id !== "new") {
-            page.list = await ui.call("GET", `/api/lists/List:${id}`);
-        }
+        page.list = await ui.call("GET", `/api/lists/List:${id}`);
         return page;
     }
 
@@ -130,19 +135,19 @@ listling.ListPage = class extends micro.Page {
             lst: null,
             modes: ["collaborate", "view"],
             modeToText: (ctx, mode) => ({collaborate: "Collaborate", view: "View"}[mode]),
+            owners: null,
             presentItems: null,
             trashedItems: null,
             trashedItemsCount: 0,
             locations: null,
             locationEnabled: false,
+            valueFeature: false,
             editMode: true,
             trashExpanded: false,
             creatingItem: false,
             startCreateItem: this.startCreateItem.bind(this),
             settingsExpanded: false,
             share: listling.components.list.share,
-            presentation: new listling.components.list.Presentation(this),
-            presentationMode: false,
             quickNavigate: micro.keyboard.quickNavigate,
             playlist: null,
             playlistPlaying: null,
@@ -167,9 +172,10 @@ listling.ListPage = class extends micro.Page {
 
             edit: async() => {
                 try {
-                    await ui.call("POST", `/api/lists/${this._data.lst.id}`, {
+                    const list = await ui.call("POST", `/api/lists/${this._data.lst.id}`, {
                         title: this._form.elements.title.value,
                         description: this._form.elements.description.value,
+                        value_unit: this._form.elements["value-unit"].value || null,
                         features:
                             Array.from(this._form.elements.features, e => e.checked && e.value)
                                 .filter(feature => feature),
@@ -178,6 +184,7 @@ listling.ListPage = class extends micro.Page {
                     });
                     this._data.editMode = false;
                     this._replayEvents();
+                    this.activity.events.dispatchEvent({type: "editable-edit", object: list});
                 } catch (e) {
                     ui.handleCallError(e);
                 }
@@ -192,7 +199,7 @@ listling.ListPage = class extends micro.Page {
                 const op = this._data.lst.activity.user_subscribed ? "unsubscribe" : "subscribe";
                 if (op === "subscribe") {
                     const pushSubscription = await ui.service.pushManager.getSubscription();
-                    if (!pushSubscription || !ui.user.push_subscription) {
+                    if (!pushSubscription || !ui.device.push_subscription) {
                         const result = await ui.enableDeviceNotifications();
                         if (result === "error") {
                             return;
@@ -239,14 +246,23 @@ listling.ListPage = class extends micro.Page {
                 ol.children[i + (event.detail.dir === "up" ? -1 : 1)].focus();
             },
 
+            onValueFeatureChange: event => {
+                this._data.valueFeature = event.target.checked;
+            },
+
             may: (ctx, op, mode) => {
                 // eslint-disable-next-line no-underscore-dangle
                 const permissions = listling.ListPage._PERMISSIONS[mode || "view"];
-                return (
+                return Boolean(
                     permissions.user.has(op) ||
-                    this._data.lst && ui.user.id === this._data.lst.authors[0].id
+                    this._data.lst && this._data.lst.owners.user_owner
                 );
             }
+        });
+        Object.assign(this._data, {
+            presentation: new listling.components.list.Presentation(this),
+            presentationMode: false,
+            presentationShortURL: null
         });
         micro.bind.bind(this.children, this._data);
 
@@ -254,7 +270,7 @@ listling.ListPage = class extends micro.Page {
             this.classList.toggle("listling-list-has-trashed-items", this._data.trashedItemsCount);
             this.classList.toggle("listling-list-mode-view", !this._data.editMode);
             this.classList.toggle("listling-list-mode-edit", this._data.editMode);
-            for (let feature of ["check", "assign", "vote", "location", "play"]) {
+            for (let feature of ["check", "assign", "vote", "value", "location", "play"]) {
                 this.classList.toggle(
                     `listling-list-feature-${feature}`,
                     this._data.lst && this._data.lst.features.includes(feature)
@@ -269,8 +285,8 @@ listling.ListPage = class extends micro.Page {
             prop => this._data.watch(prop, updateClass));
         updateClass();
 
+        this.activity = null;
         this._items = null;
-        this._activity = null;
         this._eventBuffer = [];
         this._form = this.querySelector("form");
         this._itemsOL = this.querySelector(".listling-list-items");
@@ -283,25 +299,30 @@ listling.ListPage = class extends micro.Page {
         ui.addEventListener("list-items-move", this);
 
         this.ready.when((async() => {
-            try {
+            const setUpItems = async() => {
                 const items = await ui.call("GET", `/api/lists/${this._data.lst.id}/items`);
                 this._items = new micro.bind.Watchable(items);
+            };
+            try {
+                await Promise.all([this._data.owners.fetch(), setUpItems()]);
             } catch (e) {
                 ui.handleCallError(e);
                 return;
             }
 
-            this._activity =
+            this.activity =
                 await micro.Activity.open(`/api/lists/${this._data.lst.id}/activity/stream`);
-            this._activity.events.addEventListener(
-                "list-create-item", event => this._items.push(event.detail.event.detail.item)
-            );
+            this.activity.events.addEventListener("list-create-item", event => {
+                if (!this._items.find(item => item.id === event.detail.event.detail.item.id)) {
+                    this._items.push(event.detail.event.detail.item);
+                }
+            });
             const events = [
                 "editable-edit", "trashable-trash", "trashable-restore", "item-check",
                 "item-uncheck"
             ];
             for (let type of events) {
-                this._activity.events.addEventListener(type, event => {
+                this.activity.events.addEventListener(type, event => {
                     const object = event.detail.event.object;
                     let li;
                     let i;
@@ -373,8 +394,8 @@ listling.ListPage = class extends micro.Page {
         ui.shortcutContext.remove("G");
         ui.shortcutContext.remove("C");
         ui.removeEventListener("list-items-move", this);
-        if (this._activity) {
-            this._activity.close();
+        if (this.activity) {
+            this.activity.close();
         }
         this._data.presentation.exit().catch(micro.util.catch);
         if (this._data.playlist) {
@@ -394,8 +415,10 @@ listling.ListPage = class extends micro.Page {
         }
 
         this._data.lst = value;
+        this._data.owners = new micro.Collection(`/api/lists/${this._data.lst.id}/owners`);
         this._data.locationEnabled =
             Boolean(ui.mapServiceKey) && this._data.lst.features.includes("location");
+        this._data.valueFeature = value.features.includes("value");
         this._data.editMode = !this._data.lst;
         this.caption = this._data.lst.title;
         ui.url = listling.util.makeListURL(this._data.lst) + location.hash;
@@ -408,16 +431,16 @@ listling.ListPage = class extends micro.Page {
     /**
      * Start to create an :ref:`Item` via editor.
      *
-     * *title*, *text*, *resource* and *location* correspond to the arguments of
+     * *title*, *text*, *resource*, *value* and *location* correspond to the arguments of
      * :meth:`ItemElement.startEdit`. *text* defaults to :attr:`list` *item_template*.
      */
-    startCreateItem({title = null, text, resource = null, location = null} = {}) {
+    startCreateItem({title = null, text, resource = null, value = null, location = null} = {}) {
         if (text === undefined) {
             text = this._data.lst.item_template;
         }
         this._data.creatingItem = true;
         const elem = this.querySelector(".listling-list-create-item [is=listling-item]");
-        elem.startEdit({title, text, resource, location});
+        elem.startEdit({title, text, resource, value, location});
         elem.scrollIntoView(false);
     }
 
@@ -451,7 +474,7 @@ listling.ListPage = class extends micro.Page {
         const events = this._eventBuffer;
         this._eventBuffer = [];
         for (let event of events) {
-            this._activity.events.dispatchEvent(event);
+            this.activity.events.dispatchEvent(event);
         }
     }
 };
@@ -488,16 +511,22 @@ listling.ItemElement = class extends HTMLLIElement {
             edit: async() => {
                 const input = this.querySelector("micro-content-input");
                 const {text, resource} = input.valueAsObject;
+                let value = this._form.elements.value.valueAsNumber;
+                if (isNaN(value)) {
+                    value = null;
+                }
                 const url = this._data.item
-                    ? `/api/lists/${ui.page.list.id}/items/${this._data.item.id}`
-                    : `/api/lists/${ui.page.list.id}/items`;
+                    ? `/api/lists/${this._data.lst.id}/items/${this._data.item.id}`
+                    : `/api/lists/${this._data.lst.id}/items`;
 
+                let item;
                 try {
-                    await ui.call("POST", url, {
+                    item = await ui.call("POST", url, {
                         text,
                         resource: resource && resource.url,
                         title: this._form.elements.title.value,
-                        location: this._form.elements.location.wrapper.value
+                        value,
+                        location: this._form.elements.location.wrapper.valueAsObject
                     });
                 } catch (e) {
                     if (
@@ -518,9 +547,13 @@ listling.ItemElement = class extends HTMLLIElement {
                     this._data.editMode = false;
                     // eslint-disable-next-line no-underscore-dangle
                     ui.page._replayEvents();
+                    this._activity.events.dispatchEvent({type: "editable-edit", object: item});
                 } else {
                     // Reset form
                     this._data.item = null;
+                    this._activity.events.dispatchEvent(
+                        {type: "list-create-item", object: this._data.lst, detail: {item}}
+                    );
                 }
                 if (this.onedit) {
                     this.onedit(new CustomEvent("edit"));
@@ -540,9 +573,10 @@ listling.ItemElement = class extends HTMLLIElement {
 
             trash: async() => {
                 try {
-                    await ui.call(
+                    const item = await ui.call(
                         "POST", `/api/lists/${ui.page.list.id}/items/${this._data.item.id}/trash`
                     );
+                    this._activity.events.dispatchEvent({type: "trashable-trash", object: item});
                 } catch (e) {
                     ui.handleCallError(e);
                 }
@@ -550,9 +584,10 @@ listling.ItemElement = class extends HTMLLIElement {
 
             restore: async() => {
                 try {
-                    await ui.call(
+                    const item = await ui.call(
                         "POST", `/api/lists/${ui.page.list.id}/items/${this._data.item.id}/restore`
                     );
+                    this._activity.events.dispatchEvent({type: "trashable-restore", object: item});
                 } catch (e) {
                     ui.handleCallError(e);
                 }
@@ -561,9 +596,10 @@ listling.ItemElement = class extends HTMLLIElement {
             checkUncheck: async() => {
                 const op = this._data.item.checked ? "uncheck" : "check";
                 try {
-                    await ui.call(
+                    const item = await ui.call(
                         "POST", `/api/lists/${this._data.lst.id}/items/${this._data.item.id}/${op}`
                     );
+                    this._activity.events.dispatchEvent({type: `item-${op}`, object: item});
                 } catch (e) {
                     ui.handleCallError(e);
                 }
@@ -578,9 +614,23 @@ listling.ItemElement = class extends HTMLLIElement {
             voteUnvote: async() => {
                 try {
                     if (this._data.votesMeta.user_voted) {
+                        const item = Object.assign(
+                            {}, this._data.item,
+                            {votes: {count: this._data.votesMeta.count - 1, user_voted: false}}
+                        );
                         await ui.call("DELETE", `${this._data.votes.url}/user`);
+                        this._activity.events.dispatchEvent(
+                            {type: "item-votes-unvote", object: item}
+                        );
                     } else {
+                        const item = Object.assign(
+                            {}, this._data.item,
+                            {votes: {count: this._data.votesMeta.count + 1, user_voted: true}}
+                        );
                         await ui.call("POST", this._data.votes.url);
+                        this._activity.events.dispatchEvent(
+                            {type: "item-votes-vote", object: item}
+                        );
                     }
                 } catch (e) {
                     ui.handleCallError(e);
@@ -601,15 +651,19 @@ listling.ItemElement = class extends HTMLLIElement {
             },
 
             hasContent: (ctx, item, lst, assigneesCount) =>
-                item && (item.text || item.resource || item.location) || lst &&
-                lst.features.includes("assign") && assigneesCount > 0,
+                item && lst && (
+                    item.text || item.resource ||
+                    lst.features.includes("value") && item.value !== null ||
+                    lst.features.includes("location") && item.location ||
+                    lst.features.includes("assign") && assigneesCount > 0
+                ),
 
             may: (ctx, op, mode) => {
                 // eslint-disable-next-line no-underscore-dangle
                 const permissions = listling.ListPage._PERMISSIONS[mode || "view"];
-                return (
+                return Boolean(
                     permissions.user.has(op) ||
-                    this._data.lst && ui.user.id === this._data.lst.authors[0].id
+                    this._data.lst && this._data.lst.owners.user_owner
                 );
             }
         });
@@ -653,7 +707,7 @@ listling.ItemElement = class extends HTMLLIElement {
         this.addEventListener("click", event => {
             if (
                 !this._data.expanded &&
-                !micro.findAncestor(event.target, elem => elem.tabIndex !== -1, this)
+                !micro.keyboard.findAncestor(event.target, elem => elem.tabIndex !== -1, this)
             ) {
                 this._data.expanded = true;
             }
@@ -671,17 +725,26 @@ listling.ItemElement = class extends HTMLLIElement {
     }
 
     attachedCallback() {
+        (async () => {
+            await ui.page.ready;
+            this._activity = ui.page.activity;
+        })().catch(micro.util.catch);
+
         if (!this._data.item) {
             return;
         }
-        // eslint-disable-next-line no-underscore-dangle
-        this._activity = ui.page._activity;
+        this._activity = ui.page.activity;
 
         this._data.assignees = new micro.bind.Watchable(this._data.item.assignees.items);
         this._data.assigneesCount = this._data.assignees.length;
 
         this._onAssign = event => {
-            if (event.detail.event.object.id === this._data.item.id) {
+            if (
+                event.detail.event.object.id === this._data.item.id &&
+                !this._data.assignees.find(
+                    assignee => assignee.id === event.detail.event.detail.assignee.id
+                )
+            ) {
                 this._data.assignees.unshift(event.detail.event.detail.assignee);
                 this._data.assigneesCount = this._data.assignees.length;
             }
@@ -712,7 +775,9 @@ listling.ItemElement = class extends HTMLLIElement {
         this._onVote = event => {
             if (event.detail.event.object.id === this._data.item.id) {
                 this._data.votesMeta = event.detail.event.object.votes;
-                this._data.votes.items.unshift(event.detail.event.user);
+                if (!this._data.votes.items.find(vote => vote.id === event.detail.event.user.id)) {
+                    this._data.votes.items.unshift(event.detail.event.user);
+                }
             }
         };
         this._activity.events.addEventListener("item-votes-vote", this._onVote);
@@ -795,11 +860,11 @@ listling.ItemElement = class extends HTMLLIElement {
     /**
      * Start to edit :attr:`item` via edit mode.
      *
-     * The form is populated with *title*, *text*, *resource* and *location*. *resource* may also be
-     * a URL or :class:`File` to attach. They default to the corresponding :attr:`item` attributes
-     * or ``null``.
+     * The form is populated with *title*, *text*, *resource*, *value* and *location*. *resource*
+     * may also be a URL or :class:`File` to attach. They default to the corresponding :attr:`item`
+     * attributes or ``null``.
      */
-    startEdit({title, text, resource, location} = {}) {
+    startEdit({title, text, resource, value, location} = {}) {
         if (title === undefined) {
             title = this._data.item && this._data.item.title;
         }
@@ -809,6 +874,9 @@ listling.ItemElement = class extends HTMLLIElement {
         if (resource === undefined) {
             resource = this._data.item && this._data.item.resource;
         }
+        if (value === undefined) {
+            value = this._data.item && this._data.item.value;
+        }
         if (location === undefined) {
             location = this._data.item && this._data.item.location;
         }
@@ -816,6 +884,8 @@ listling.ItemElement = class extends HTMLLIElement {
         // Populate the form directly without data binding because attach() is used
         this._data.editMode = true;
         this._form.elements.title.value = title || "";
+        // Work around Safari not accepting NaN for valueAsNumber
+        this._form.elements.value.value = value === null ? "" : value.toString();
         this.querySelector("micro-location-input").valueAsObject = location;
         const contentInput = this.querySelector("micro-content-input");
         if (typeof resource === "string" || resource instanceof File) {
@@ -826,6 +896,11 @@ listling.ItemElement = class extends HTMLLIElement {
         }
         this._form.elements.title.focus();
     }
+};
+
+/** Test if *a* and *b* are (strictly) unequal. */
+micro.bind.transforms.neq = function(ctx, a, b) {
+    return a !== b;
 };
 
 document.registerElement("listling-ui", {prototype: listling.UI.prototype, extends: "body"});

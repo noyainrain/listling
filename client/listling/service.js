@@ -36,6 +36,13 @@ listling.service = {};
  */
 listling.service.Service = class extends micro.service.Service {
     constructor() {
+        addEventListener("fetch", event => {
+            const url = new URL(event.request.url);
+            if (url.origin === location.origin && url.pathname.match(/^\/s(\/.*)?$/u)) {
+                event.respondWith(fetch(event.request));
+            }
+        });
+
         super();
 
         async function renderItemNotification(event, body) {
@@ -56,6 +63,22 @@ listling.service.Service = class extends micro.service.Service {
                     url: listling.util.makeListURL(event.object)
                 };
             },
+            "object-owners-grant"(event) {
+                return {
+                    title: event.object.title,
+                    body: `${micro.util.truncate(event.user.name)} granted ownership to ${micro.util.truncate(event.owner.name)}`,
+                    url: listling.util.makeListURL(event.object)
+                };
+            },
+            "object-owners-revoke"(event) {
+                return {
+                    title: event.object.title,
+                    body: event.user.id === event.owner.id
+                        ? `${micro.util.truncate(event.user.name)} revoked their ownership`
+                        : `${micro.util.truncate(event.user.name)} revoked ownership from ${micro.util.truncate(event.owner.name)}`,
+                    url: listling.util.makeListURL(event.object)
+                };
+            },
             "list-create-item"(event) {
                 return {
                     title: event.object.title,
@@ -63,6 +86,7 @@ listling.service.Service = class extends micro.service.Service {
                     url: listling.util.makeListURL(event.object)
                 };
             },
+
             "editable-edit+Item": event => renderItemNotification(event, '{user} edited "{item}"'),
             "trashable-trash+Item":
                 event => renderItemNotification(event, '{user} trashed "{item}"'),

@@ -122,7 +122,7 @@ listling.components.list.AssignDialog = class extends HTMLElement {
                         e instanceof micro.APIError && e.error.__type__ === "ValueError" &&
                         e.message.includes("assignees")
                     ) {
-                        // Ignore if user has already been assigned
+                        // Continue as usual to update the UI
                     } else {
                         throw e;
                     }
@@ -130,6 +130,11 @@ listling.components.list.AssignDialog = class extends HTMLElement {
                 this._input.value = "";
                 this._input.valueAsObject = null;
                 this.querySelector("micro-options").activate();
+                ui.page.activity.events.dispatchEvent({
+                    type: "item-assignees-assign",
+                    object: this._data.itemElement.item,
+                    detail: {assignee}
+                });
             },
 
             remove: async assignee => {
@@ -140,11 +145,16 @@ listling.components.list.AssignDialog = class extends HTMLElement {
                     );
                 } catch (e) {
                     if (e instanceof micro.APIError && e.error.__type__ === "NotFoundError") {
-                        // Ignore if user has already been unassigned
+                        // Continue as usual to update the UI
                     } else {
                         throw e;
                     }
                 }
+                ui.page.activity.events.dispatchEvent({
+                    type: "item-assignees-unassign",
+                    object: this._data.itemElement.item,
+                    detail: {assignee}
+                });
             },
 
             close: () => this.remove(),
@@ -193,9 +203,12 @@ document.registerElement("listling-assign-dialog", listling.components.list.Assi
 listling.components.list.Presentation = class {
     constructor(page) {
         this.page = page;
+        // eslint-disable-next-line no-underscore-dangle
+        this._data = this.page._data;
         this._em = null;
         this._maxWidth = null;
         this._onScrollTimeout = null;
+        this._shortURLUpdate = null;
     }
 
     /** Enter presentation mode. */
@@ -282,9 +295,36 @@ listling.components.list.Presentation = class {
             );
         }
 
+        this._shortURLUpdate = micro.util.abortable(async signal => {
+            while (!signal.aborted) {
+                let response = null;
+                try {
+                    // eslint-disable-next-line no-await-in-loop
+                    response = await fetch(
+                        "/s", {method: "POST", body: listling.util.makeListURL(this.page.list)}
+                    );
+                } catch (e) {
+                    if (!(e instanceof TypeError)) {
+                        throw e;
+                    }
+                }
+                if (signal.aborted) {
+                    break;
+                }
+
+                let timeout = 60 * 1000;
+                if (response) {
+                    this._data.presentationShortURL =
+                        `${location.host}${response.headers.get("Location")}`;
+                    timeout = 24 * 60 * 60 * 1000;
+                }
+                // eslint-disable-next-line no-await-in-loop
+                await new Promise(resolve => setTimeout(resolve, timeout));
+            }
+        })();
+
         ui.noninteractive = true;
-        // eslint-disable-next-line no-underscore-dangle
-        this.page._data.presentationMode = true;
+        this._data.presentationMode = true;
         this._zoom();
         document.scrollingElement.classList.add("listling-list-scroll-snap");
     }
@@ -296,10 +336,12 @@ listling.components.list.Presentation = class {
         }
 
         ui.noninteractive = false;
-        // eslint-disable-next-line no-underscore-dangle
-        this.page._data.presentationMode = false;
+        this._data.presentationMode = false;
         this._resetZoom();
         document.documentElement.classList.remove("listling-list-scroll-snap");
+
+        this._shortURLUpdate.abort();
+        this._data.presentationShortURL = null;
 
         document.documentElement.removeEventListener("fullscreenchange", this._onFullscreenChange);
         removeEventListener("resize", this._onResize);

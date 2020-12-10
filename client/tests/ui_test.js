@@ -121,6 +121,8 @@ describe("UI", function() {
         await input.sendKeys("Cat colony tasks");
         await form.findElement({name: "description"}).sendKeys("What has to be done!");
         await form.findElement({css: "[name=features][value=vote]"}).click();
+        await form.findElement({css: "[name=features][value=value]"}).click();
+        await form.findElement({name: "value-unit"}).sendKeys("min");
         await form.findElement({css: "[name=features][value=play]"}).click();
         await form.findElement({css: "button:not([type])"}).click();
         await browser.wait(
@@ -133,6 +135,7 @@ describe("UI", function() {
         await browser.executeScript(() => scroll(0, document.scrollingElement.scrollHeight));
         form = await browser.findElement({css: ".listling-list-create-item form"});
         await form.findElement({name: "title"}).sendKeys("Sleep");
+        await form.findElement({name: "value"}).sendKeys("45");
         await form.findElement({css: ".micro-content-input-text"}).sendKeys("Very important!");
         // Work around Safari 13 missing elements on click (see
         // https://bugs.webkit.org/show_bug.cgi?id=202589)
@@ -151,6 +154,7 @@ describe("UI", function() {
         input = await form.findElement({name: "title"});
         await input.clear();
         await input.sendKeys("Research");
+        await form.findElement({name: "value"}).sendKeys("15");
         await form.findElement({css: "button:not([type])"}).click();
         await browser.wait(untilElementTextLocated({css: "[is=listling-item] h1"}, "Research"),
                            timeout);
@@ -232,13 +236,21 @@ describe("UI", function() {
         expect(text).to.equal("Pause");
 
         // Play next of list
-        await browser.findElement({css: ".listling-list-play-next"}).click();
+        // Work around Safari 13 missing elements on click (see
+        // https://bugs.webkit.org/show_bug.cgi?id=202589)
+        await browser.executeScript(
+            () => document.querySelector(".listling-list-play-next").click()
+        );
         item = await browser.findElement({css: "[is=listling-item]:nth-child(3)"});
         text = await readItemPlayPause(item);
         expect(text).to.equal("Pause");
 
         // Pause list
-        await browser.findElement({css: ".listling-list-play-pause"}).click();
+        // Work around Safari 13 missing elements on click (see
+        // https://bugs.webkit.org/show_bug.cgi?id=202589)
+        await browser.executeScript(
+            () => document.querySelector(".listling-list-play-pause").click()
+        );
         text = await readItemPlayPause(item);
         expect(text).to.equal("Play");
 

@@ -15,12 +15,12 @@
                                 <span
                                     data-content="formatPlural '{n} item' '{n} items' 'n' lst.items.count"
                                 ></span>
-                                <span data-content="switch lst.authors.0.id user.id">
+                                <span data-content="switch lst.owners.user_owner">
                                     <template>· <i class="fa fa-user-cog"></i> Owner</template>
                                 </span>
                             </small>
                         </a>
-                        <div data-content="switch lst.authors.0.id user.id">
+                        <div data-content="switch lst.owners.user_owner">
                             <template></template>
                             <template>
                                 <button class="link"><i class="fa fa-bars"></i></button>

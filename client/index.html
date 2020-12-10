@@ -282,42 +282,61 @@
                         </button>
                     </header>
 
-                    <fieldset>
-                        <legend>Features</legend>
-                        <label>
-                            <input type="checkbox" name="features" value="check"
-                                   data-checked="includes lst.features 'check'" />
-                            Check items
-                        </label>
-                        <label>
-                            <input
-                                type="checkbox" name="features" value="assign"
-                                data-checked="includes lst.features 'assign'"
-                            />
-                            Assign to items
-                        </label>
-                        <label>
-                            <input
-                                type="checkbox" name="features" value="vote"
-                                data-checked="includes lst.features 'vote'"
-                            />
-                            Vote for items
-                        </label>
-                        <label class="listling-list-features-location">
-                            <input
-                                type="checkbox" name="features" value="location"
-                                data-checked="includes lst.features 'location'"
-                            />
-                            Item location
-                        </label>
-                        <label>
-                            <input
-                                type="checkbox" name="features" value="play"
-                                data-checked="includes lst.features 'play'"
-                            />
-                            Play list
-                        </label>
-                    </fieldset>
+                    <label class="micro-block">
+                        <input
+                            type="checkbox" name="features" value="check"
+                            data-checked="includes lst.features 'check'"
+                        />
+                        Items can be checked
+                    </label>
+
+                    <label class="micro-block">
+                        <input
+                            type="checkbox" name="features" value="assign"
+                            data-checked="includes lst.features 'assign'"
+                        />
+                        Items can be assigned
+                    </label>
+
+                    <label class="micro-block">
+                        <input
+                            type="checkbox" name="features" value="vote"
+                            data-checked="includes lst.features 'vote'"
+                        />
+                        Items can be voted for
+                    </label>
+
+                    <label class="micro-block">
+                        <input
+                            type="checkbox" name="features" value="value"
+                            data-checked="valueFeature" data-onchange="onValueFeatureChange"
+                        />
+                        Items have an associated value
+                    </label>
+
+                    <label data-class-micro-disabled="not valueFeature">
+                        <small>Value unit (optional)</small>
+                        <input
+                            name="value-unit" data-disabled="not valueFeature"
+                            data-value="lst.value_unit"
+                        />
+                    </label>
+
+                    <label class="listling-list-features-location micro-block">
+                        <input
+                            type="checkbox" name="features" value="location"
+                            data-checked="includes lst.features 'location'"
+                        />
+                        Items have a location
+                    </label>
+
+                    <label class="micro-block">
+                        <input
+                            type="checkbox" name="features" value="play"
+                            data-checked="includes lst.features 'play'"
+                        />
+                        List can be played
+                    </label>
 
                     <label>
                         <small>List mode</small>
@@ -419,10 +438,12 @@
 
         <aside class="listling-list-mode-view micro-interactive">
             <i class="fa fa-user-cog"></i> List by
-            <micro-user data-user="lst.authors.0"></micro-user> · <i class="fa fa-pencil-alt"></i>
-            Edited by
-            <span data-content="join lst.authors 'user'">
-                <template><micro-user data-user="user"></micro-user></template>
+            <span data-content="list owners.items 'user'">
+                <template><span><micro-user data-user="user"></micro-user> </span></template>
+            </span>
+            · <i class="fa fa-pencil-alt"></i> Edited by
+            <span data-content="list lst.authors 'user'">
+                <template><span><micro-user data-user="user"></micro-user> </span></template>
             </span>
         </aside>
 
@@ -471,6 +492,13 @@
                 >
                     <i class="fa fa-fw fa-step-forward"></i>
                 </button>
+                <p class="micro-panel-main">
+                    <span data-content="switch presentationShortURL">
+                        <template>
+                            Join at <span data-content="presentationShortURL"></span>
+                        </template>
+                    </span>
+                </p>
                 <div class="listling-list-exit-presentation" data-content="switch presentationMode">
                     <template>
                         <button
@@ -514,6 +542,10 @@
 
         .listling-list-settings {
             border-top: 1px solid var(--micro-color-delimiter);
+        }
+
+        .listling-list-settings label {
+            margin: var(--micro-size-s) 0;
         }
 
         .listling-list-items,
@@ -565,10 +597,6 @@
             background: white;
         }
 
-        .listling-list-exit-presentation {
-            margin-left: auto;
-        }
-
         listling-list-page:not(.listling-list-mode-view) .listling-list-mode-view,
         listling-list-page:not(.listling-list-mode-edit) .listling-list-mode-edit,
         listling-list-page:not(.listling-list-may-modify) .listling-list-create-item-top,
@@ -598,6 +626,7 @@
 
     <template class="listling-item-template">
         <form
+            data-class-listling-item-has-value="neq item.value null"
             data-class-listling-item-has-content="hasContent item lst assigneesCount"
             data-class-listling-item-votes-user-voted="votesMeta.user_voted"
             data-class-listling-item-expanded="expanded"
@@ -747,6 +776,20 @@
                 </p>
 
                 <dl class="listling-item-meta">
+                    <dt class="listling-item-value" title="Value">
+                        <i class="fa fa-calculator"></i>
+                    </dt>
+                    <dd class="micro-panel">
+                        <p class="micro-panel-main listling-item-mode-view">
+                            <span data-content="item.value"></span>
+                            <span data-content="lst.value_unit"><span>
+                        </p>
+                        <input
+                            class="micro-panel-main listling-item-mode-edit" name="value"
+                            type="number" step="any" placeholder="Value (optional)"
+                        />
+                        <p class="listling-item-mode-edit" data-content="lst.value_unit"></p>
+                    </dd>
                     <dt class="listling-item-location" title="Location">
                         <i class="fa fa-map-marker-alt"></i>
                     </dt>
@@ -908,12 +951,29 @@
             column-gap: 0;
         }
 
-        [is=listling-item].listling-item-mode-edit .listling-item-meta {
+        [is=listling-item].listling-item-mode-edit .listling-item-meta dt,
+        [is=listling-item].listling-item-mode-edit .listling-item-meta dd {
             border-bottom: 1px solid var(--micro-color-delimiter);
         }
 
         .listling-item-meta > dt {
             padding: var(--micro-size-s);
+        }
+
+        listling-list-page:not(.listling-list-feature-value) .listling-item-value,
+        listling-list-page:not(.listling-list-feature-value) .listling-item-value + dd,
+        [is=listling-item].listling-item-mode-view > form:not(.listling-item-has-value) .listling-item-value,
+        [is=listling-item].listling-item-mode-view > form:not(.listling-item-has-value) .listling-item-value + dd {
+            display: none;
+        }
+
+        body:not(.micro-ui-map-service-enabled) .listling-item-location,
+        body:not(.micro-ui-map-service-enabled) .listling-item-location + dd,
+        listling-list-page:not(.listling-list-feature-location) .listling-item-location,
+        listling-list-page:not(.listling-list-feature-location) .listling-item-location + dd,
+        [is=listling-item].listling-item-mode-view:not(.listling-item-has-location) .listling-item-location,
+        [is=listling-item].listling-item-mode-view:not(.listling-item-has-location) .listling-item-location + dd {
+            display: none;
         }
 
         .listling-item-resource > *,
@@ -945,9 +1005,6 @@
         [is=listling-item]:not(.listling-item-may-modify) .listling-item-edit,
         [is=listling-item]:not(.listling-item-may-modify) .listling-item-trash,
         [is=listling-item].listling-item-trashed .listling-item-menu,
-        body:not(.micro-ui-map-service-enabled) .listling-item-meta,
-        listling-list-page:not(.listling-list-feature-location) .listling-item-meta,
-        [is=listling-item].listling-item-mode-view:not(.listling-item-has-location) .listling-item-meta,
         [is=listling-item].listling-item-has-location-coords .listling-item-location + dd p,
         [is=listling-item]:not(.listling-item-has-location-coords) .listling-item-location + dd .link {
             display: none;

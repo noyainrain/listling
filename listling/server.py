@@ -18,19 +18,29 @@
 
 """Open Listling server."""
 
+from datetime import timedelta
 from http import HTTPStatus
 import json
+from typing import Callable, Dict, List, Optional
+from urllib.parse import urlsplit
 
-import micro
+from tornado.web import HTTPError, RequestHandler
+
 from micro import Location, error
-from micro.server import (Endpoint, CollectionEndpoint, Server, UI, make_activity_endpoints,
-                          make_orderable_endpoints, make_trashable_endpoints)
-from micro.util import Expect, ON
+from micro.jsonredis import script
+from micro.ratelimit import RateLimit, RateLimitError
+from micro.server import (
+    Endpoint, CollectionEndpoint, Handler, Server, UI, make_activity_endpoints,
+    make_orderable_endpoints, make_trashable_endpoints)
+from micro.util import Expect, randstr
 
 from . import Listling
+from .list import Owners
 
-def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='', files_path='data',
-                video_service_keys={}, client_map_service_key=None):
+def make_server(
+        *, port: int = 8080, url: str = None, debug: bool = False, redis_url: str = '',
+        smtp_url: str = '', files_path: str = 'data', video_service_keys: Dict[str, str] = {},
+        client_map_service_key: Optional[str] = None) -> Server:
     """Create an Open Listling server."""
     app = Listling(redis_url=redis_url, smtp_url=smtp_url, files_path=files_path,
                    video_service_keys=video_service_keys)
@@ -41,6 +51,7 @@ def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='', 
         (r'/api/lists$', _ListsEndpoint),
         (r'/api/lists/create-example$', _ListsCreateExampleEndpoint),
         (r'/api/lists/([^/]+)$', _ListEndpoint),
+        *_make_owners_endpoints(r'/api/lists/([^/]+)/owners', lambda id: app.lists[id].owners),
         (r'/api/lists/([^/]+)/users$', _ListUsersEndpoint),
         (r'/api/lists/([^/]+)/items$', _ListItemsEndpoint),
         *make_orderable_endpoints(r'/api/lists/([^/]+)/items', lambda id: app.lists[id].items),
@@ -56,6 +67,8 @@ def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='', 
         (r'/api/lists/([^/]+)/items/([^/]+)/votes', _ItemVotesEndpoint),
         (r'/api/lists/([^/]+)/items/([^/]+)/votes/user', _ItemVoteEndpoint),
         # UI
+        (r'/s$', _Shorts),
+        (r'/s/(.*)$', _Short),
         (r'/lists/([^/]+)(?:/[^/]+)?$', _ListPage)
     ]
     return Server(app, handlers, port=port, url=url, debug=debug, client_config={
@@ -71,23 +84,25 @@ def make_server(*, port=8080, url=None, debug=False, redis_url='', smtp_url='', 
     })
 
 class _UserListsEndpoint(CollectionEndpoint):
+    app: Listling
+
     def initialize(self):
         super().initialize(
             get_collection=lambda id: self.app.users[id].lists.read(user=self.current_user))
 
-    def post(self, id):
-        args = self.check_args({'list_id': str})
-        list_id = args.pop('list_id')
-        try:
-            args['lst'] = self.app.lists[list_id]
-        except KeyError:
-            raise micro.ValueError('No list {}'.format(list_id))
+    def post(self, id: str) -> None:
         lists = self.get_collection(id)
-        lists.add(**args)
+        try:
+            lst = self.app.lists[self.get_arg('list_id', Expect.str)]
+        except KeyError as e:
+            raise error.ValueError(f'No list {e}') from e
+        lists.add(lst)
         self.write({})
 
 class _UserListEndpoint(Endpoint):
-    def delete(self, id, list_id):
+    app: Listling
+
+    def delete(self, id: str, list_id: str) -> None:
         lists = self.app.users[id].lists
         lst = lists[list_id]
         lists.remove(lst)
@@ -107,11 +122,13 @@ class _ListsCreateExampleEndpoint(Endpoint):
         self.write(lst.json(restricted=True, include=True))
 
 class _ListEndpoint(Endpoint):
+    app: Listling
+
     def get(self, id):
         lst = self.app.lists[id]
         self.write(lst.json(restricted=True, include=True))
 
-    def post(self, id):
+    async def post(self, id: str) -> None:
         lst = self.app.lists[id]
         args = self.check_args({
             'title': (str, 'opt'),
@@ -120,8 +137,33 @@ class _ListEndpoint(Endpoint):
             'mode': (str, 'opt'),
             'item_template': (str, None, 'opt')
         })
-        lst.edit(**args)
+        if 'value_unit' in self.args:
+            args['value_unit'] = self.get_arg('value_unit', Expect.opt(Expect.str))
+        await lst.edit(**args)
         self.write(lst.json(restricted=True, include=True))
+
+def _make_owners_endpoints(url: str, get_owners: Callable[..., Owners]) -> List[Handler]:
+    return [(fr'{url}$', _OwnersEndpoint, {'get_collection': get_owners}),
+            (fr'{url}/([^/]+)$', _OwnerEndpoint, {'get_owners': get_owners})]
+
+class _OwnersEndpoint(CollectionEndpoint):
+    def post(self, *args: str) -> None:
+        owners = self.get_collection(*args)
+        try:
+            user = self.app.users[self.get_arg('user_id', Expect.str)]
+        except KeyError as e:
+            raise error.ValueError(f'No user {e}') from e
+        owners.grant(user)
+
+class _OwnerEndpoint(Endpoint):
+    def initialize(self, *, get_owners: Callable[..., Owners]) -> None: # type: ignore[override]
+        super().initialize()
+        self.get_owners = get_owners
+
+    def delete(self, *args: str) -> None:
+        owners = self.get_owners(*args[:-1])
+        user = owners[args[-1]]
+        owners.revoke(user)
 
 class _ListUsersEndpoint(Endpoint):
     def get(self, id):
@@ -131,6 +173,8 @@ class _ListUsersEndpoint(Endpoint):
         self.write({'items': [user.json(restricted=True, include=True) for user in users]})
 
 class _ListItemsEndpoint(Endpoint):
+    app: Listling
+
     def get(self, id):
         lst = self.app.lists[id]
         self.write(
@@ -138,7 +182,7 @@ class _ListItemsEndpoint(Endpoint):
                 [item.json(restricted=True, include=True, rewrite=self.server.rewrite)
                  for item in lst.items[:]]))
 
-    async def post(self, id):
+    async def post(self, id: str) -> None:
         lst = self.app.lists[id]
         args = self.check_args({
             'text': (str, None, 'opt'),
@@ -148,20 +192,23 @@ class _ListItemsEndpoint(Endpoint):
         })
         if args.get('resource') is not None:
             args['resource'] = self.server.rewrite(args['resource'], reverse=True)
+        value = self.get_arg('value', Expect.opt(Expect.float), default=None)
         if args.get('location') is not None:
             try:
                 args['location'] = Location.parse(args['location'])
-            except TypeError:
-                raise micro.ValueError('bad_location_type')
-        item = await lst.items.create(**args)
+            except TypeError as e:
+                raise error.ValueError('bad_location_type') from e
+        item = await lst.items.create(value=value, **args)
         self.write(item.json(restricted=True, include=True, rewrite=self.server.rewrite))
 
 class _ItemEndpoint(Endpoint):
+    app: Listling
+
     def get(self, list_id, id):
         item = self.app.lists[list_id].items[id]
         self.write(item.json(restricted=True, include=True, rewrite=self.server.rewrite))
 
-    async def post(self, list_id, id):
+    async def post(self, list_id: str, id: str) -> None:
         item = self.app.lists[list_id].items[id]
         args = self.check_args({
             'text': (str, None, 'opt'),
@@ -171,12 +218,14 @@ class _ItemEndpoint(Endpoint):
         })
         if args.get('resource') is not None:
             args['resource'] = self.server.rewrite(args['resource'], reverse=True)
+        if 'value' in self.args:
+            args['value'] = self.get_arg('value', Expect.opt(Expect.float))
         if args.get('location') is not None:
             try:
                 args['location'] = Location.parse(args['location'])
-            except TypeError:
-                raise micro.ValueError('bad_location_type')
-        await item.edit(asynchronous=ON, **args)
+            except TypeError as e:
+                raise error.ValueError('bad_location_type') from e
+        await item.edit(**args)
         self.write(item.json(restricted=True, include=True, rewrite=self.server.rewrite))
 
 class _ItemCheckEndpoint(Endpoint):
@@ -201,8 +250,8 @@ class _ItemAssigneesEndpoint(CollectionEndpoint):
         try:
             assignee_id = self.get_arg('assignee_id', Expect.str)
             assignee = self.app.users[assignee_id]
-        except KeyError:
-            raise error.ValueError('No assignee {}'.format(assignee_id))
+        except KeyError as e:
+            raise error.ValueError(f'No assignee {assignee_id}') from e
         assignees.assign(assignee)
         self.set_status(HTTPStatus.CREATED)
         self.write({})
@@ -230,6 +279,43 @@ class _ItemVoteEndpoint(Endpoint):
         votes = self.app.lists[list_id].items[id].votes
         votes.unvote()
         self.write({})
+
+class _Shorts(RequestHandler):
+    def post(self) -> None:
+        try:
+            url = self.request.body.decode()
+        except UnicodeDecodeError as e:
+            raise HTTPError(HTTPStatus.BAD_REQUEST) from e
+        # Relative URL may produce redirect loop
+        components = urlsplit(url)
+        if not (components.scheme or components.netloc or components.path.startswith('/')):
+            raise HTTPError(HTTPStatus.BAD_REQUEST)
+
+        # Choose short length n such that (1 - (1 - s / 26 ** n) ** r) <= p, where the probability
+        # to find any short p = 1‰, the presumed number of active shorts s = 50 and the rate limit
+        # r = 100
+        short = randstr(5)
+        f = script(self.application.settings['server'].app.r, """
+            local key, url = KEYS[1], ARGV[1]
+            redis.call('SET', key, url)
+            redis.call('EXPIRE', key, 24 * 60 * 60)
+        """)
+        f([f'short:{short}'], [url])
+        self.set_status(HTTPStatus.CREATED)
+        self.set_header('Location', f'/s/{short}')
+
+class _Short(RequestHandler):
+    def get(self, short: str) -> None:
+        app = self.application.settings['server'].app
+        try:
+            app.rate_limiter.count(RateLimit('shorts.get', 100, timedelta(days=1)),
+                                   self.request.remote_ip)
+        except RateLimitError as e:
+            raise HTTPError(HTTPStatus.TOO_MANY_REQUESTS) from e
+        url = app.r.get(f'short:{short}')
+        if not url:
+            raise HTTPError(HTTPStatus.NOT_FOUND)
+        self.redirect(url, permanent=True)
 
 class _ListPage(UI):
     def get_meta(self, *args: str):
