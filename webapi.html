@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>2. Web API &#8212; Open Listling 0.37.1 documentation</title>
+    <title>2. Web API &#8212; Open Listling 0.38.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -202,6 +202,7 @@ returned.</p>
 <dt id="get--api-devices-(id)">
 <code class="sig-name descname">GET </code><code class="sig-name descname">/api/devices/</code><span class="sig-paren">(</span><em class="sig-param">id</em><span class="sig-paren">)</span><a class="headerlink" href="#get--api-devices-(id)" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the <a class="reference internal" href="#device"><span class="std std-ref">Device</span></a> with <em>id</em>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">self</span></code> refers to the authenticated user device.</p>
 <p>Permission: Device owner.</p>
 </dd></dl>
 
@@ -923,14 +924,11 @@ with <em>list_id</em>, a <a class="reference internal" href="#valueerror"><span 
 <dl class="post">
 <dt id="post--api-lists">
 <code class="sig-name descname">POST </code><code class="sig-name descname">/api/lists</code><a class="headerlink" href="#post--api-lists" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="docutils literal notranslate"><span class="pre">{&quot;use_case&quot;:</span> <span class="pre">&quot;simple&quot;,</span> <span class="pre">&quot;v&quot;:</span> <span class="pre">2}</span></code></p>
+<dd><p><code class="docutils literal notranslate"><span class="pre">{&quot;use_case&quot;:</span> <span class="pre">&quot;simple&quot;}</span></code></p>
 <p>Create a <a class="reference internal" href="#list"><span class="std std-ref">List</span></a> for the given <em>use_case</em> and return it.</p>
 <p>Available <em>use_case</em> s are <code class="docutils literal notranslate"><span class="pre">simple</span></code>, <code class="docutils literal notranslate"><span class="pre">todo</span></code>, <code class="docutils literal notranslate"><span class="pre">poll</span></code>, <code class="docutils literal notranslate"><span class="pre">shopping</span></code>, <code class="docutils literal notranslate"><span class="pre">meeting-agenda</span></code>,
 <code class="docutils literal notranslate"><span class="pre">playlist</span></code> and <code class="docutils literal notranslate"><span class="pre">map</span></code>.</p>
 <p>Permission: Authenticated users.</p>
-<div class="deprecated">
-<p><span class="versionmodified deprecated">Deprecated since version 0.22.0: </span>Endpoint version <em>v</em>.</p>
-</div>
 </dd></dl>
 
 <dl class="post">
@@ -1446,7 +1444,7 @@ the items from index 10 up to including 19.</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2019 Open Listling contributors.
+      &copy;2020 Open Listling contributors.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
