@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
 import json
 from redis.exceptions import ResponseError
 from time import time
@@ -131,11 +132,10 @@ _EXAMPLE_DATA = {
 class Listling(Application):
     """See :ref:`Listling`."""
 
-    class Lists:
+    class Lists(Collection['List']):
         """See :ref:`Lists`."""
 
-        def __init__(self, app: Application) -> None:
-            self.app = app
+        app: Listling
 
         def create(self, use_case: str = 'simple', *, v: int = 2) -> List:
             """See :http:post:`/api/lists`."""
@@ -158,7 +158,7 @@ class Listling(Application):
             self.app.r.oset(lst.id, lst)
             self.app.r.zadd(f'{lst.id}.owners', {user.id.encode(): -now})
             self.app.r.zadd(f'{lst.id}.users', {user.id.encode(): -now})
-            self.app.r.rpush('lists', lst.id)
+            self.app.r.rpush(self.ids.key, lst.id)
             user.lists.add(lst)
             self.app.activity.publish(
                 Event.create('create-list', None, {'lst': lst}, app=self.app))
@@ -189,38 +189,6 @@ class Listling(Application):
                     item.votes.vote()
             return lst
 
-        def __getitem__(self, key: str) -> List:
-            if not key.startswith('List:'):
-                raise KeyError(key)
-            f = script(self.app.r, """
-                local id = KEYS[1]
-                local user_id = ARGV[1]
-                local list = redis.call("GET", id)
-                if list then
-                    local object = cjson.decode(list)
-                    if object["trashed"] and object["authors"][1] ~= user_id then
-                        return
-                    end
-                end
-                return list
-            """)
-            lst = f([key], [context.user.get().id])
-            if not lst:
-                raise KeyError(key)
-            return List(app=self.app, **json.loads(lst))
-
-    class Items:
-        def __init__(self, app: Application) -> None:
-            self.app = app
-
-        def __getitem__(self, key: str) -> Item:
-            if not key.startswith('Item:'):
-                raise KeyError()
-            item = self.app.r.get(key)
-            if not item:
-                raise KeyError(key)
-            return Item(app=self.app, **json.loads(item))
-
     def __init__(
             self, redis_url: str = '', email: str = 'bot@localhost', smtp_url: str = '',
             render_email_auth_message: Callable[[str, AuthRequest, str], str] = None, *,
@@ -230,14 +198,12 @@ class Listling(Application):
             render_email_auth_message=render_email_auth_message, files_path=files_path,
             video_service_keys=video_service_keys)
         self.types.update({'User': User, 'List': List, 'Item': Item, 'OwnersEvent': OwnersEvent})
-        self.lists = Listling.Lists(self)
-        # self.items = Collection(RedisSortedSet('items'), app=self)
-        self.items = Listling.Items(self)
+        self.lists = Listling.Lists(RedisList('lists', self.r.r), app=self)
 
     def do_update(self) -> Dict[str, int]:
         version = self.r.get('version')
         if not version:
-            self.r.set('version', 10)
+            self.r.set('version', 9)
             return {}
 
         version = int(version)
@@ -272,19 +238,26 @@ class Listling(Application):
             r.omset({l["id"]: l for l in lists})
             r.set('version', 9)
 
-        # TODO: test
-        if version < 10:
-            lists = r.omget(r.lrange('lists', 0, -1))
-            for lst in lists:
-                lst['trashed'] = False
-            r.omset({lst["id"]: lst for lst in lists})
-            r.set('version', 10)
-
         list_updates = {}
         list_rel_updates = set()
         item_updates = {}
+
+        # Deprecated since TODO
+        list_of_user_ids = defaultdict(list)
+        user_ids = [id.decode() for id in r.lrange('users', 0, -1)]
+        for user_id in user_ids:
+            list_ids = [id.decode() for id in r.zrange(f'{user_id}.lists', 0, -1)]
+            for list_id in list_ids:
+                list_of_user_ids[list_id].append(user_id)
+
         lists = r.omget(r.lrange('lists', 0, -1), default=AssertionError)
         for lst in lists:
+            # Deprecated since TODO
+            if 'trashed' not in lst:
+                lst['trashed'] = False
+                r.sadd(f"{lst['id']}.of_users", *list_of_user_ids[cast(str, lst['id'])])
+                list_updates[cast(str, lst['id'])] = lst
+
             # Deprecated since 0.35.0
             if 'value_unit' not in lst:
                 lst['value_unit'] = None
@@ -319,36 +292,30 @@ class Listling(Application):
             push_vapid_public_key='')
 
     def file_references(self):
-        #lists = [
-        #    List(app=self, **json.loads(self.r.get(id))) for id in self.r.lrange('lists', 0, -1)]
-        # for lst in lists:
-        #    for item in lst.items[:]:
-        items = [Item(app=self, **json.loads(self.r.get(id))) for id in self.r.smembers('items')]
-        for item in items:
-            if item.resource and urlsplit(item.resource.url).scheme == 'file':
-                yield item.resource.url
+        for lst in self.lists[:]:
+            for item in lst.items[:]:
+                if item.resource and urlsplit(item.resource.url).scheme == 'file':
+                    yield item.resource.url
 
 class User(micro.User):
     """See :ref:`User`."""
 
     class Lists(Collection['List']):
         """See :ref:`UserLists`."""
-        # We use setattr / getattr to work around a Pylint error for Generic classes (see
-        # https://github.com/PyCQA/pylint/issues/2443)
 
         def __init__(self, user):
             super().__init__(RedisSortedSet('{}.lists'.format(user.id), user.app.r), app=user.app)
-            setattr(self, 'user', user)
+            self.user = user
 
         def add(self, lst: List) -> None:
             """See: :http:post:`/users/(id)/lists`."""
             if context.user.get() != getattr(self, 'user'):
                 raise error.PermissionError()
-
-            f = script(self.app.r, """
-                local user_id, list_id, t = ARGV[1], ARGV[2], ARGV[3]
-                redis.call("zadd", user_id .. ".lists", -t, list_id)
-                redis.call("sadd", list_id .. ".of_users", user_id)
+            # See also List._ListOwners.post_grant_script
+            f = script(self.app.r.r, """
+                local user_id, list_id, now = ARGV[1], ARGV[2], ARGV[3]
+                redis.call("ZADD", user_id .. ".lists", -now, list_id)
+                redis.call("SADD", list_id .. ".of_users", user_id)
             """)
             f([], [self.user.id, lst.id, time()])
 
@@ -449,7 +416,10 @@ class List(Object, Editable, Trashable):
             super().move(item, to)
 
     class _ListOwners(Owners):
-        post_grant_script = 'redis.call("ZADD", user_id .. ".lists", -now, object_id)'
+        post_grant_script = """
+            redis.call("ZADD", user_id .. ".lists", -now, object_id)
+            redis.call("SADD", object_id .. ".of_users", user_id)
+        """
 
     def __init__(self, *, app: Listling, **data: object) -> None:
         activity = Activity(cast(Dict[str, str], data['activity'])['id'], app,
@@ -513,24 +483,39 @@ class List(Object, Editable, Trashable):
         if 'item_template' in attrs:
             self.item_template = str_or_none(attrs['item_template'])
 
-    def delete(self):
-        # TODO finally remove list from {owner}.lists
-        f = script(self.app.r, """
-            local list_id = ARGV[1]
-            for _, item_id in ipairs(redis.call("lrange", list_id .. ".items", 0, -1)) do
-                redis.call("del", item_id, item_id .. ".assignees", item_id .. ".votes")
-                redis.call("srem", "items", item_id)
-            end
-            redis.call(
-                "del", list_id, list_id .. ".items", list_id .. ".users", list_id .. ".of_users",
-                list_id .. ".activity.items",
-                unpack(redis.call("lrange", list_id .. ".activity.items", 0, -1))
-            )
-            redis.call("lrem", "lists", 1, list_id)
-        """)
-        f([], [self.id])
+    def delete(self) -> None:
+        f = script(self.app.r.r, """
+            local list_id = KEYS[1]
 
-    def trash(self):
+            for _, user_id in ipairs(redis.call("SMEMBERS", list_id .. ".of_users")) do
+                redis.call("ZREM", user_id .. ".lists", list_id)
+            end
+
+            for _, item_id in ipairs(redis.call("LRANGE", list_id .. ".items", 0, -1)) do
+                redis.call("DEL", item_id, item_id .. ".assignees", item_id .. ".votes")
+            end
+
+            redis.call(
+                "DEL", list_id, list_id .. ".owners", list_id .. ".users", list_id .. ".of_users",
+                list_id .. ".activity.items",
+                unpack(redis.call("LRANGE", list_id .. ".activity.items", 0, -1)),
+                list_id .. ".items"
+            )
+            redis.call("LREM", "lists", 1, list_id)
+        """)
+        f([self.id])
+
+    def trash(self) -> None:
+        if context.user.get() not in self.owners:
+            raise error.PermissionError()
+        super().trash()
+
+    def restore(self) -> None:
+        if context.user.get() not in self.owners:
+            raise error.PermissionError()
+        super().restore()
+
+    def xtrash(self):
         # TODO: document that trash and restore are only allowed by list owner
         if context.user.get() != self.authors[0]:
             raise micro.PermissionError()
@@ -547,7 +532,7 @@ class List(Object, Editable, Trashable):
         """)
         f([], [self.id])
 
-    def restore(self):
+    def xrestore(self):
         if context.user.get() != self.authors[0]:
             raise micro.PermissionError()
 
@@ -695,16 +680,15 @@ class Item(Object, Editable, Trashable, WithContent):
         return self.app.lists[self._list_id]
 
     def delete(self):
-        #self.app.r.lrem(self.list.items.ids.key, 1, self.id.encode())
-        #self.app.r.delete(self.id)
         # TODO: clean db from x.assignees, x.votes, which we missed to delete...
+        # See also List.delete()
         f = script(self.app.r, """
-            local item_id, list_id = ARGV[1], ARGV[2]
-            redis.call("srem", "items", item_id)
-            redis.call("del", item_id, item_id .. ".assignees", item_id .. ".votes")
-            return redis.call("lrem", list_id .. ".items", 1, item_id)
+            local item_id = KEYS[1]
+            local item = cjson.decode(redis.call("GET", item_id))
+            redis.call("DEL", item_id, item_id .. ".assignees", item_id .. ".votes")
+            redis.call("LREM", item["list_id"] .. ".items", 1, item_id)
         """)
-        f([], [self.id, self._list_id])
+        f([self.id])
 
     def check(self):
         """See :http:post:`/api/lists/(list-id)/items/(id)/check`."""

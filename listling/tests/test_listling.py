@@ -119,7 +119,8 @@ class ListTest(ListlingTestCase):
         with self.assertRaises(KeyError):
             self.app.lists[self.list.id]
 
-        # TODO test that list is removed from owner
+        # TODO grant ownership to second user and test that list is removed from that owner
+
         #self.assertFalse(self.list.users()) - normally there is at least on user, the creator, but after
         # delete there isnt, so this will fail in unpack()
         # item_id = item.id

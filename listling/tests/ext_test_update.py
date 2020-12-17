@@ -77,9 +77,8 @@ class UpdateTest(AsyncTestCase):
         app = Listling(redis_url='15', files_path=mkdtemp())
         app.update()
 
-        lists = app.r.omget([id.decode() for id in app.r.lrange('lists', 0, -1)])
-        lst = lists[0]
-        self.assertEqual(list(lst.owners), [lst.authors[0]])
+        lst = app.lists[0]
+        self.assertFalse(lst.trashed)
 
     def test_update_db_version_first(self) -> None:
         self.setup_db('0.13.0')
@@ -88,19 +87,20 @@ class UpdateTest(AsyncTestCase):
 
         # Update to version 7
         user = app.settings.staff[0]
-        lists = app.r.omget([id.decode() for id in app.r.lrange('lists', 0, -1)])
-        self.assertEqual(set(user.lists), set(lists[0:2]))
+        self.assertEqual(set(user.lists), set(app.lists[0:2]))
         # Update to version 8
         users = sorted(app.users, key=lambda user: user.create_time)
-        self.assertEqual([user.id for user in lists[1].users()],
+        self.assertEqual([user.id for user in app.lists[1].users()],
                          [user.id for user in reversed(users[0:2])])
         # Update to version 9
-        for l in lists:
+        for l in app.lists[:]:
             self.assertEqual(l.item_template, None)
         # Item.value
-        lst = lists[0]
+        lst = app.lists[0]
         self.assertIsNone(lst.items[0].value)
         # List.value_unit
         self.assertIsNone(lst.value_unit)
         # List.owners
         self.assertEqual(list(lst.owners), [lst.authors[0]])
+        # List.trashed
+        self.assertFalse(lst.trashed)
