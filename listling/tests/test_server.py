@@ -1,5 +1,5 @@
 # Open Listling
-# Copyright (C) 2019 Open Listling contributors
+# Copyright (C) 2020 Open Listling contributors
 #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
 # Affero General Public License as published by the Free Software Foundation, either version 3 of
@@ -43,14 +43,14 @@ class ServerTest(ServerTestCase):
         item = lst.items[0]
         user = self.app.devices.sign_in().user
         context.user.set(user)
-        shared_lst = self.app.lists.create(v=2)
+        shared_lst = self.app.lists.create()
 
         # API
         await self.request(f'/api/users/{self.user.id}/lists')
         await self.request(f'/api/users/{self.user.id}/lists', method='POST',
                            body=json.dumps({'list_id': shared_lst.id}))
         await self.request(f'/api/users/{self.user.id}/lists/{shared_lst.id}', method='DELETE')
-        await self.request('/api/lists', method='POST', body='{"v": 2}')
+        await self.request('/api/lists', method='POST', body='')
         await self.request('/api/lists/create-example', method='POST',
                            body='{"use_case": "shopping"}')
         await self.request('/api/lists/{}'.format(lst.id))

@@ -84,7 +84,7 @@ Lists
 
 .. http:post:: /api/lists
 
-   ``{"use_case": "simple", "v": 2}``
+   ``{"use_case": "simple"}``
 
    Create a :ref:`List` for the given *use_case* and return it.
 
@@ -92,10 +92,6 @@ Lists
    ``playlist`` and ``map``.
 
    Permission: Authenticated users.
-
-   .. deprecated:: 0.22.0
-
-      Endpoint version *v*.
 
 .. http:post:: /api/lists/create-example
 

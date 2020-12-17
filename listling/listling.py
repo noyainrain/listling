@@ -1,5 +1,5 @@
 # Open Listling
-# Copyright (C) 2019 Open Listling contributors
+# Copyright (C) 2020 Open Listling contributors
 #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
 # Affero General Public License as published by the Free Software Foundation, either version 3 of
@@ -28,7 +28,7 @@ from micro import (Activity, Application, AuthRequest, Collection, Editable, Loc
 from micro.core import RewriteFunc, context
 from micro.jsonredis import JSONRedis, RedisList, RedisSortedSet, script
 from micro.resource import Resource
-from micro.util import parse_isotime, randstr, str_or_none
+from micro.util import randstr, str_or_none
 
 from .list import Owners, OwnersEvent
 
@@ -135,10 +135,8 @@ class Listling(Application):
 
         app: Listling
 
-        def create(self, use_case: str = 'simple', *, v: int = 2) -> List:
+        def create(self, use_case: str = 'simple') -> List:
             """See :http:post:`/api/lists`."""
-            # pylint: disable=unused-argument; former feature toggle
-            # Compatibility for endpoint version (deprecated since 0.22.0)
             user = context.user.get()
             if not user:
                 raise error.PermissionError()
@@ -162,7 +160,7 @@ class Listling(Application):
                 Event.create('create-list', None, {'lst': lst}, app=self.app))
             return lst
 
-        async def create_example(self, use_case):
+        async def create_example(self, use_case: str) -> List:
             """See :http:post:`/api/lists/create-example`."""
             if use_case not in _EXAMPLE_DATA:
                 raise error.ValueError('use_case_unknown')
@@ -171,7 +169,7 @@ class Listling(Application):
                 '{}\n\n*This example was created just for you, so please feel free to play around.*'
                 .format(data[1]))
 
-            lst = self.create(use_case, v=2)
+            lst = self.create(use_case)
             await lst.edit(title=data[0], description=description)
             for item in data[2]:
                 args = dict(item)
@@ -199,42 +197,12 @@ class Listling(Application):
         self.lists = Listling.Lists(RedisList('lists', self.r.r), app=self)
 
     def do_update(self) -> Dict[str, int]:
-        version = self.r.get('version')
-        if not version:
+        if not self.r.get('version'):
             self.r.set('version', 9)
             return {}
 
-        version = int(version)
         r: JSONRedis[Dict[str, object]] = JSONRedis(self.r.r)
         r.caching = False
-
-        # Deprecated since 0.14.0
-        if version < 7:
-            now = time()
-            lists = r.omget(r.lrange('lists', 0, -1), default=AssertionError)
-            for lst in lists:
-                r.zadd('{}.lists'.format(lst['authors'][0]), {lst['id']: -now})
-            r.set('version', 7)
-
-        # Deprecated since 0.23.0
-        if version < 8:
-            lists = r.omget(r.lrange('lists', 0, -1), default=AssertionError)
-            for lst in lists:
-                users_key = '{}.users'.format(lst['id'])
-                self.r.zadd(users_key, {lst['authors'][0].encode(): 0})
-                events = r.omget(r.lrange('{}.activity.items'.format(lst['id']), 0, -1))
-                for event in reversed(events):
-                    t = parse_isotime(event['time']).timestamp()
-                    self.r.zadd(users_key, {event['user'].encode(): -t})
-            r.set('version', 8)
-
-        # Deprecated since 0.27.0
-        if version < 9:
-            lists = r.omget(r.lrange('lists', 0, -1))
-            for lst in lists:
-                lst['item_template'] = None
-            r.omset({l["id"]: l for l in lists})
-            r.set('version', 9)
 
         list_updates = {}
         list_rel_updates = set()

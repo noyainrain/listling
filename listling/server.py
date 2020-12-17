@@ -1,5 +1,5 @@
 # Open Listling
-# Copyright (C) 2019 Open Listling contributors
+# Copyright (C) 2020 Open Listling contributors
 #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
 # Affero General Public License as published by the Free Software Foundation, either version 3 of
@@ -29,9 +29,10 @@ from tornado.web import HTTPError, RequestHandler
 from micro import Location, error
 from micro.jsonredis import script
 from micro.ratelimit import RateLimit, RateLimitError
+import micro.server
 from micro.server import (
-    Endpoint, CollectionEndpoint, Handler, Server, UI, make_activity_endpoints,
-    make_orderable_endpoints, make_trashable_endpoints)
+    CollectionEndpoint, Handler, Server, UI, make_activity_endpoints, make_orderable_endpoints,
+    make_trashable_endpoints)
 from micro.util import Expect, randstr
 
 from . import Listling
@@ -83,6 +84,9 @@ def make_server(
                                 'image/svg+xml', '.bmp', '.gif', '.jpg', '.png', '.svg']
     })
 
+class Endpoint(micro.server.Endpoint):
+    app: Listling
+
 class _UserListsEndpoint(CollectionEndpoint):
     app: Listling
 
@@ -100,8 +104,6 @@ class _UserListsEndpoint(CollectionEndpoint):
         self.write({})
 
 class _UserListEndpoint(Endpoint):
-    app: Listling
-
     def delete(self, id: str, list_id: str) -> None:
         lists = self.app.users[id].lists
         lst = lists[list_id]
@@ -109,10 +111,9 @@ class _UserListEndpoint(Endpoint):
         self.write({})
 
 class _ListsEndpoint(Endpoint):
-    def post(self):
-        # Compatibility for endpoint version (deprecated since 0.22.0)
-        args = self.check_args({'use_case': (str, 'opt'), 'v': (int, 'opt')})
-        lst = self.app.lists.create(**args)
+    def post(self) -> None:
+        use_case = self.get_arg('use_case', Expect.str, default='simple')
+        lst = self.app.lists.create(use_case)
         self.write(lst.json(restricted=True, include=True))
 
 class _ListsCreateExampleEndpoint(Endpoint):
@@ -122,8 +123,6 @@ class _ListsCreateExampleEndpoint(Endpoint):
         self.write(lst.json(restricted=True, include=True))
 
 class _ListEndpoint(Endpoint):
-    app: Listling
-
     def get(self, id):
         lst = self.app.lists[id]
         self.write(lst.json(restricted=True, include=True))
@@ -173,8 +172,6 @@ class _ListUsersEndpoint(Endpoint):
         self.write({'items': [user.json(restricted=True, include=True) for user in users]})
 
 class _ListItemsEndpoint(Endpoint):
-    app: Listling
-
     def get(self, id):
         lst = self.app.lists[id]
         self.write(
@@ -202,8 +199,6 @@ class _ListItemsEndpoint(Endpoint):
         self.write(item.json(restricted=True, include=True, rewrite=self.server.rewrite))
 
 class _ItemEndpoint(Endpoint):
-    app: Listling
-
     def get(self, list_id, id):
         item = self.app.lists[list_id].items[id]
         self.write(item.json(restricted=True, include=True, rewrite=self.server.rewrite))

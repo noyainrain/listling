@@ -1,5 +1,5 @@
 # Open Listling
-# Copyright (C) 2019 Open Listling contributors
+# Copyright (C) 2020 Open Listling contributors
 #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
 # Affero General Public License as published by the Free Software Foundation, either version 3 of
@@ -15,8 +15,9 @@
 # pylint: disable=missing-docstring; test module
 
 from tempfile import mkdtemp
+from typing import Tuple
 
-from micro import error
+from micro import User, error
 from micro.core import context
 from micro.util import ON
 from tornado.testing import AsyncTestCase, gen_test
@@ -46,8 +47,8 @@ class ListlingTest(ListlingTestCase):
         references = list(self.app.file_references())
         self.assertEqual(references, urls)
 
-    def test_lists_create(self):
-        lst = self.app.lists.create(v=2)
+    def test_lists_create(self) -> None:
+        lst = self.app.lists.create()
         self.assertEqual(lst.title, 'New list')
         self.assertEqual(list(lst.owners), [self.user])
         self.assertIn(lst.id, self.app.lists)
@@ -86,7 +87,7 @@ class UserListsTest(ListlingTestCase):
 class ListTest(ListlingTestCase):
     @gen_test
     async def test_edit(self) -> None:
-        lst = self.app.lists.create(v=2)
+        lst = self.app.lists.create()
         await lst.edit(description='What has to be done!', value_unit='min', features=['value'],
                        mode='view', item_template="Details:")
         self.assertEqual(lst.description, 'What has to be done!')
@@ -97,14 +98,14 @@ class ListTest(ListlingTestCase):
 
     @gen_test
     async def test_edit_as_user(self) -> None:
-        lst = self.app.lists.create(v=2)
+        lst = self.app.lists.create()
         context.user.set(self.app.devices.sign_in().user)
         await lst.edit(description='What has to be done!')
         self.assertEqual(lst.description, 'What has to be done!')
 
     @gen_test
     async def test_edit_view_mode_as_user(self) -> None:
-        lst = self.app.lists.create(v=2)
+        lst = self.app.lists.create()
         await lst.edit(mode='view')
         context.user.set(self.app.devices.sign_in().user)
         with self.assertRaises(error.PermissionError):
@@ -127,14 +128,14 @@ class ListTest(ListlingTestCase):
 class ListItemsTest(ListlingTestCase):
     @gen_test
     async def test_create(self) -> None:
-        lst = self.app.lists.create(v=2)
+        lst = self.app.lists.create()
         item = await lst.items.create('Sleep', value=42)
         self.assertIn(item.id, lst.items)
         self.assertEqual(item.value, 42)
 
 class ItemTest(ListlingTestCase):
     async def make_item(self, *, use_case: str = 'simple', mode: str = None) -> Item:
-        lst = self.app.lists.create(use_case, v=2)
+        lst = self.app.lists.create(use_case)
         if mode:
             await lst.edit(mode=mode)
         return await lst.items.create('Sleep')
@@ -199,8 +200,8 @@ class ItemAssigneesTest(ListlingTestCase):
         self.assertEqual(list(item.assignees), [self.user])
 
 class ItemVotesTest(ListlingTestCase):
-    async def make_item(self):
-        lst = self.app.lists.create('poll', v=2)
+    async def make_item(self) -> Tuple[Item, User]:
+        lst = self.app.lists.create('poll')
         item = await lst.items.create('Mouse')
         user = self.app.devices.sign_in().user
         context.user.set(user)

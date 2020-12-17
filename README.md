@@ -51,4 +51,4 @@ Join the chat at [listling on Gitter](https://gitter.im/listling/community).
 * Horacio Lisdero &lt;lisderoh AT gmail.com>
 * Niklas Meinzer &lt;github AT niklas-meinzer.de>
 
-Copyright (C) 2019 Open Listling contributors
+Copyright (C) 2020 Open Listling contributors
