@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>2. Web API &#8212; Open Listling 0.38.0 documentation</title>
+    <title>2. Web API &#8212; Open Listling 0.39.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -1022,7 +1022,7 @@ the list. In <code class="docutils literal notranslate"><span class="pre">view</
 <dl class="describe">
 <dt>
 <code class="sig-name descname">items</code></dt>
-<dd><p>List <a class="reference internal" href="#items"><span class="std std-ref">Items</span></a>.</p>
+<dd><p>List <a class="reference internal" href="#id40"><span class="std std-ref">Items</span></a>.</p>
 </dd></dl>
 
 <dl class="describe">
@@ -1137,9 +1137,8 @@ the items from index 10 up to including 19.</p>
 </dd></dl>
 
 </div>
-</div>
 <div class="section" id="items">
-<span id="id39"></span><h2><span class="section-number">2.23. </span>Items<a class="headerlink" href="#items" title="Permalink to this headline">¶</a></h2>
+<span id="listitems"></span><h3><span class="section-number">2.22.3. </span>Items<a class="headerlink" href="#items" title="Permalink to this headline">¶</a></h3>
 <dl class="get">
 <dt id="get--api-lists-(id)-items">
 <code class="sig-name descname">GET </code><code class="sig-name descname">/api/lists/</code><span class="sig-paren">(</span><em class="sig-param">id</em><span class="sig-paren">)</span><code class="sig-name descname">/items</code><a class="headerlink" href="#get--api-lists-(id)-items" title="Permalink to this definition">¶</a></dt>
@@ -1154,12 +1153,6 @@ the items from index 10 up to including 19.</p>
 <p>Permission: Authenticated users.</p>
 </dd></dl>
 
-<dl class="get">
-<dt id="get--api-lists-(id)-items-(item-id)">
-<code class="sig-name descname">GET </code><code class="sig-name descname">/api/lists/</code><span class="sig-paren">(</span><em class="sig-param">id</em><span class="sig-paren">)</span><code class="sig-name descname">/items/(item-id)</code><a class="headerlink" href="#get--api-lists-(id)-items-(item-id)" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the <a class="reference internal" href="#item"><span class="std std-ref">Item</span></a> given by <em>item-id</em>.</p>
-</dd></dl>
-
 <dl class="post">
 <dt id="post--api-(collection-path)-move">
 <code class="sig-name descname">POST </code><code class="sig-name descname">/api/(collection-path)/move</code><a class="headerlink" href="#post--api-(collection-path)-move" title="Permalink to this definition">¶</a></dt>
@@ -1172,8 +1165,9 @@ the items from index 10 up to including 19.</p>
 </dd></dl>
 
 </div>
+</div>
 <div class="section" id="item">
-<span id="id40"></span><h2><span class="section-number">2.24. </span>Item<a class="headerlink" href="#item" title="Permalink to this headline">¶</a></h2>
+<span id="id39"></span><h2><span class="section-number">2.23. </span>Item<a class="headerlink" href="#item" title="Permalink to this headline">¶</a></h2>
 <dl class="describe">
 <dt>
 <code class="sig-name descname">id</code></dt>
@@ -1246,6 +1240,23 @@ the items from index 10 up to including 19.</p>
 <dd><p><a class="reference internal" href="#itemvotes"><span class="std std-ref">Votes</span></a> for the item.</p>
 </dd></dl>
 
+</div>
+<div class="section" id="id40">
+<span id="id41"></span><h2><span class="section-number">2.24. </span>Items<a class="headerlink" href="#id40" title="Permalink to this headline">¶</a></h2>
+<dl class="get">
+<dt id="get--api-items-(id)">
+<code class="sig-name descname">GET </code><code class="sig-name descname">/api/items/</code><span class="sig-paren">(</span><em class="sig-param">id</em><span class="sig-paren">)</span><a class="headerlink" href="#get--api-items-(id)" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="get">
+<dt id="get--api-lists-(list-id)-items-(id)">
+<code class="sig-name descname">GET </code><code class="sig-name descname">/api/lists/(list-id)/items/</code><span class="sig-paren">(</span><em class="sig-param">id</em><span class="sig-paren">)</span><a class="headerlink" href="#get--api-lists-(list-id)-items-(id)" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the <a class="reference internal" href="#item"><span class="std std-ref">Item</span></a> given by <em>id</em>.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 0.39.0: </span>Nested URL.</p>
+</div>
+</dd></dl>
+
 <dl class="post">
 <dt id="post--api-(object-url)">
 <code class="sig-name descname">POST </code><code class="sig-name descname">/api/(object-url)</code><a class="headerlink" href="#post--api-(object-url)" title="Permalink to this definition">¶</a></dt>
@@ -1274,13 +1285,26 @@ the items from index 10 up to including 19.</p>
 </dd></dl>
 
 <dl class="post">
+<dt id="post--api-items-(id)-check">
+<code class="sig-name descname">POST </code><code class="sig-name descname">/api/items/</code><span class="sig-paren">(</span><em class="sig-param">id</em><span class="sig-paren">)</span><code class="sig-name descname">/check</code><a class="headerlink" href="#post--api-items-(id)-check" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="post">
 <dt id="post--api-lists-(list-id)-items-(id)-check">
 <code class="sig-name descname">POST </code><code class="sig-name descname">/api/lists/(list-id)/items/</code><span class="sig-paren">(</span><em class="sig-param">id</em><span class="sig-paren">)</span><code class="sig-name descname">/check</code><a class="headerlink" href="#post--api-lists-(list-id)-items-(id)-check" title="Permalink to this definition">¶</a></dt>
 <dd><p>Mark the item as complete.</p>
 <p>If the feature <code class="docutils literal notranslate"><span class="pre">check</span></code> is not enabled for the list, a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a> (<cite>feature_disabled</cite>) is
 returned.</p>
 <p>Permission: Authenticated users.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 0.39.0: </span>Nested URL.</p>
+</div>
 </dd></dl>
+
+<dl class="post">
+<dt id="post--api-items-(id)-uncheck">
+<code class="sig-name descname">POST </code><code class="sig-name descname">/api/items/</code><span class="sig-paren">(</span><em class="sig-param">id</em><span class="sig-paren">)</span><code class="sig-name descname">/uncheck</code><a class="headerlink" href="#post--api-items-(id)-uncheck" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="post">
 <dt id="post--api-lists-(list-id)-items-(id)-uncheck">
@@ -1289,6 +1313,9 @@ returned.</p>
 <p>If the feature <code class="docutils literal notranslate"><span class="pre">check</span></code> is not enabled for the list, a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a> (<cite>feature_disabled</cite>) is
 returned.</p>
 <p>Permission: Authenticated users.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 0.39.0: </span>Nested URL.</p>
+</div>
 </dd></dl>
 
 <div class="section" id="assignees">
@@ -1306,6 +1333,11 @@ the items from index 10 up to including 19.</p>
 </dd></dl>
 
 <dl class="post">
+<dt id="post--api-items-(id)-assignees">
+<code class="sig-name descname">POST </code><code class="sig-name descname">/api/items/</code><span class="sig-paren">(</span><em class="sig-param">id</em><span class="sig-paren">)</span><code class="sig-name descname">/assignees</code><a class="headerlink" href="#post--api-items-(id)-assignees" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="post">
 <dt id="post--api-lists-(list-id)-items-(id)-assignees">
 <code class="sig-name descname">POST </code><code class="sig-name descname">/api/lists/(list-id)/items/</code><span class="sig-paren">(</span><em class="sig-param">id</em><span class="sig-paren">)</span><code class="sig-name descname">/assignees</code><a class="headerlink" href="#post--api-lists-(list-id)-items-(id)-assignees" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">{assignee_id}</span></code></p>
@@ -1313,7 +1345,15 @@ the items from index 10 up to including 19.</p>
 <p>If <a class="reference internal" href="#list"><span class="std std-ref">List</span></a> <em>features</em> <code class="docutils literal notranslate"><span class="pre">assign</span></code> is disabled, if there is no user with
 <em>assignee_id</em> or if the user is already assigned, a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a> is returned.</p>
 <p>Permission: See <a class="reference internal" href="#list"><span class="std std-ref">List</span></a> <em>mode</em>.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 0.39.0: </span>Nested URL.</p>
+</div>
 </dd></dl>
+
+<dl class="delete">
+<dt id="delete--api-items-(id)-assignees-(assignee-id)">
+<code class="sig-name descname">DELETE </code><code class="sig-name descname">/api/items/</code><span class="sig-paren">(</span><em class="sig-param">id</em><span class="sig-paren">)</span><code class="sig-name descname">/assignees/(assignee-id)</code><a class="headerlink" href="#delete--api-items-(id)-assignees-(assignee-id)" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="delete">
 <dt id="delete--api-lists-(list-id)-items-(id)-assignees-(assignee-id)">
@@ -1321,6 +1361,9 @@ the items from index 10 up to including 19.</p>
 <dd><p>Unassign the <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> with <em>assignee-id</em> from the item.</p>
 <p>If <a class="reference internal" href="#list"><span class="std std-ref">List</span></a> <em>features</em> <code class="docutils literal notranslate"><span class="pre">assign</span></code> is disabled, a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a> is returned.</p>
 <p>Permission: See <a class="reference internal" href="#list"><span class="std std-ref">List</span></a> <em>mode</em>. Authenticated users may unassign themselves.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 0.39.0: </span>Nested URL.</p>
+</div>
 </dd></dl>
 
 </div>
@@ -1345,17 +1388,33 @@ the items from index 10 up to including 19.</p>
 </dd></dl>
 
 <dl class="post">
+<dt id="post--api-items-(id)-votes">
+<code class="sig-name descname">POST </code><code class="sig-name descname">/api/items/</code><span class="sig-paren">(</span><em class="sig-param">id</em><span class="sig-paren">)</span><code class="sig-name descname">/votes</code><a class="headerlink" href="#post--api-items-(id)-votes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="post">
 <dt id="post--api-lists-(list-id)-items-(id)-votes">
 <code class="sig-name descname">POST </code><code class="sig-name descname">/api/lists/(list-id)/items/</code><span class="sig-paren">(</span><em class="sig-param">id</em><span class="sig-paren">)</span><code class="sig-name descname">/votes</code><a class="headerlink" href="#post--api-lists-(list-id)-items-(id)-votes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Vote for the item.</p>
 <p>Permission: Authenticated users.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 0.39.0: </span>Nested URL.</p>
+</div>
 </dd></dl>
+
+<dl class="delete">
+<dt id="delete--api-items-(id)-votes-user">
+<code class="sig-name descname">DELETE </code><code class="sig-name descname">/api/items/</code><span class="sig-paren">(</span><em class="sig-param">id</em><span class="sig-paren">)</span><code class="sig-name descname">/votes/user</code><a class="headerlink" href="#delete--api-items-(id)-votes-user" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="delete">
 <dt id="delete--api-lists-(list-id)-items-(id)-votes-user">
 <code class="sig-name descname">DELETE </code><code class="sig-name descname">/api/lists/(list-id)/items/</code><span class="sig-paren">(</span><em class="sig-param">id</em><span class="sig-paren">)</span><code class="sig-name descname">/votes/user</code><a class="headerlink" href="#delete--api-lists-(list-id)-items-(id)-votes-user" title="Permalink to this definition">¶</a></dt>
 <dd><p>Unvote the item, i.e. annul a previous vote.</p>
 <p>Permission: Authenticated users.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 0.39.0: </span>Nested URL.</p>
+</div>
 </dd></dl>
 
 </div>
@@ -1420,8 +1479,8 @@ the items from index 10 up to including 19.</p>
 <li class="toctree-l2"><a class="reference internal" href="#settings">2.20. Settings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#id31">2.21. Lists</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#list">2.22. List</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#items">2.23. Items</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#item">2.24. Item</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#item">2.23. Item</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id40">2.24. Items</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="pythonapi.html">3. Python API</a></li>
