@@ -14,6 +14,7 @@
 
 # pylint: disable=missing-docstring; test module
 
+import asyncio
 from tempfile import mkdtemp
 from typing import Tuple
 
@@ -25,7 +26,7 @@ from tornado.testing import AsyncTestCase, gen_test
 from listling import Item, Listling
 
 class ListlingTestCase(AsyncTestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
         self.app = Listling(redis_url='15', files_path=mkdtemp())
         self.app.r.flushdb()
@@ -130,10 +131,16 @@ class ListItemsTest(ListlingTestCase):
     async def test_create(self) -> None:
         lst = self.app.lists.create()
         item = await lst.items.create('Sleep', value=42)
-        self.assertIn(item.id, lst.items)
         self.assertEqual(item.value, 42)
+        self.assertEqual(self.app.items[item.id], item)
+        self.assertEqual(lst.items[:], [item])
 
 class ItemTest(ListlingTestCase):
+    def setUp(self) -> None:
+        super().setUp()
+        self.list = self.app.lists.create()
+        self.item = asyncio.run(self.list.items.create('Sleep'))
+
     async def make_item(self, *, use_case: str = 'simple', mode: str = None) -> Item:
         lst = self.app.lists.create(use_case)
         if mode:
@@ -146,6 +153,14 @@ class ItemTest(ListlingTestCase):
         await item.edit(text='Very important!', value=42, asynchronous=ON)
         self.assertEqual(item.text, 'Very important!')
         self.assertEqual(item.value, 42)
+
+    @gen_test
+    async def test_delete(self) -> None:
+        self.item.delete()
+        with self.assertRaises(KeyError):
+            # pylint: disable=pointless-statement; error raised on access
+            self.app.items[self.item.id]
+        self.assertFalse(self.list.items)
 
     @gen_test
     async def test_check(self):

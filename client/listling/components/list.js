@@ -113,8 +113,7 @@ listling.components.list.AssignDialog = class extends HTMLElement {
                 const assignee = this._input.valueAsObject;
                 try {
                     await ui.call(
-                        "POST",
-                        `/api/lists/${this._data.itemElement.list.id}/items/${this._data.itemElement.item.id}/assignees`,
+                        "POST", `/api/items/${this._data.itemElement.item.id}/assignees`,
                         {assignee_id: assignee.id}
                     );
                 } catch (e) {
@@ -141,7 +140,7 @@ listling.components.list.AssignDialog = class extends HTMLElement {
                 try {
                     await ui.call(
                         "DELETE",
-                        `/api/lists/${this._data.itemElement.list.id}/items/${this._data.itemElement.item.id}/assignees/${assignee.id}`
+                        `/api/items/${this._data.itemElement.item.id}/assignees/${assignee.id}`
                     );
                 } catch (e) {
                     if (e instanceof micro.APIError && e.error.__type__ === "NotFoundError") {

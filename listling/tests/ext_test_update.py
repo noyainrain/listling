@@ -25,6 +25,7 @@ from listling import Listling
 
 SETUP_DB_SCRIPT = """\
 from asyncio import get_event_loop
+from micro.core import context
 from listling import Listling
 
 async def main():
@@ -32,7 +33,7 @@ async def main():
     app.r.flushdb()
     app.update()
 
-    app.login()
+    context.user.set(app.login())
     await app.lists.create_example('todo')
 
 get_event_loop().run_until_complete(main())
@@ -60,12 +61,12 @@ class UpdateTest(AsyncTestCase):
         self.assertEqual(app.settings.title, 'My Open Listling')
 
     def test_update_db_version_previous(self) -> None:
-        self.setup_db('0.35.3')
+        self.setup_db('0.38.0')
         app = Listling(redis_url='15', files_path=mkdtemp())
         app.update()
 
-        lst = app.lists[0]
-        self.assertEqual(list(lst.owners), [lst.authors[0]])
+        self.assertEqual({id.decode() for id in app.r.smembers('items')},
+                         {item.id for item in app.lists[0].items[:]})
 
     def test_update_db_version_first(self) -> None:
         self.setup_db('0.32.1')
@@ -79,3 +80,6 @@ class UpdateTest(AsyncTestCase):
         self.assertIsNone(lst.value_unit)
         # List.owners
         self.assertEqual(list(lst.owners), [lst.authors[0]])
+        # Items
+        self.assertEqual({id.decode() for id in app.r.smembers('items')},
+                         {item.id for item in lst.items[:]})

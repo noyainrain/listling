@@ -64,23 +64,18 @@ class ServerTest(ServerTestCase):
         await self.request('/api/lists/{}/items'.format(lst.id), method='POST',
                            body='{"title": "Sleep", "value": 42}')
         await self.request(f'/api/lists/{lst.id}/activity')
-        await self.request('/api/lists/{}/items/{}'.format(lst.id, item.id))
-        await self.request(f'/api/lists/{lst.id}/items/{item.id}', method='POST',
+        await self.request(f'/api/items/{item.id}')
+        await self.request(f'/api/items/{item.id}', method='POST',
                            body='{"text": "Very important!", "value": null}')
-        await self.request('/api/lists/{}/items/{}/check'.format(lst.id, item.id), method='POST',
-                           body='')
-        await self.request('/api/lists/{}/items/{}/uncheck'.format(lst.id, item.id), method='POST',
-                           body='')
-        await self.request('/api/lists/{}/items/{}/assignees'.format(lst.id, item.id))
-        await self.request(f'/api/lists/{lst.id}/items/{item.id}/assignees', method='POST',
+        await self.request(f'/api/items/{item.id}/check', method='POST', body='')
+        await self.request(f'/api/items/{item.id}/uncheck', method='POST', body='')
+        await self.request(f'/api/items/{item.id}/assignees')
+        await self.request(f'/api/items/{item.id}/assignees', method='POST',
                            body=json.dumps({'assignee_id': self.user.id}))
-        await self.request(f'/api/lists/{lst.id}/items/{item.id}/assignees/{self.user.id}',
-                           method='DELETE')
-        await self.request('/api/lists/{}/items/{}/votes'.format(lst.id, item.id))
-        await self.request('/api/lists/{}/items/{}/votes'.format(lst.id, item.id), method='POST',
-                           body='')
-        await self.request('/api/lists/{}/items/{}/votes/user'.format(lst.id, item.id),
-                           method='DELETE')
+        await self.request(f'/api/items/{item.id}/assignees/{self.user.id}', method='DELETE')
+        await self.request(f'/api/items/{item.id}/votes')
+        await self.request(f'/api/items/{item.id}/votes', method='POST', body='')
+        await self.request(f'/api/items/{item.id}/votes/user', method='DELETE')
 
         # UI
         response = await self.request('/s', method='POST', body=f'/lists/{lst.id}')

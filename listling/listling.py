@@ -28,7 +28,7 @@ from micro import (Activity, Application, AuthRequest, Collection, Editable, Loc
 from micro.core import RewriteFunc, context
 from micro.jsonredis import JSONRedis, RedisList, RedisSortedSet, script
 from micro.resource import Resource
-from micro.util import randstr, str_or_none
+from micro.util import expect_type, randstr, str_or_none
 
 from .list import Owners, OwnersEvent
 
@@ -195,6 +195,7 @@ class Listling(Application):
             video_service_keys=video_service_keys)
         self.types.update({'User': User, 'List': List, 'Item': Item, 'OwnersEvent': OwnersEvent})
         self.lists = Listling.Lists(RedisList('lists', self.r.r), app=self)
+        self.items = Items(self)
 
     def do_update(self) -> Dict[str, int]:
         if not self.r.get('version'):
@@ -206,7 +207,17 @@ class Listling(Application):
 
         list_updates = {}
         list_rel_updates = set()
+        items_updates = 0
         item_updates = {}
+
+        # Deprecated since 0.39.0
+        if not r.scard('items'):
+            list_ids = [id.decode() for id in r.lrange('lists', 0, -1)]
+            item_ids = [id.decode() for list_id in list_ids for id in r.lrange(f"{list_id}.items", 0, -1)]
+            if item_ids:
+                r.sadd('items', *item_ids)
+                items_updates = 1
+
         lists = r.omget(r.lrange('lists', 0, -1), default=AssertionError)
         for lst in lists:
             # Deprecated since 0.35.0
@@ -229,7 +240,11 @@ class Listling(Application):
         r.omset(list_updates)
         r.omset(item_updates)
 
-        return {'List': len(set(list_updates) | list_rel_updates), 'Item': len(item_updates)}
+        return {
+            'List': len(set(list_updates) | list_rel_updates),
+            'Items': items_updates,
+            'Item': len(item_updates)
+        }
 
     def create_user(self, data):
         return User(**data)
@@ -329,8 +344,14 @@ class List(Object, Editable):
                 trashed=False, text=attrs['text'], resource=attrs['resource'], list_id=self.lst.id,
                 title=title, value=value, location=location.json() if location else None,
                 checked=False)
-            self.app.r.oset(item.id, item)
-            self.app.r.rpush(self.ids.key, item.id)
+            f = script(self.app.r.r, """
+                local item_data = ARGV[1]
+                local item = cjson.decode(item_data)
+                redis.call("SET", item.id, item_data)
+                redis.call("SADD", "items", item.id)
+                redis.call("RPUSH", item.list_id .. ".items", item.id)
+            """)
+            f([], [json.dumps(item.json())])
             self.lst.activity.publish(
                 Event.create('list-create-item', self.lst, {'item': item}, self.app))
             return item
@@ -446,7 +467,7 @@ class Item(Object, Editable, Trashable, WithContent):
             self.item = item
 
         def assign(self, assignee, *, user):
-            """See :http:post:`/api/lists/(list-id)/items/(id)/assignees`."""
+            """See :http:post:`/api/items/(id)/assignees`."""
             # pylint: disable=protected-access; Item is a friend
             self.item._check_permission(user, 'list-modify')
             if 'assign' not in self.item.list.features:
@@ -461,7 +482,7 @@ class Item(Object, Editable, Trashable, WithContent):
                              app=self.app))
 
         def unassign(self, assignee, *, user):
-            """See :http:delete:`/api/lists/(list-id)/items/(id)/assignees/(assignee-id)`."""
+            """See :http:delete:`/api/items/(id)/assignees/(assignee-id)`."""
             # pylint: disable=protected-access; Item is a friend
             self.item._check_permission(user, 'list-modify')
             if 'assign' not in self.item.list.features:
@@ -483,7 +504,7 @@ class Item(Object, Editable, Trashable, WithContent):
             self.item = item
 
         def vote(self, *, user):
-            """See :http:post:`/api/lists/(list-id)/items/(id)/votes`."""
+            """See :http:post:`/api/items/(id)/votes`."""
             if not user:
                 raise error.PermissionError()
             if 'vote' not in self.item.list.features:
@@ -493,7 +514,7 @@ class Item(Object, Editable, Trashable, WithContent):
                     Event.create('item-votes-vote', self.item, app=self.app))
 
         def unvote(self, *, user):
-            """See :http:delete:`/api/lists/(list-id)/items/(id)/votes/user`."""
+            """See :http:delete:`/api/items/(id)/votes/user`."""
             if not user:
                 raise error.PermissionError()
             if 'vote' not in self.item.list.features:
@@ -534,12 +555,24 @@ class Item(Object, Editable, Trashable, WithContent):
         # pylint: disable=missing-docstring; already documented
         return self.app.lists[self._list_id]
 
-    def delete(self):
-        self.app.r.lrem(self.list.items.ids.key, 1, self.id.encode())
-        self.app.r.delete(self.id)
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, Object) and self.id == other.id
+
+    def __hash__(self) -> int:
+        return hash(self.id)
+
+    def delete(self) -> None:
+        f = script(self.app.r.r, """
+            local id = KEYS[1]
+            local item = cjson.decode(redis.call("GET", id))
+            redis.call("DEL", id)
+            redis.call("SREM", "items", id)
+            redis.call("LREM", item.list_id .. ".items", 1, id)
+        """)
+        f([self.id])
 
     def check(self):
-        """See :http:post:`/api/lists/(list-id)/items/(id)/check`."""
+        """See :http:post:`/api/items/(id)/check`."""
         _check_feature(self.app.user, 'check', self)
         self._check_permission(self.app.user, 'item-modify')
         self.checked = True
@@ -547,7 +580,7 @@ class Item(Object, Editable, Trashable, WithContent):
         self.list.activity.publish(Event.create('item-check', self, app=self.app))
 
     def uncheck(self):
-        """See :http:post:`/api/lists/(list-id)/items/(id)/uncheck`."""
+        """See :http:post:`/api/items/(id)/uncheck`."""
         _check_feature(self.app.user, 'check', self)
         self._check_permission(self.app.user, 'item-modify')
         self.checked = False
@@ -607,6 +640,17 @@ class Item(Object, Editable, Trashable, WithContent):
                 user in lst.owners or
                 user in self.app.settings.staff)):
             raise error.PermissionError()
+
+class Items:
+    """See :ref:`Items`."""
+
+    def __init__(self, app: Listling) -> None:
+        self.app = app
+
+    def __getitem__(self, key: str) -> Item:
+        if not key.startswith('Item:'):
+            raise KeyError(key)
+        return self.app.r.oget(key, default=KeyError, expect=expect_type(Item))
 
 def _check_feature(user, feature, item):
     if feature not in item.list.features:

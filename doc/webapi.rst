@@ -246,10 +246,10 @@ Users
 
    A maximum of 10 items is returned.
 
-.. _Items:
+.. _ListItems:
 
 Items
------
+^^^^^
 
 .. http:get:: /api/lists/(id)/items
 
@@ -262,10 +262,6 @@ Items
    Create an :ref:`Item` and return it.
 
    Permission: Authenticated users.
-
-.. http:get:: /api/lists/(id)/items/(item-id)
-
-   Get the :ref:`Item` given by *item-id*.
 
 .. include:: micro/orderable-endpoints.inc
 
@@ -310,9 +306,26 @@ Item
 
    :ref:`ItemVotes` for the item.
 
+.. _Items:
+
+Items
+-----
+
+.. http:get:: /api/items/(id)
+
+.. http:get:: /api/lists/(list-id)/items/(id)
+
+   Get the :ref:`Item` given by *id*.
+
+   .. deprecated:: 0.39.0
+
+      Nested URL.
+
 .. include:: micro/editable-endpoints.inc
 
 .. include:: micro/trashable-endpoints.inc
+
+.. http:post:: /api/items/(id)/check
 
 .. http:post:: /api/lists/(list-id)/items/(id)/check
 
@@ -323,6 +336,12 @@ Item
 
    Permission: Authenticated users.
 
+   .. deprecated:: 0.39.0
+
+      Nested URL.
+
+.. http:post:: /api/items/(id)/uncheck
+
 .. http:post:: /api/lists/(list-id)/items/(id)/uncheck
 
    Mark the item as incomplete.
@@ -332,6 +351,10 @@ Item
 
    Permission: Authenticated users.
 
+   .. deprecated:: 0.39.0
+
+      Nested URL.
+
 .. _ItemAssignees:
 
 Assignees
@@ -340,6 +363,8 @@ Assignees
 :ref:`Collection` of :ref:`User` s assigned to the item.
 
 .. include:: micro/collection-endpoints.inc
+
+.. http:post:: /api/items/(id)/assignees
 
 .. http:post:: /api/lists/(list-id)/items/(id)/assignees
 
@@ -352,6 +377,12 @@ Assignees
 
    Permission: See :ref:`List` *mode*.
 
+   .. deprecated:: 0.39.0
+
+      Nested URL.
+
+.. http:delete:: /api/items/(id)/assignees/(assignee-id)
+
 .. http:delete:: /api/lists/(list-id)/items/(id)/assignees/(assignee-id)
 
    Unassign the :ref:`User` with *assignee-id* from the item.
@@ -359,6 +390,10 @@ Assignees
    If :ref:`List` *features* ``assign`` is disabled, a :ref:`ValueError` is returned.
 
    Permission: See :ref:`List` *mode*. Authenticated users may unassign themselves.
+
+   .. deprecated:: 0.39.0
+
+      Nested URL.
 
 .. _ItemVotes:
 
@@ -373,14 +408,26 @@ Votes
 
 .. include:: micro/collection-endpoints.inc
 
+.. http:post:: /api/items/(id)/votes
+
 .. http:post:: /api/lists/(list-id)/items/(id)/votes
 
    Vote for the item.
 
    Permission: Authenticated users.
 
+   .. deprecated:: 0.39.0
+
+      Nested URL.
+
+.. http:delete:: /api/items/(id)/votes/user
+
 .. http:delete:: /api/lists/(list-id)/items/(id)/votes/user
 
    Unvote the item, i.e. annul a previous vote.
 
    Permission: Authenticated users.
+
+   .. deprecated:: 0.39.0
+
+      Nested URL.

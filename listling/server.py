@@ -58,15 +58,15 @@ def make_server(
         *make_orderable_endpoints(r'/api/lists/([^/]+)/items', lambda id: app.lists[id].items),
         *make_activity_endpoints(r'/api/lists/([^/]+)/activity',
                                  lambda id, *args: app.lists[id].activity),
-        (r'/api/lists/([^/]+)/items/([^/]+)$', _ItemEndpoint),
-        *make_trashable_endpoints(r'/api/lists/([^/]+)/items/([^/]+)',
-                                  lambda list_id, id: app.lists[list_id].items[id]),
-        (r'/api/lists/([^/]+)/items/([^/]+)/check$', _ItemCheckEndpoint),
-        (r'/api/lists/([^/]+)/items/([^/]+)/uncheck$', _ItemUncheckEndpoint),
-        (r'/api/lists/([^/]+)/items/([^/]+)/assignees$', _ItemAssigneesEndpoint),
-        (r'/api/lists/([^/]+)/items/([^/]+)/assignees/([^/]+)$', _ItemAssigneeEndpoint),
-        (r'/api/lists/([^/]+)/items/([^/]+)/votes', _ItemVotesEndpoint),
-        (r'/api/lists/([^/]+)/items/([^/]+)/votes/user', _ItemVoteEndpoint),
+        # Compatibility with nested item URLs (deprecated since 0.39.0)
+        (r'/api(?:/lists/[^/]+)?/items/([^/]+)$', _ItemEndpoint),
+        *make_trashable_endpoints(r'/api(?:/lists/[^/]+)?/items/([^/]+)', lambda id: app.items[id]),
+        (r'/api(?:/lists/[^/]+)?/items/([^/]+)/check$', _ItemCheckEndpoint),
+        (r'/api(?:/lists/[^/]+)?/items/([^/]+)/uncheck$', _ItemUncheckEndpoint),
+        (r'/api(?:/lists/[^/]+)?/items/([^/]+)/assignees$', _ItemAssigneesEndpoint),
+        (r'/api(?:/lists/[^/]+)?/items/([^/]+)/assignees/([^/]+)$', _ItemAssigneeEndpoint),
+        (r'/api(?:/lists/[^/]+)?/items/([^/]+)/votes', _ItemVotesEndpoint),
+        (r'/api(?:/lists/[^/]+)?/items/([^/]+)/votes/user', _ItemVoteEndpoint),
         # UI
         (r'/s$', _Shorts),
         (r'/s/(.*)$', _Short),
@@ -199,12 +199,12 @@ class _ListItemsEndpoint(Endpoint):
         self.write(item.json(restricted=True, include=True, rewrite=self.server.rewrite))
 
 class _ItemEndpoint(Endpoint):
-    def get(self, list_id, id):
-        item = self.app.lists[list_id].items[id]
+    def get(self, id: str) -> None:
+        item = self.app.items[id]
         self.write(item.json(restricted=True, include=True, rewrite=self.server.rewrite))
 
-    async def post(self, list_id: str, id: str) -> None:
-        item = self.app.lists[list_id].items[id]
+    async def post(self, id: str) -> None:
+        item = self.app.items[id]
         args = self.check_args({
             'text': (str, None, 'opt'),
             'resource': (str, None, 'opt'),
@@ -224,24 +224,25 @@ class _ItemEndpoint(Endpoint):
         self.write(item.json(restricted=True, include=True, rewrite=self.server.rewrite))
 
 class _ItemCheckEndpoint(Endpoint):
-    def post(self, lst_id, id):
-        item = self.app.lists[lst_id].items[id]
+    def post(self, id: str) -> None:
+        item = self.app.items[id]
         item.check()
         self.write(item.json(restricted=True, include=True, rewrite=self.server.rewrite))
 
 class _ItemUncheckEndpoint(Endpoint):
-    def post(self, lst_id, id):
-        item = self.app.lists[lst_id].items[id]
+    def post(self, id: str) -> None:
+        item = self.app.items[id]
         item.uncheck()
         self.write(item.json(restricted=True, include=True, rewrite=self.server.rewrite))
 
 class _ItemAssigneesEndpoint(CollectionEndpoint):
-    def initialize(self):
-        super().initialize(
-            get_collection=lambda list_id, id: self.app.lists[list_id].items[id].assignees)
+    app: Listling
 
-    def post(self, list_id, id):
-        assignees = self.get_collection(list_id, id)
+    def initialize(self, **args: object) -> None:
+        super().initialize(get_collection=lambda id: self.app.items[id].assignees)
+
+    def post(self, id: str) -> None:
+        assignees = self.get_collection(id)
         try:
             assignee_id = self.get_arg('assignee_id', Expect.str)
             assignee = self.app.users[assignee_id]
@@ -252,26 +253,27 @@ class _ItemAssigneesEndpoint(CollectionEndpoint):
         self.write({})
 
 class _ItemAssigneeEndpoint(Endpoint):
-    def delete(self, list_id, id, assignee_id):
-        assignees = self.app.lists[list_id].items[id].assignees
+    def delete(self, id: str, assignee_id: str) -> None:
+        assignees = self.app.items[id].assignees
         assignee = assignees[assignee_id]
         assignees.unassign(assignee, user=self.current_user)
         self.write({})
 
 class _ItemVotesEndpoint(CollectionEndpoint):
-    def initialize(self):
-        super().initialize(
-            get_collection=lambda list_id, id: self.app.lists[list_id].items[id].votes)
+    app: Listling
 
-    def post(self, list_id, id):
-        votes = self.get_collection(list_id, id)
+    def initialize(self, **args: object) -> None:
+        super().initialize(get_collection=lambda id: self.app.items[id].votes)
+
+    def post(self, id: str) -> None:
+        votes = self.get_collection(id)
         votes.vote(user=self.current_user)
         self.set_status(HTTPStatus.CREATED)
         self.write({})
 
 class _ItemVoteEndpoint(Endpoint):
-    def delete(self, list_id, id):
-        votes = self.app.lists[list_id].items[id].votes
+    def delete(self, id: str) -> None:
+        votes = self.app.items[id].votes
         votes.unvote(user=self.current_user)
         self.write({})
 

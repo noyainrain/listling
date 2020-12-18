@@ -516,8 +516,7 @@ listling.ItemElement = class extends HTMLLIElement {
                     value = null;
                 }
                 const url = this._data.item
-                    ? `/api/lists/${this._data.lst.id}/items/${this._data.item.id}`
-                    : `/api/lists/${this._data.lst.id}/items`;
+                    ? `/api/items/${this._data.item.id}` : `/api/lists/${this._data.lst.id}/items`;
 
                 let item;
                 try {
@@ -573,9 +572,7 @@ listling.ItemElement = class extends HTMLLIElement {
 
             trash: async() => {
                 try {
-                    const item = await ui.call(
-                        "POST", `/api/lists/${ui.page.list.id}/items/${this._data.item.id}/trash`
-                    );
+                    const item = await ui.call("POST", `/api/items/${this._data.item.id}/trash`);
                     this._activity.events.dispatchEvent({type: "trashable-trash", object: item});
                 } catch (e) {
                     ui.handleCallError(e);
@@ -584,9 +581,7 @@ listling.ItemElement = class extends HTMLLIElement {
 
             restore: async() => {
                 try {
-                    const item = await ui.call(
-                        "POST", `/api/lists/${ui.page.list.id}/items/${this._data.item.id}/restore`
-                    );
+                    const item = await ui.call("POST", `/api/items/${this._data.item.id}/restore`);
                     this._activity.events.dispatchEvent({type: "trashable-restore", object: item});
                 } catch (e) {
                     ui.handleCallError(e);
@@ -596,9 +591,7 @@ listling.ItemElement = class extends HTMLLIElement {
             checkUncheck: async() => {
                 const op = this._data.item.checked ? "uncheck" : "check";
                 try {
-                    const item = await ui.call(
-                        "POST", `/api/lists/${this._data.lst.id}/items/${this._data.item.id}/${op}`
-                    );
+                    const item = await ui.call("POST", `/api/items/${this._data.item.id}/${op}`);
                     this._activity.events.dispatchEvent({type: `item-${op}`, object: item});
                 } catch (e) {
                     ui.handleCallError(e);
@@ -763,9 +756,7 @@ listling.ItemElement = class extends HTMLLIElement {
         };
         this._activity.events.addEventListener("item-assignees-unassign", this._onUnassign);
 
-        this._data.votes = new micro.Collection(
-            `/api/lists/${this._data.lst.id}/items/${this._data.item.id}/votes`
-        );
+        this._data.votes = new micro.Collection(`/api/items/${this._data.item.id}/votes`);
         this._data.votes.events.addEventListener("fetch", () => {
             this._data.votesComplete = this._data.votes.complete;
         });
