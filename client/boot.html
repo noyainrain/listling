@@ -1,0 +1,108 @@
+<main>
+    <div class="micro-ui-inside">
+        <p class="micro-ui-progress" style="display: none;">
+            <i class="fa fa-spin fa-spinner"></i>
+        </p>
+
+        <noscript class="micro-boot-page">
+            <h1 class="micro-icon-title"><i class="fa fa-cogs"></i></h1>
+            <p>
+                Unfortunately, we couldn't get started because scripting is disabled. Please
+                enable scripting for this web app.
+            </p>
+        </noscript>
+        <div id="micro-compatibility-boot-page" class="micro-boot-page"
+             style="display: none;">
+            <h1 class="micro-icon-title"><i class="fa fa-cogs"></i></h1>
+            <p>
+                Unfortunately, we couldn't get started because your browser/device is
+                outdated and not able to run this web app. Please update your
+                browser/device.
+            </p>
+            <div class="micro-boot-page-detail micro-small">
+                <p>
+                    Here follow some technical details which might be helpful for support:
+                </p>
+                <pre id="micro-compatibility-boot-page-detail"></pre>
+            </div>
+        </div>
+        <div class="micro-storage-boot-page micro-boot-page"
+             style="display: none;">
+            <h1 class="micro-icon-title"><i class="fa fa-cogs"></i></h1>
+            <p>
+                Unfortunately, we couldn't get started because cookies are disabled. Please
+                enable cookies for this web app.
+            </p>
+        </div>
+    </div>
+</main>
+
+<script>
+    // Run the platform checks
+    window.micro = {launch: true};
+
+    var features = {};
+    features.dom4ClassList = "classList" in document.createElement("div");
+    features.dom4ParentNode = "append" in document.body;
+    try {
+        eval("var x = () => {};");
+        features.es6ArrowFunction = true;
+    } catch (e) {
+        features.es6ArrowFunction = false;
+    }
+    try {
+        eval("var x = class {};");
+        features.es6Class = true;
+    } catch (e) {
+        features.es6Class = false;
+    }
+    try {
+        eval("var [a, b] = [1, 2];");
+        features.es6Destructuring = true;
+    } catch (e) {
+        features.es6Destructuring = false;
+    }
+    try {
+        eval("let x = 42;");
+        features.es6Let = true;
+    } catch (e) {
+        features.es6Let = false;
+    }
+    features.es6Promise = "Promise" in window;
+    features.es6String = "includes" in String.prototype;
+    try {
+        eval("var x = `${42}`;");
+        features.es6TemplateLiteral = true;
+    } catch (e) {
+        features.es6TemplateLiteral = false;
+    }
+    try {
+        // Make sure async implementation covers arrow functions and use in class scope (see
+        // https://bugs.webkit.org/show_bug.cgi?id=166879)
+        eval("new class {constructor() {(async() => {})();}}()");
+        features.es8AsyncFunction = true;
+    } catch (e) {
+        features.es8AsyncFunction = false;
+    }
+    features.html5Constraints = "validity" in document.createElement("input");
+    features.html5ErrorEvent = "error" in new ErrorEvent("error");
+    features.html5History = "pushState" in history;
+    features.html5Storage = "localStorage" in window;
+    features.html5Template = "content" in document.createElement("template");
+    features.fetch = "fetch" in window;
+
+    var compatible = Object.keys(features).reduce(
+        function(p, c) { return p && features[c]; }, true);
+    if (!compatible) {
+        micro.launch = false;
+        document.getElementById("micro-compatibility-boot-page-detail").textContent =
+            JSON.stringify({device: navigator.userAgent, features: features}, null, 4);
+        document.getElementById("micro-compatibility-boot-page").style.display = "block";
+    }
+
+    // From here on we make use of the checked features
+    if (compatible && !navigator.cookieEnabled) {
+        micro.launch = false;
+        document.querySelector(".micro-storage-boot-page").style.display = "block";
+    }
+</script>

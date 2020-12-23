@@ -1,0 +1,141 @@
+<template id="micro-content-input-template">
+    <div
+        data-class-micro-content-input-has-resource="resource"
+        data-class-micro-content-input-attaching="attaching"
+    >
+        <button type="button" class="micro-content-input-labeled"></button>
+
+        <div class="micro-content-input-resource-space micro-block">
+            <div class="micro-content-input-resource-wrapper">
+                <div class="micro-content-input-resource" data-content="renderResource resource">
+                </div>
+                <div class="micro-panel">
+                    <button
+                        is="micro-button" type="button" class="action" data-run="deleteResource"
+                        title="Delete"
+                    >
+                        <i class="fa fa-backspace"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <p class="micro-progress"><i class="fa fa-spinner fa-spin"></i></p>
+
+        <textarea
+            class="micro-content-input-text" data-placeholder="getPlaceholder placeholder resource"
+            data-url-detection="new URLDetection" data-oninput="validate"
+            data-onurlinput="onURLInput"
+        ></textarea>
+
+        <footer class="micro-panel">
+            <button type="button" class="action" data-onclick="onAttachClick">
+                <i class="fa fa-paperclip"></i> Attach
+            </button>
+            <input
+                type="file" class="micro-content-input-upload" data-onchange="onUploadChange"
+                accept="image/bmp,image/gif,image/jpeg,image/png,image/svg+xml,.bmp,.gif,.jpg,.png,.svg"
+            />
+            <div class="micro-content-input-info">
+                <button type="button" class="link">
+                    <i class="fa fa-fw fa-info-circle"></i>
+                </button>
+                <micro-contextual>
+                    <table>
+                        <thead>
+                            <tr>
+                                <td>You type:</td>
+                                <td>You get:</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>*Emphasized*</td>
+                                <td><em>Emphasized</em></td>
+                            </tr>
+                            <tr>
+                                <td>**Important**</td>
+                                <td><strong>Important</strong></td>
+                            </tr>
+                            <tr>
+                                <td>* List item</td>
+                                <td>&nbsp;• List item</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p>
+                        Attach additional content like images, videos, … by inserting a link.
+                    </p>
+                </micro-contextual>
+            </div>
+        </footer>
+    </div>
+</template>
+
+<style>
+    micro-content-input {
+        display: block;
+    }
+
+    micro-content-input:focus-within {
+        box-shadow: var(--micro-focus-shadow);
+    }
+
+    .micro-content-input-labeled {
+        display: none;
+    }
+
+    micro-content-input > div:not(.micro-content-input-has-resource) .micro-content-input-resource-space,
+    micro-content-input > div:not(.micro-content-input-attaching) .micro-progress {
+        display: none;
+    }
+
+    .micro-content-input-resource-space {
+        cursor: text;
+    }
+
+    .micro-content-input-resource-wrapper {
+        display: inline-block;
+        position: relative;
+        max-width: 100%;
+        cursor: auto;
+    }
+
+    .micro-content-input-resource-wrapper > .micro-panel {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.66);
+    }
+
+    .micro-content-input-text:focus {
+        box-shadow: none;
+    }
+
+    micro-content-input > div > footer {
+        border-top: 1px solid var(--micro-color-delimiter);
+    }
+
+    input:not([type=checkbox]).micro-content-input-upload {
+        display: none;
+    }
+
+    .micro-content-input-info {
+        margin-left: auto;
+    }
+
+    .micro-content-input-info micro-contextual {
+        bottom: 100%;
+    }
+
+    .micro-content-input-info table {
+        border-style: hidden;
+    }
+
+    .micro-content-input-info tbody td:first-child {
+        font: 0.875em / 1.5 monospace, monospace;
+    }
+
+    .micro-content-input-info p {
+        border-top: 1px solid var(--micro-color-delimiter);
+    }
+</style>

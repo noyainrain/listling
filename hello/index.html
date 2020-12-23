@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+
+        {% raw micro_dependencies() %}
+        <script src="{{ static_url('hello.js') }}" defer="defer"></script>
+    </head>
+
+    <body is="hello-ui">
+        {% raw micro_boot() %}
+
+        {% raw micro_templates() %}
+
+        <template class="hello-start-page-template">
+            <div class="hello-start-intro">
+                <h1 class="micro-logo" data-content="settings.title"></h1>
+                <p>A micro toolkit example</p>
+            </div>
+            <div>
+                <p>Leave a greeting for everyone to read:</p>
+                <form data-shortcut-context="new ShortcutContext">
+                    <micro-content-input required="required"></micro-content-input>
+                    <button
+                        is="micro-button" class="action micro-highlight"
+                        data-shortcut="new Shortcut 'Control+Enter'" data-run="createGreeting"
+                    >
+                        <i class="fa fa-comment"></i> Publish
+                    </button>
+                </form>
+            </div>
+            <ul class="hello-start-greetings" data-content="list greetings.items 'greeting'">
+                <template>
+                    <li data-id="makeGreetingHash greeting" class="micro-quick-nav" tabindex="0">
+                        <header class="micro-panel">
+                            <p class="micro-panel-main">
+                                <micro-user data-user="greeting.authors.0"></micro-user>:
+                            </p>
+                        </header>
+                        <div class="micro-block" data-content="renderResource greeting.resource">
+                        </div>
+                        <p class="micro-multiline" data-content="markup greeting.text"></p>
+                    </li>
+                </template>
+            </ul>
+        </template>
+        <style>
+            hello-start-page {
+                --micro-link-max-height: calc(1.5em * 5);
+                --micro-image-max-height: calc(1.5em * 5);
+            }
+
+            hello-start-page micro-video {
+                width: calc(1.5em * 5 * 16 / 9);
+            }
+
+            .hello-start-intro {
+                margin: calc(1.5rem * 3) 0;
+                text-align: center;
+            }
+
+            .hello-start-intro p {
+                color: #888;
+            }
+
+            .hello-start-intro .micro-logo {
+                font-size: 3em;
+            }
+
+            hello-start-page micro-content-input {
+                border: 1px solid var(--micro-color-delimiter);
+            }
+
+            hello-start-page .micro-content-input-text {
+                height: calc(2 * var(--micro-size-m) + 2 * var(--micro-size-s));
+            }
+
+            .hello-start-greetings {
+                padding: 0;
+                list-style: none;
+            }
+
+            .hello-start-greetings > li {
+                border-top: 1px solid var(--micro-color-delimiter);
+            }
+
+            .hello-start-greetings > li > header > p {
+                font-weight: bold;
+            }
+        </style>
+
+        <template class="hello-about-page-template">
+            <micro-about-page
+                short="{title} is a micro toolkit example." project-title="micro"
+                project-url="https://github.com/noyainrain/micro" project-license="LGPL"
+                project-license-url="https://www.gnu.org/licenses/lgpl.html"
+                project-copyright="Copyright © 2020 micro contributors">
+            </micro-about-page>
+        </template>
+    </body>
+</html>

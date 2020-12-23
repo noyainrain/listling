@@ -1,0 +1,88 @@
+<template id="micro-edit-user-page-template">
+    <form>
+        <header class="micro-heading micro-panel">
+            <h1>Edit user settings</h1>
+            <button is="micro-button" class="action" data-run="edit">
+                <i class="fa fa-check-circle"></i> Save
+            </button>
+        </header>
+        <label>
+            <small>Name</small>
+            <small>Your name or nick name.</small>
+            <input name="name" required="required" />
+        </label>
+        <label class="micro-edit-user-email">
+            <small>Email address (optional)</small>
+            <small>Only visible to you.</small>
+            <div class="micro-panel">
+                <input name="email" type="email" readonly="readonly" data-value="user.email" />
+                <button is="micro-button" type="button" class="action" data-run="setEmail">
+                    <i class="fa fa-pencil-alt"></i> Change
+                </button>
+            </div>
+        </label>
+    </form>
+</template>
+<style>
+    .micro-edit-user-email div {
+        border: 1px solid var(--micro-color-delimiter);
+    }
+
+    label.micro-edit-user-email input:not([type=checkbox]) {
+        border: none;
+    }
+</style>
+
+<template id="micro-auth-request-dialog-template">
+    <div class="micro-auth-request-dialog">
+        <header class="micro-heading micro-panel">
+            <div class="micro-panel-main" data-content="titleContent"></div>
+            <button
+                is="micro-button" type="button" class="link" data-run="close"
+                data-shortcut="new Shortcut 'Escape' 'Close'"
+            >
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </header>
+        <div data-content="switch step 'request' 'verify'">
+            <template>
+                <div class="micro-auth-request-dialog-pre" data-content="preContent"></div>
+                <form class="micro-panel">
+                    <input
+                        name="email" type="email" placeholder="Email address" required="required"
+                    />
+                    <button
+                        is="micro-button" class="action" data-run="request"
+                        data-content="requestContent"
+                    ></button>
+                </form>
+            </template>
+            <template>
+                <p class="micro-auth-request-dialog-pre">
+                    Please enter the verification code that we've sent to your email address.
+                </p>
+                <form class="micro-panel">
+                    <input name="code" placeholder="Code" required="required" autocomplete="off" />
+                    <button is="micro-button" class="action" data-run="verify">
+                        <i class="fa fa-check-circle"></i> Verify
+                    </button>
+                </form>
+            </template>
+        </div>
+    </div>
+</template>
+<style>
+    .micro-auth-request-dialog-pre {
+        border-bottom: 1px solid var(--micro-color-delimiter);
+    }
+
+    .micro-auth-request-dialog [name=code]:not(:placeholder-shown) {
+        text-transform: uppercase;
+    }
+</style>
+
+<template id="micro-set-email-dialog-template">
+    <h1 slot="title">Add email address</h1>
+    <p slot="pre">The email address is only visible to you.</p>
+    <span slot="request"><i class="fa fa-check-circle"></i> Add</span>
+</template>
