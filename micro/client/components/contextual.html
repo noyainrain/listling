@@ -1,0 +1,26 @@
+<style>
+    micro-contextual {
+        display: block;
+        position: absolute;
+        z-index: 1;
+        right: 0;
+        box-shadow: var(--micro-shadow);
+        background: white;
+        white-space: normal;
+    }
+
+    micro-contextual:not(.micro-contextual-active) {
+        height: 0;
+        overflow: hidden;
+    }
+
+    micro-contextual .link,
+    micro-contextual .action,
+    micro-contextual p[tabindex] {
+        white-space: nowrap;
+    }
+
+    .micro-contextual-wrapper {
+        position: relative;
+    }
+</style>

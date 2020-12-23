@@ -1,0 +1,6 @@
+tornado ~= 6.0
+redis ~= 3.0
+typing_extensions ~= 3.6
+mypy_extensions ~= 0.4.0
+pywebpush ~= 1.4
+py-vapid ~= 1.3

@@ -1,0 +1,118 @@
+<template id="micro-video-template">
+    <div
+        data-class-micro-video-controls-visible="controlsVisible" tabindex="0"
+        data-shortcut-context="new ShortcutContext"
+        data-shortcut="new Shortcut 'C' 'Show / Hide controls'" data-onclick="onClick"
+    >
+        <img data-src="video.image.url" />
+        <div data-content="switch error">
+            <template>
+                <p>
+                    <span data-content="error"></span>
+                </p>
+            </template>
+        </div>
+        <div class="micro-video-controls micro-panel">
+            <button
+                is="micro-button" type="button" class="action" data-run="playPause"
+                data-shortcut="new Shortcut 'P' 'Play / Pause'"
+                data-onfocus="onControlFocus"
+            >
+                <i
+                    class="fa fa-fw" data-class-fa-play="not state.playing"
+                    data-class-fa-pause="state.playing"
+                ></i>
+            </button>
+            <a
+                class="link" data-href="video.url" target="_blank"
+                data-shortcut="new Shortcut 'O' 'Open'"
+                data-onfocus="onControlFocus"
+            >
+                <i class="fa fa-fw fa-external-link-alt"></i>
+            </a>
+        </div>
+    </div>
+</template>
+
+<style>
+micro-video {
+    display: inline-block;
+    width: 320px;
+    max-width: 100%;
+}
+
+micro-video > div {
+    position: relative;
+    z-index: 0;
+    padding-top: calc(9 / 16 * 100%);
+    background: black;
+}
+
+micro-video > div:focus {
+    box-shadow: 0 0 0 1px var(--micro-color-primary-tint);
+}
+
+micro-video img,
+micro-video iframe[title],
+micro-video p {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+micro-video img {
+    object-fit: contain;
+}
+
+micro-video iframe {
+    pointer-events: none;
+}
+
+micro-video iframe:not([tabindex]) {
+    visibility: hidden;
+}
+
+micro-video p {
+    color: white;
+    background: black;
+}
+
+micro-video p > span {
+    display: block;
+    height: 100%;
+    overflow: hidden;
+}
+
+.micro-video-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    background: rgba(0, 0, 0, 0.66);
+}
+
+micro-video > div:not(.micro-video-controls-visible) .micro-video-controls {
+    height: 0;
+    overflow: hidden;
+}
+
+.micro-video-controls .link:focus,
+.micro-video-controls .link:hover,
+.micro-video-controls .action:focus,
+.micro-video-controls .action:hover {
+    background: black;
+}
+
+.micro-video-controls .link i,
+.micro-video-controls .action i {
+    color: white;
+}
+
+.micro-video-controls .link {
+    margin-left: auto;
+}
+</style>

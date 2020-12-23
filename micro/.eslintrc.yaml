@@ -1,0 +1,126 @@
+parserOptions:
+    ecmaVersion: 2017
+env:
+    browser: true
+    es6: true
+globals:
+    micro: false
+    ui: false
+    hello: false
+extends: eslint:all
+rules:
+    # Follow https://crockford.com/javascript/code.html
+    dot-location:
+        - error
+        - property
+    func-names: off
+    init-declarations: off
+    lines-around-comment: off
+    no-param-reassign: off
+    no-ternary: off
+    padded-blocks: off
+    quote-props:
+        - error
+        - as-needed
+    # Valid features
+    no-bitwise: off
+    no-console: off
+    no-control-regex: off
+    no-plusplus: off
+    no-undefined: off
+    # Good design is best figured out by humans (yet)
+    class-methods-use-this: off
+    id-length: off
+    max-classes-per-file: off
+    max-lines: off
+    max-lines-per-function: off
+    max-params: off
+    max-statements: off
+    # Concise code
+    array-element-newline: off
+    arrow-parens:
+        - error
+        - as-needed
+    function-call-argument-newline: off
+    implicit-arrow-linebreak: off
+    multiline-ternary: off
+    newline-per-chained-call: off
+    no-confusing-arrow: off
+    no-empty-function: off
+    no-promise-executor-return: off
+    no-mixed-operators: off
+    object-property-newline: off
+    one-var: off
+    prefer-named-capture-group: off
+    wrap-regex: off
+    # Aligning with first argument may be more readable
+    array-bracket-newline: off
+    function-paren-newline: off
+    indent:
+        - error
+        - 4
+        - ArrayExpression: first
+          CallExpression:
+              arguments: first
+          FunctionDeclaration:
+              parameters: first
+          FunctionExpression:
+              parameters: first
+          ObjectExpression: first
+    object-curly-newline: off
+    # Arrangement should support train of thought
+    sort-keys: off
+    sort-vars: off
+    # Superfluous with modern JavaScript
+    no-loop-func: off
+    radix: off
+    func-style:
+        - error
+        - declaration
+    # Non-Camelcase is found in external JSON
+    camelcase: off
+    # First word may be lower case proper name
+    capitalized-comments: off
+    # Less line wrapping and long strings may be more readable
+    max-len:
+        - error
+        - code: 100
+          ignoreRegExpLiterals: true
+          ignoreStrings: true
+          ignoreTemplateLiterals: true
+          ignoreUrls: true
+    # Okay for i.e. default parameters, length checks, …
+    no-magic-numbers: off
+    # Okay for private and special properties
+    no-underscore-dangle:
+        - error
+        - allow:
+              - __bound__
+              - __templates__
+              - __type__
+          allowAfterThis: true
+    # Mixing let and const may be less readable
+    prefer-const: off
+    # Unpacking a single value may be less readable
+    prefer-destructuring: off
+    # No cross-browser support yet
+    prefer-object-spread: off
+    # Escapes may be less readable
+    quotes:
+        - error
+        - double
+        - avoidEscape: true
+    # False positive for certain safe operations
+    require-atomic-updates: off
+    # Some entities, like private methods, do not require documentation
+    require-jsdoc: off
+    # Strict mode everywhere
+    strict:
+        - error
+        - global
+    # We use Sphinx for documentation
+    valid-jsdoc: off
+    # Compatibility with former eslint-config-eslint (see
+    # https://github.com/noyainrain/micro/issues/29)
+    multiline-comment-style: off
+    space-before-function-paren: off

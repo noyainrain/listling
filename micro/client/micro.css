@@ -1,0 +1,661 @@
+/* ---- Color scheme ----
+ *
+ * - text inverse: #fff
+ */
+
+html {
+    --micro-color-text: #333;
+    --micro-color-text-subtle: #888;
+    --micro-color-text-title: #19354d; /* Hue: primary, saturation: primary 50% */
+    --micro-color-delimiter: #ddd;
+    --micro-color-border: #bbb;
+    --micro-color-primary: #08f;
+    --micro-color-primary-shade: #005aa8; /* Lightness: primary 66% */
+    --micro-color-primary-tint: #77c0ff; /* Lightness: border */
+    --micro-color-secondary: #f80;
+    --micro-color-mono-shade: #545454; /* Lightness: primary-shade */
+    --micro-size-m: 1.5rem;
+    --micro-size-s: 0.5rem;
+    --micro-size-xs: 0.25rem;
+    --micro-shadow: 0 0 2px rgba(0, 0, 0, 0.33);
+    --micro-focus-shadow: inset 0 0 0 1px var(--micro-color-primary-tint);
+}
+
+/* ---- General ---- */
+
+* {
+    box-sizing: border-box;
+}
+
+:focus {
+    outline: none;
+    box-shadow: var(--micro-focus-shadow);
+}
+
+[tabindex] {
+    cursor: pointer;
+}
+
+html {
+    color: var(--micro-color-text);
+    background: white;
+    font: medium / 1.5 "Open Sans";
+    overflow: hidden scroll;
+    overflow-wrap: break-word;
+    scroll-padding: calc(var(--micro-size-m) + 3 * var(--micro-size-s)) 0;
+}
+
+body {
+    margin: 0;
+}
+
+.micro-block,
+h1,
+p,
+ul,
+ol,
+dl,
+pre,
+aside {
+    padding: var(--micro-size-s);
+    margin: 0;
+}
+
+.micro-block:empty,
+h1:empty,
+p:empty,
+ul:empty,
+ol:empty,
+dl:empty,
+pre:empty,
+aside:empty {
+    display: none;
+}
+
+h1 {
+    border-bottom: 1px solid var(--micro-color-delimiter);
+    font-size: 2rem;
+    font-weight: normal;
+    color: var(--micro-color-text-title);
+}
+
+section h1 { font-size: 1.66rem; }
+section section h1 { font-size: 1.33rem; }
+
+p[tabindex]:focus,
+p[tabindex]:hover {
+    background: var(--micro-color-delimiter);
+}
+
+ul,
+ol {
+    padding-left: 1.5em;
+}
+
+dl {
+    display: grid;
+    grid: auto-flow / max-content 1fr;
+    column-gap: var(--micro-size-s);
+}
+
+dt {
+    align-self: center;
+    color: var(--micro-color-text-subtle);
+    text-align: center;
+}
+
+dd {
+    margin: 0;
+}
+
+pre {
+    /* Prevent browsers from manipulating the font size if the font family equals "monospace" */
+    font: 0.875em / 1.5 monospace, monospace;
+    white-space: pre-wrap;
+}
+
+aside {
+    font-size: 0.875rem;
+    color: var(--micro-color-text-subtle);
+}
+
+table {
+    border-collapse: collapse;
+}
+
+table td {
+    padding: var(--micro-size-s);
+    border: 1px solid var(--micro-color-delimiter);
+    vertical-align: baseline;
+}
+
+table thead td {
+    font-weight: bold;
+}
+
+i {
+    color: var(--micro-color-text-subtle);
+}
+
+em {
+    font-style: italic;
+}
+
+strong {
+    font-weight: bold;
+}
+
+.micro-small,
+small {
+    font-size: 0.875rem;
+    color: var(--micro-color-text-subtle);
+}
+
+small {
+    display: block;
+}
+
+.micro-multiline {
+    white-space: pre-line;
+}
+
+.micro-lgroup {
+    padding: var(--micro-size-s);
+    padding-left: 1.5em;
+}
+
+.micro-lgroup > ul,
+.micro-lgroup > ol {
+    padding: 0;
+    list-style: none;
+}
+
+.micro-icon-title {
+    border-bottom: none;
+    font-size: 3rem;
+}
+
+.micro-progress i {
+    color: var(--micro-color-primary);
+}
+
+/* ---- Focus hints ---- */
+
+[title] {
+    position: relative;
+}
+
+[title]::before {
+    content: attr(title);
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: calc(100% + var(--micro-size-s));
+    z-index: 1;
+    padding: var(--micro-size-s);
+    border-radius: var(--micro-size-xs);
+    transform: translateY(-50%);
+    color: white;
+    background: rgba(0, 0, 0, 0.66);
+    line-height: 1;
+    white-space: nowrap;
+}
+
+[title]:not(.micro-activated):focus::before {
+    display: block;
+}
+
+/** Links and actions */
+
+.link,
+.action {
+    display: block;
+    width: 100%;
+    padding: var(--micro-size-s);
+    border: none;
+    border-radius: 0;
+    margin: 0;
+    background: transparent;
+    font: inherit;
+    text-align: inherit;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.link:focus,
+.link:not(:disabled):hover,
+.action:focus,
+.action:not(:disabled):hover {
+    background: var(--micro-color-delimiter);
+}
+
+.link:disabled,
+.link.micro-button-suspended,
+.action:disabled,
+.action.micro-button-suspended {
+    cursor: default;
+}
+
+.link.micro-small,
+.action.micro-small {
+    font-size: 0.875rem;
+}
+
+.link {
+    color: inherit;
+}
+
+.link.micro-small {
+    color: var(--micro-color-text-subtle);
+}
+
+.link.micro-highlight,
+.link.micro-highlight i {
+    color: var(--micro-color-secondary);
+}
+
+.link h1 {
+    padding: 0;
+}
+
+.action,
+.action i {
+    color: var(--micro-color-primary);
+}
+
+.action.micro-highlight {
+    width: auto;
+    padding: calc(var(--micro-size-s) - 1px);
+    border-radius: var(--micro-size-xs);
+    margin: 1px;
+    background: var(--micro-color-primary);
+}
+
+.action.micro-highlight,
+.action.micro-highlight i {
+    color: white;
+}
+
+.action.micro-highlight:focus,
+.action.micro-highlight:not(:disabled):hover {
+    background: var(--micro-color-primary);
+    box-shadow: inset 0 0 0 1px var(--micro-color-primary), inset 0 0 0 2px white;
+}
+
+p .link,
+h1 .link {
+    display: inline;
+    width: auto;
+    padding: 0;
+}
+
+p .link,
+h1 .link,
+p .link i,
+h1 .link i {
+    color: var(--micro-color-secondary);
+}
+
+p .link:focus,
+h1 .link:focus,
+p .link:not(:disabled):hover,
+h1 .link:not(:disabled):hover {
+    background: transparent;
+    text-decoration: underline;
+}
+
+/** Forms */
+
+input,
+textarea {
+    margin: 0;
+}
+
+input:not([type=checkbox]),
+textarea {
+    display: block;
+    width: 100%;
+    padding: var(--micro-size-s);
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    font: inherit;
+}
+
+input:invalid:not(:focus),
+textarea:invalid:not(:focus),
+select:invalid:not(:focus) {
+    box-shadow: none;
+}
+
+input[type=checkbox]:focus {
+    outline: 1px solid var(--micro-color-primary-tint);
+    box-shadow: none;
+}
+
+textarea {
+    height: calc(5 * var(--micro-size-m) + 2 * var(--micro-size-s));
+}
+
+label,
+fieldset {
+    display: block;
+    margin: var(--micro-size-s) 0;
+}
+
+label > small {
+    padding: 0 var(--micro-size-s);
+}
+
+label > small:first-of-type {
+    color: inherit;
+}
+
+label input:not([type=checkbox]),
+label textarea {
+    border: 1px solid var(--micro-color-delimiter);
+}
+
+fieldset {
+    position: relative;
+    padding: var(--micro-size-s);
+    padding-top: calc(var(--micro-size-s) + 1.5 * 0.875rem);
+    border: none;
+}
+
+fieldset legend {
+    position: absolute;
+    top: var(--micro-size-s);
+    padding: 0;
+    font-size: 0.875rem;
+}
+
+fieldset label {
+    margin: 0;
+}
+
+.micro-disabled {
+    color: var(--micro-color-text-subtle);
+}
+
+/**
+ * Panel: Arrangement of controls and text content.
+ *
+ * Designed to be placed in a bordered container that signals interactivity, e.g. a bar.
+ */
+
+.micro-panel {
+    display: flex;
+    align-items: flex-start;
+}
+
+.micro-panel > * {
+    white-space: nowrap;
+}
+
+.micro-panel > .link,
+.micro-panel > .action,
+.micro-panel > div > .link,
+.micro-panel > div > .action {
+    width: auto;
+}
+
+.micro-panel > h1,
+.micro-panel > div > h1,
+.micro-panel > .link > h1 {
+    border-bottom: none;
+    font-size: 1rem;
+}
+
+.micro-panel-main {
+    flex: auto;
+    min-width: 0;
+    white-space: normal;
+}
+
+/* ---- Entity list ---- */
+
+.micro-entity-list > ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.micro-entity-list > ul:not(:empty) ~ ul:not(:empty),
+.micro-entity-list > ul > li:not(:empty) ~ li:not(:empty) {
+    border-top: 1px solid var(--micro-color-delimiter);
+}
+
+/* ---- Heading ---- */
+
+.micro-heading {
+    border-bottom: 1px solid var(--micro-color-delimiter);
+    align-items: flex-end;
+}
+
+.micro-heading > h1,
+.micro-heading > input {
+    flex: auto;
+    min-width: 0;
+    font-size: 2rem;
+    white-space: normal;
+}
+
+section .micro-heading > h1,
+section .micro-heading > input {
+    font-size: 1.66rem;
+}
+
+section section .micro-heading > h1,
+section section .micro-heading > input {
+    font-size: 1.33rem;
+}
+
+/* ---- Logo ---- */
+
+.micro-logo {
+    border-bottom: none;
+    font-size: 2rem;
+    font-weight: 300;
+    text-align: center;
+}
+
+.micro-logo .link {
+    color: inherit;
+}
+
+.micro-logo img {
+    height: 2em;
+    vertical-align: text-bottom;
+}
+
+/* ---- Timeline ---- */
+
+.micro-timeline {
+    padding-left: 1.5rem;
+    list-style: none;
+}
+
+.micro-timeline > li {
+    position: relative;
+}
+
+.micro-timeline > li::before {
+    content: '';
+    position: absolute;
+    left: calc(-1.5rem / 2);
+    top: 0;
+    bottom: 0;
+    border-left: 1px solid #ddd;
+}
+
+.micro-timeline > li:first-child::before {
+    top: 50%;
+}
+
+.micro-timeline > li:last-child::before {
+    bottom: 50%;
+}
+
+.micro-timeline > li::after {
+    content: '';
+    position: absolute;
+    left: calc(-1.5rem / 2 - 1.5rem / 8);
+    top: calc(50% - 1.5rem / 8);
+    width: calc(1.5rem / 4);
+    height: calc(1.5rem / 4);
+    border-radius: calc(1.5rem / 8);
+    background: #ddd;
+}
+
+.micro-timeline time {
+    display: inline-block;
+    margin-right: 1ch;
+    font-size: 0.875em;
+    color: #888;
+}
+
+/* ---- UserElement ---- */
+
+.micro-user {
+    display: inline-block;
+    vertical-align: bottom;
+    max-width: 20ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ---- UI ---- */
+
+.micro-ui-dragging {
+    cursor: move;
+}
+
+.micro-ui-inside {
+    box-sizing: content-box;
+    max-width: 70ch;
+    padding: 0 var(--micro-size-s);
+    margin: 0 auto;
+}
+
+.micro-ui-header {
+    position: sticky;
+    z-index: 2;
+    top: 0;
+    left: 0;
+    right: 0;
+    margin: 0;
+    box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.33);
+    background: #fff;
+}
+
+.micro-ui-beta {
+    color: #888;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+}
+
+.micro-ui-header-fill {
+    flex: auto;
+}
+
+body:not(.micro-ui-settings-have-feedback-url) .micro-ui-feedback {
+    display: none;
+}
+
+body:not(.micro-ui-user-is-staff) .micro-ui-activity {
+    display: none;
+}
+
+main {
+    padding: var(--micro-size-s) 0;
+}
+
+.micro-ui-progress {
+    margin: calc(3 * 1.5rem) 0;
+    font-size: 3rem;
+    text-align: center;
+}
+
+.micro-ui-progress i {
+    color: var(--micro-color-primary);
+}
+
+/* ---- ErrorNotification ---- */
+
+.micro-error-notification i {
+    color: red;
+}
+
+/* Button */
+
+.micro-button-suspended i:first-of-type {
+    display: none;
+}
+
+/* ---- OL ---- */
+
+.micro-ol-handle {
+    cursor: move;
+}
+
+/* ---- BootPage ---- */
+
+.micro-boot-page {
+    text-align: center;
+}
+
+.micro-boot-page i {
+    color: red;
+}
+
+.micro-boot-page-detail {
+    margin-top: calc(3 * 1.5rem);
+    text-align: left;
+}
+
+/* ---- NotFoundPage ---- */
+
+micro-not-found-page {
+    text-align: center;
+}
+
+/* ---- ForbiddenPage ---- */
+
+micro-forbidden-page {
+    text-align: center;
+}
+
+/* ---- EditUserPage ---- */
+
+micro-edit-user-page:not(.micro-edit-user-has-email) .micro-edit-user-remove-email {
+    display: none;
+}
+
+.micro-edit-user-has-email .micro-edit-user-set-email-1 {
+    display: none;
+}
+
+.micro-edit-user-set-email-2 {
+    display: none;
+}
+
+.micro-edit-user-set-email-2 h1 {
+    border-bottom: none;
+    font-size: 1rem;
+}
+
+micro-edit-user-page:not(.micro-edit-user-has-email) .micro-edit-user-email-value {
+    display: none;
+}
+
+/* ---- ActivityPage ---- */
+
+micro-activity-page > ul {
+    list-style: none;
+}
+
+.micro-activity-all .micro-activity-show-more {
+    display: none;
+}

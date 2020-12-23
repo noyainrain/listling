@@ -1,0 +1,113 @@
+<link
+    rel="stylesheet"
+    href="{{ static_url('{}/@fortawesome/fontawesome-free/css/all.min.css'.format(modules_path)) }}"
+/>
+<link rel="stylesheet"
+      href="{{ static_url('{}/@noyainrain/micro/micro.css'.format(modules_path)) }}" />
+<link
+    rel="leaflet-stylesheet"
+    href="{{ static_url('{}/leaflet/dist/leaflet.css'.format(modules_path)) }}"
+/>
+<link
+    rel="chartjs-script"
+    href="{{ static_url('{}/chart.js/dist/Chart.bundle.min.js'.format(modules_path)) }}"
+/>
+<link
+    rel="leaflet-script" href="{{ static_url('{}/leaflet/dist/leaflet.js'.format(modules_path)) }}"
+/>
+<link rel="service" href="{{ static_url(service_path, include_version=False) }}" />
+
+<script src="{{ static_url('{}/webcomponents.js/webcomponents-lite.min.js'.format(modules_path)) }}"
+        defer="defer">
+</script>
+<script
+    src="{{ static_url('{}/event-source-polyfill/src/eventsource.min.js'.format(modules_path)) }}"
+    defer="defer"
+>
+</script>
+<script src="{{ static_url('{}/@noyainrain/micro/bind.js'.format(modules_path)) }}" defer="defer">
+</script>
+<script src="{{ static_url('{}/@noyainrain/micro/keyboard.js'.format(modules_path)) }}"
+        defer="defer">
+</script>
+<script src="{{ static_url(f'{modules_path}/@noyainrain/micro/core.js') }}" defer="defer"></script>
+<script src="{{ static_url('{}/@noyainrain/micro/util.js'.format(modules_path)) }}" defer="defer">
+</script>
+<script
+    src="{{ static_url(f'{modules_path}/@noyainrain/micro/components/contentinput.js') }}"
+    defer="defer"
+></script>
+<script src="{{ static_url('{}/@noyainrain/micro/index.js'.format(modules_path)) }}" defer="defer">
+</script>
+<script
+    src="{{ static_url('{}/@noyainrain/micro/components/contextual.js'.format(modules_path)) }}"
+    defer="defer"
+></script>
+<script
+    src="{{ static_url(f'{modules_path}/@noyainrain/micro/components/image.js') }}" defer="defer"
+></script>
+<script
+    src="{{ static_url(f'{modules_path}/@noyainrain/micro/components/link.js') }}" defer="defer"
+></script>
+<script
+    src="{{ static_url(f'{modules_path}/@noyainrain/micro/components/user.js') }}" defer="defer"
+></script>
+<script
+    src="{{ static_url(f'{modules_path}/@noyainrain/micro/components/video.js') }}" defer="defer"
+></script>
+<!-- Use alias because analytics.js triggers popular ad blocking filters -->
+<script
+    src="{{ static_url('{}/@noyainrain/micro/components/stats.js'.format(modules_path)) }}"
+    defer="defer"
+></script>
+
+<style>
+    @font-face {
+        font-family: 'Open Sans';
+        src: url('{{ static_url('{}/typeface-open-sans/files/open-sans-latin-400.woff'.format(modules_path)) }}');
+    }
+
+    @font-face {
+        font-family: 'Open Sans';
+        font-style: italic;
+        src: url('{{ static_url('{}/typeface-open-sans/files/open-sans-latin-400italic.woff'.format(modules_path)) }}');
+    }
+
+    @font-face {
+        font-family: 'Open Sans';
+        font-weight: bold;
+        src: url('{{ static_url('{}/typeface-open-sans/files/open-sans-latin-600.woff'.format(modules_path)) }}');
+    }
+
+    @font-face {
+        font-family: 'Open Sans';
+        font-weight: 300;
+        src: url('{{ static_url('{}/typeface-open-sans/files/open-sans-latin-300.woff'.format(modules_path)) }}');
+    }
+
+    @font-face {
+        font-family: 'Font Awesome 5 Free';
+        src: url('{{ static_url('{}/@fortawesome/fontawesome-free/webfonts/fa-regular-400.woff2'.format(modules_path)) }}');
+    }
+
+    @font-face {
+        font-family: 'Font Awesome 5 Free';
+        font-weight: 900;
+        src: url('{{ static_url('{}/@fortawesome/fontawesome-free/webfonts/fa-solid-900.woff2'.format(modules_path)) }}');
+    }
+</style>
+
+{% for key, value in meta.items() %}
+    {% if key == 'title' %}
+        <title>{{ value }}</title>
+    {% elif key.startswith('icon-') %}
+        <link rel="icon" sizes="{{ key.split('-')[1] }}" href="{{ value }}" />
+    {% elif key.startswith('og:') %}
+        <meta property="{{ key }}" content="{{ value }}" />
+    {% else %}
+        <meta name="{{ key }}" content="{{ value }}" />
+    {% end %}
+{% end %}
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<meta itemprop="map-service-key" content="{{ map_service_key or '' }}" />
