@@ -13,11 +13,13 @@ before_install:
 install:
     - make deps
     - make deps-dev
+    - make -C micro deps deps-dev
 script:
     - make test
     - make test-ext
+    - make -C micro type test test-ext
     # Skip code style checks if WIP is indicated
-    - test -z "${TRAVIS_COMMIT_MESSAGE##*WIP*}" || make lint
+    # - test -z "${TRAVIS_COMMIT_MESSAGE##*WIP*}" || make lint
 jobs:
     include:
         - &test-ui

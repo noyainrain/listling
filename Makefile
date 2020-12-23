@@ -32,7 +32,9 @@ check: test test-ext test-ui lint
 .PHONY: deps
 deps:
 	$(PIP) install $(PIPFLAGS) -r requirements.txt
-	$(NPM) $(NPMFLAGS) update --only=prod
+	@# Relative dependency paths do not take prefix into account
+	(cd client; $(NPM) --no-save --no-optional update --only=prod)
+	$(NPM) $(NPMFLAGS) dedupe
 
 .PHONY: deps-dev
 deps-dev:
