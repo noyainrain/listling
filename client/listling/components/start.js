@@ -1,6 +1,6 @@
 /*
  * Open Listling
- * Copyright (C) 2019 Open Listling contributors
+ * Copyright (C) 2020 Open Listling contributors
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU Affero General Public License as published by the Free Software Foundation, either version 3
@@ -71,10 +71,8 @@ listling.components.start.StartPage = class extends micro.Page {
             createList: listling.components.start.createList,
             makeListURL: listling.util.makeListURL,
 
-            onKeyDown: event => {
-                if (event.currentTarget === event.target && event.key === "Enter") {
-                    event.currentTarget.firstElementChild.click();
-                }
+            startCreateList: () => {
+                this.querySelector(".listling-start-create micro-contextual").scrollIntoView(false);
             },
 
             remove: async list => {
@@ -92,6 +90,18 @@ listling.components.start.StartPage = class extends micro.Page {
                 this._data.lists.items.splice(i, 1);
                 if (this._data.lists.items.length === 0) {
                     ui.navigate("/intro").catch(micro.util.catch);
+                }
+            },
+
+            onListKeyDown: event => {
+                if (event.currentTarget === event.target && event.key === "Enter") {
+                    event.currentTarget.firstElementChild.click();
+                }
+            },
+
+            onUseCaseKeyDown: event => {
+                if (event.key === "Enter") {
+                    event.target.click();
                 }
             }
         });

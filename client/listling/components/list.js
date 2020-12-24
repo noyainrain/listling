@@ -1,6 +1,6 @@
 /*
  * Open Listling
- * Copyright (C) 2019 Open Listling contributors
+ * Copyright (C) 2020 Open Listling contributors
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU Affero General Public License as published by the Free Software Foundation, either version 3
@@ -113,8 +113,7 @@ listling.components.list.AssignDialog = class extends HTMLElement {
                 const assignee = this._input.valueAsObject;
                 try {
                     await ui.call(
-                        "POST",
-                        `/api/lists/${this._data.itemElement.list.id}/items/${this._data.itemElement.item.id}/assignees`,
+                        "POST", `/api/items/${this._data.itemElement.item.id}/assignees`,
                         {assignee_id: assignee.id}
                     );
                 } catch (e) {
@@ -127,22 +126,21 @@ listling.components.list.AssignDialog = class extends HTMLElement {
                         throw e;
                     }
                 }
-                ui.dispatchEvent(
-                    new CustomEvent(
-                        "item-assignees-assign",
-                        {detail: {item: this._data.itemElement.item, assignee}}
-                    )
-                );
                 this._input.value = "";
                 this._input.valueAsObject = null;
                 this.querySelector("micro-options").activate();
+                ui.page.activity.events.dispatchEvent({
+                    type: "item-assignees-assign",
+                    object: this._data.itemElement.item,
+                    detail: {assignee}
+                });
             },
 
             remove: async assignee => {
                 try {
                     await ui.call(
                         "DELETE",
-                        `/api/lists/${this._data.itemElement.list.id}/items/${this._data.itemElement.item.id}/assignees/${assignee.id}`
+                        `/api/items/${this._data.itemElement.item.id}/assignees/${assignee.id}`
                     );
                 } catch (e) {
                     if (e instanceof micro.APIError && e.error.__type__ === "NotFoundError") {
@@ -151,12 +149,11 @@ listling.components.list.AssignDialog = class extends HTMLElement {
                         throw e;
                     }
                 }
-                ui.dispatchEvent(
-                    new CustomEvent(
-                        "item-assignees-unassign",
-                        {detail: {item: this._data.itemElement.item, assignee}}
-                    )
-                );
+                ui.page.activity.events.dispatchEvent({
+                    type: "item-assignees-unassign",
+                    object: this._data.itemElement.item,
+                    detail: {assignee}
+                });
             },
 
             close: () => this.remove(),
@@ -205,9 +202,12 @@ document.registerElement("listling-assign-dialog", listling.components.list.Assi
 listling.components.list.Presentation = class {
     constructor(page) {
         this.page = page;
+        // eslint-disable-next-line no-underscore-dangle
+        this._data = this.page._data;
         this._em = null;
         this._maxWidth = null;
         this._onScrollTimeout = null;
+        this._shortURLUpdate = null;
     }
 
     /** Enter presentation mode. */
@@ -294,9 +294,36 @@ listling.components.list.Presentation = class {
             );
         }
 
+        this._shortURLUpdate = micro.util.abortable(async signal => {
+            while (!signal.aborted) {
+                let response = null;
+                try {
+                    // eslint-disable-next-line no-await-in-loop
+                    response = await fetch(
+                        "/s", {method: "POST", body: listling.util.makeListURL(this.page.list)}
+                    );
+                } catch (e) {
+                    if (!(e instanceof TypeError)) {
+                        throw e;
+                    }
+                }
+                if (signal.aborted) {
+                    break;
+                }
+
+                let timeout = 60 * 1000;
+                if (response) {
+                    this._data.presentationShortURL =
+                        `${location.host}${response.headers.get("Location")}`;
+                    timeout = 24 * 60 * 60 * 1000;
+                }
+                // eslint-disable-next-line no-await-in-loop
+                await new Promise(resolve => setTimeout(resolve, timeout));
+            }
+        })();
+
         ui.noninteractive = true;
-        // eslint-disable-next-line no-underscore-dangle
-        this.page._data.presentationMode = true;
+        this._data.presentationMode = true;
         this._zoom();
         document.scrollingElement.classList.add("listling-list-scroll-snap");
     }
@@ -308,10 +335,12 @@ listling.components.list.Presentation = class {
         }
 
         ui.noninteractive = false;
-        // eslint-disable-next-line no-underscore-dangle
-        this.page._data.presentationMode = false;
+        this._data.presentationMode = false;
         this._resetZoom();
         document.documentElement.classList.remove("listling-list-scroll-snap");
+
+        this._shortURLUpdate.abort();
+        this._data.presentationShortURL = null;
 
         document.documentElement.removeEventListener("fullscreenchange", this._onFullscreenChange);
         removeEventListener("resize", this._onResize);
@@ -335,17 +364,17 @@ listling.components.list.Presentation = class {
 
     _zoom() {
         const m = 1.5 * this._em;
-        const xs = m / 4;
-        const width = this._maxWidth + 2 * m;
+        const s = m / 3;
+        const width = this._maxWidth + 2 * s;
         const height =
             // UI header and footer space
-            2 * (2 * m + 2 * xs) +
+            2 * (m + 3 * s) +
             // Item header
-            m + 2 * xs +
+            m + 2 * s +
             // Item content padding
-            2 * xs +
+            2 * s +
             // Item content
-            (this._maxWidth - 2 * xs) / 16 * 9;
+            (this._maxWidth - 2 * s) / 16 * 9;
         const ratio = Math.min(
             document.documentElement.clientWidth / width,
             document.documentElement.clientHeight / height
@@ -353,7 +382,7 @@ listling.components.list.Presentation = class {
         document.documentElement.style.fontSize = `${ratio * this._em}px`;
         // Work around Chrome misinterpreting rem units in root element (see
         // https://bugs.chromium.org/p/chromium/issues/detail?id=918480)
-        document.scrollingElement.style.scrollPadding = `${ratio * (2 * m + 2 * xs)}px 0`;
+        document.scrollingElement.style.scrollPadding = `${ratio * (m + 3 * s)}px 0`;
         this._scroll();
     }
 

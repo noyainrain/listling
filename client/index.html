@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="{{ static_url('listling.css') }}" />
     <script src="{{ static_url('listling/util.js') }}" defer="defer"></script>
     <script src="{{ static_url('listling/components/list.js') }}" defer="defer"></script>
+    <script src="{{ static_url('listling/components/share.js') }}" defer="defer"></script>
     <script src="{{ static_url('listling/components/start.js') }}" defer="defer"></script>
     <script src="{{ static_url('listling/index.js') }}" defer="defer"></script>
 </head>
@@ -43,47 +44,38 @@
                         data-onmouseenter="focusUseCase"
                         data-onfocus="bind selectUseCase useCase"
                     >
-                        <i data-class-name="format 'fa fa-{icon}' 'icon' useCase.icon"></i>
-                        <h1 data-content="useCase.title"></h1>
+                        <h1>
+                            <i data-class-name="format 'fa fa-{icon}' 'icon' useCase.icon"></i>
+                            <span data-content="useCase.title"></span>
+                        </h1>
                         <div>
-                            <p>
-                                <button
-                                    is="micro-button"
-                                    type="button"
-                                    class="listling-intro-create-list action"
-                                    title="⌨ S"
-                                    data-run="bind createList useCase.id"
-                                    data-onfocus="bind selectUseCase useCase"
-                                >
-                                    <i class="fa fa-paper-plane"></i> Start
-                                </button>
-                            </p>
-                            <p class="listling-intro-create-example">
-                                or view
-                                <button
-                                    is="micro-button"
-                                    type="button"
-                                    class="link"
-                                    title="⌨ E"
-                                    data-run="bind createExample useCase"
-                                    data-onfocus="bind selectUseCase useCase"
-                                >
-                                    <i class="fa fa-book"></i> Example
-                                </button>
-                            </p>
+                            <button
+                                is="micro-button" type="button"
+                                class="listling-intro-create-list action micro-highlight"
+                                title="⌨ S" data-run="bind createList useCase.id"
+                                data-onfocus="bind selectUseCase useCase"
+                            >
+                                <i class="fa fa-paper-plane"></i> Start
+                            </button>
+                            <button
+                                is="micro-button" type="button"
+                                class="listling-intro-create-example link micro-highlight"
+                                title="⌨ E" data-run="bind createExample useCase"
+                                data-onfocus="bind selectUseCase useCase"
+                            >
+                                <i class="fa fa-book"></i> View example
+                            </button>
                         </div>
                     </li>
                 </template>
             </ul>
-            <p class="listling-intro-missing">
-                <small>
-                    Missing a certain kind of list?
-                    <a class="action action-subtle" data-href="settings.feedback_url"
-                       data-shortcut="new Shortcut 'T'">
-                        <i class="fa fa-envelope"></i> Tell us!
-                    </a>
-                </small>
-            </p>
+            <a
+                class="listling-intro-missing action micro-small" data-href="settings.feedback_url"
+                data-shortcut="new Shortcut 'T'"
+            >
+                <small>Missing a certain kind of list?</small>
+                <i class="fa fa-envelope"></i> Tell us
+            </a>
         </div>
 
         <footer>
@@ -106,41 +98,35 @@
         }
 
         .listling-intro-keywords {
-            color: #888;
+            color: var(--micro-color-text-subtle);
         }
 
         .listling-intro-use-cases {
             display: grid;
             padding: 0;
             grid-template-columns: repeat(auto-fill, calc(14ch * 1.33 + 1.5rem / 2));
-            grid-gap: calc(1.5rem / 2) 0;
             justify-content: center;
             list-style: none;
         }
 
         .listling-intro-use-cases li {
-            padding: calc(1.5rem / 4);
+            padding: 1px;
             border: 1px solid transparent;
             border-radius: calc(1.5rem / 8);
         }
 
         .listling-intro-use-cases li.listling-selected {
-            border-color: #ddd;
+            border-color: var(--micro-color-delimiter);
         }
 
-        .listling-intro-use-cases li h1,
-        .listling-intro-use-cases li p {
-            margin: calc(1.5rem / 4) 0 0 0;
+        .listling-intro-use-cases h1 {
+            border: none;
+            font-size: 1.33rem;
         }
 
-        .listling-intro-use-cases li > i {
+        .listling-intro-use-cases h1 i {
             display: block;
-            font-size: 2em;
-            color: #888;
-        }
-
-        .listling-intro-use-cases li h1 {
-            font-size: 1.33em;
+            font-size: 2rem;
         }
 
         .listling-intro-use-cases li:not(.listling-selected) div {
@@ -148,8 +134,8 @@
             overflow: hidden;
         }
 
-        .listling-intro-create-example {
-            color: #888;
+        .listling-intro-create-list.action.micro-highlight {
+            margin: 0 auto;
         }
 
         .listling-intro-use-cases li.listling-intro-no-example .listling-intro-create-example {
@@ -175,20 +161,18 @@
             project-title="Open Listling" project-url="https://github.com/noyainrain/listling"
             project-icon="{{ static_url('images/listling.svg') }}" project-license="AGPL"
             project-license-url="https://www.gnu.org/licenses/agpl.html"
-            project-copyright="Copyright © 2019 Open Listling contributors">
+            project-copyright="Copyright © 2020 Open Listling contributors">
         </micro-about-page>
     </template>
 
     <template class="listling-list-page-template">
         <form>
             <header class="listling-list-title micro-heading micro-panel">
-                <h1>
-                    <span class="listling-list-mode-view" data-content="lst.title"></span>
-                    <label class="listling-list-mode-edit">
-                        <input name="title" placeholder="List title" required="required"
-                               autocomplete="off" data-value="or lst.title ''" />
-                    </label>
-                </h1>
+                <h1 class="listling-list-mode-view" data-content="lst.title"></h1>
+                <input
+                    class="listling-list-mode-edit" name="title" placeholder="List title"
+                    required="required" autocomplete="off" data-value="or lst.title ''"
+                />
                 <button
                     is="micro-button" type="button"
                     class="listling-list-create-item-top action listling-list-mode-view micro-interactive"
@@ -196,48 +180,47 @@
                 >
                     <i class="fa fa-plus-circle"></i>
                 </button>
-                <ul is="micro-menu" class="listling-list-menu micro-secondary listling-list-mode-view micro-interactive">
-                    <li>
-                        <button type="button" class="link"><i class="fa fa-bars"></i></button>
-                        <ul is="micro-menu">
+                <div class="listling-list-menu listling-list-mode-view micro-interactive">
+                    <button type="button" class="link"><i class="fa fa-bars"></i></button>
+                    <micro-contextual class="micro-entity-list">
+                        <ul>
                             <li class="listling-list-edit">
-                                <button is="micro-button" type="button" class="action"
-                                        data-run="startEdit" data-shortcut="new Shortcut 'E'">
+                                <button
+                                    is="micro-button" type="button"
+                                    class="action micro-contextual-deactivate"
+                                    data-run="startEdit" data-shortcut="new Shortcut 'E'"
+                                >
                                     <i class="fa fa-fw fa-pencil-alt"></i> Edit
                                 </button>
                             </li>
                             <li>
                                 <button
-                                    is="micro-button" type="button" class="action"
+                                    is="micro-button" type="button"
+                                    class="action micro-contextual-deactivate"
                                     data-run="bind share lst" data-shortcut="new Shortcut 'S'"
                                 >
                                     <i class="fa fa-fw fa-user-friends"></i> Share
                                 </button>
                             </li>
-                            <li
-                                class="listling-list-subscribe"
-                                data-content="switch lst.activity.user_subscribed"
-                            >
-                                <template>
-                                    <button
-                                        is="micro-button" type="button" class="action"
-                                        data-run="unsubscribe" data-shortcut="new Shortcut 'H'"
-                                    >
+                            <li class="listling-list-subscribe">
+                                <button
+                                    is="micro-button" type="button"
+                                    class="action micro-contextual-deactivate"
+                                    data-run="subscribeUnsubscribe" data-shortcut="new Shortcut 'H'"
+                                    data-content="switch lst.activity.user_subscribed"
+                                >
+                                    <template>
                                         <i class="fa fa-fw fa-bell-slash"></i> Unsubscribe
-                                    </button>
-                                </template>
-                                <template>
-                                    <button
-                                        is="micro-button" type="button" class="action"
-                                        data-run="subscribe" data-shortcut="new Shortcut 'H'"
-                                    >
+                                    </template>
+                                    <template>
                                         <i class="fa fa-fw fa-bell"></i> Subscribe
-                                    </button>
-                                </template>
+                                    </template>
+                                </button>
                             </li>
                             <li class="listling-list-enter-presentation">
                                 <button
-                                    is="micro-button" type="button" class="link"
+                                    is="micro-button" type="button"
+                                    class="link micro-contextual-deactivate"
                                     data-run="bindThis presentation.enter presentation"
                                     data-shortcut="new Shortcut 'D'"
                                 >
@@ -245,8 +228,24 @@
                                 </button>
                             </li>
                         </ul>
-                    </li>
-                </ul>
+                    </micro-contextual>
+                </div>
+                <button
+                    is="micro-button" class="action listling-list-mode-edit" data-run="edit"
+                    data-shortcut="new Shortcut 'Control+Enter'"
+                >
+                    <i class="fa fa-check-circle"></i> Done
+                </button>
+                <div data-content="switch editMode">
+                    <template>
+                        <button
+                            is="micro-button" type="button" class="link" data-run="cancelEdit"
+                            data-shortcut="new Shortcut 'Escape' 'Cancel'"
+                        >
+                            <i class="fa fa-times-circle"></i>
+                        </button>
+                    </template>
+                </div>
             </header>
 
             <div class="listling-list-mode-view" data-content="switch locationEnabled">
@@ -259,70 +258,88 @@
                 class="listling-list-mode-view micro-multiline"
                 data-content="markup lst.description"
             ></p>
-            <label class="listling-list-mode-edit">
-                <textarea name="description" placeholder="Description (optional)"
-                          data-value="or lst.description ''">
-                </textarea>
-            </label>
+            <textarea
+                name="description" class="listling-list-mode-edit"
+                placeholder="Description (optional)" data-value="or lst.description ''"
+            ></textarea>
 
             <div class="listling-list-settings listling-list-mode-edit"
                  data-class-listling-list-settings-expanded="settingsExpanded">
-                <p class="listling-detail">
-                    <button is="micro-button" type="button" class="link" title="⌨ C"
-                            data-run="toggleSettings">
-                        <i class="fa fa-search-plus"></i> More settings
-                    </button>
-                </p>
+                <button
+                    is="micro-button" type="button" class="link" title="⌨ C"
+                    data-run="toggleSettings"
+                >
+                    <i class="fa fa-sliders-h"></i> More settings
+                </button>
                 <section>
                     <header class="micro-heading micro-panel">
                         <h1>Settings</h1>
                         <button
-                            is="micro-button" type="button" class="link" title="⌨ S"
+                            is="micro-button" type="button" class="link" title="⌨ C"
                             data-run="toggleSettings"
                         >
                             <i class="fa fa-fw fa-search-minus"></i>
                         </button>
                     </header>
 
-                    <fieldset>
-                        <legend>Features</legend>
-                        <label>
-                            <input type="checkbox" name="features" value="check"
-                                   data-checked="includes lst.features 'check'" />
-                            Check items
-                        </label>
-                        <label>
-                            <input
-                                type="checkbox" name="features" value="assign"
-                                data-checked="includes lst.features 'assign'"
-                            />
-                            Assign to items
-                        </label>
-                        <label>
-                            <input
-                                type="checkbox" name="features" value="vote"
-                                data-checked="includes lst.features 'vote'"
-                            />
-                            Vote for items
-                        </label>
-                        <label class="listling-list-features-location">
-                            <input
-                                type="checkbox" name="features" value="location"
-                                data-checked="includes lst.features 'location'"
-                            />
-                            Item location
-                        </label>
-                        <label>
-                            <input
-                                type="checkbox" name="features" value="play"
-                                data-checked="includes lst.features 'play'"
-                            />
-                            Play list
-                        </label>
-                    </fieldset>
+                    <label class="micro-block">
+                        <input
+                            type="checkbox" name="features" value="check"
+                            data-checked="includes lst.features 'check'"
+                        />
+                        Items can be checked
+                    </label>
+
+                    <label class="micro-block">
+                        <input
+                            type="checkbox" name="features" value="assign"
+                            data-checked="includes lst.features 'assign'"
+                        />
+                        Items can be assigned
+                    </label>
+
+                    <label class="micro-block">
+                        <input
+                            type="checkbox" name="features" value="vote"
+                            data-checked="includes lst.features 'vote'"
+                        />
+                        Items can be voted for
+                    </label>
+
+                    <label class="micro-block">
+                        <input
+                            type="checkbox" name="features" value="value"
+                            data-checked="valueFeature" data-onchange="onValueFeatureChange"
+                        />
+                        Items have an associated value
+                    </label>
+
+                    <label data-class-micro-disabled="not valueFeature">
+                        <small>Value unit (optional)</small>
+                        <input
+                            name="value-unit" data-disabled="not valueFeature"
+                            data-value="lst.value_unit"
+                        />
+                    </label>
+
+                    <label class="listling-list-features-location micro-block">
+                        <input
+                            type="checkbox" name="features" value="location"
+                            data-checked="includes lst.features 'location'"
+                        />
+                        Items have a location
+                    </label>
+
+                    <label class="micro-block">
+                        <input
+                            type="checkbox" name="features" value="play"
+                            data-checked="includes lst.features 'play'"
+                        />
+                        List can be played
+                    </label>
 
                     <label>
-                        List mode
+                        <small>List mode</small>
                         <input
                             name="mode" readonly="readonly" data-value="modeToText lst.mode"
                             data-value-as-object="lst.mode"
@@ -348,22 +365,16 @@
                             </template>
                         </micro-options>
                     </label>
+
+                    <label>
+                        <small>Item template (optional)</small>
+                        <small>Template for the text of new items.</small>
+                        <textarea name="item-template" data-value="or lst.item_template ''">
+                        </textarea>
+                    </label>
                 </section>
             </div>
 
-            <ul is="micro-menu" class="listling-list-mode-edit">
-                <li>
-                    <button is="micro-button" class="action" title="⌨ Enter" data-run="edit">
-                        <i class="fa fa-check-circle"></i> Done
-                    </button>
-                </li>
-                <li>
-                    <button is="micro-button" type="button" class="link" data-run="cancelEdit"
-                            data-shortcut="new Shortcut 'Escape'">
-                        Cancel
-                    </button>
-                </li>
-            </ul>
         </form>
 
         <ol
@@ -380,17 +391,33 @@
             </template>
         </ol>
 
+        <div
+            class="listling-list-create-item listling-list-mode-view micro-interactive"
+            data-class-listling-list-creating-item="creatingItem"
+        >
+            <button
+                is="micro-button" type="button" class="action micro-highlight"
+                data-run="startCreateItem" data-shortcut="new Shortcut 'A'"
+            >
+                <i class="fa fa-plus-circle"></i> Add item
+            </button>
+            <li
+                is="listling-item" data-list="lst" data-onedit="stopCreateItem"
+                data-oncancel="stopCreateItem"
+            ></li>
+        </div>
+
         <div class="listling-list-trash listling-list-mode-view micro-interactive"
              data-class-listling-list-trash-expanded="trashExpanded">
-            <p class="micro-small">
+            <button
+                is="micro-button" type="button" class="link micro-small" title="⌨ G"
+                data-run="toggleTrash"
+            >
+                <i class="fa fa-trash"></i>
                 <span
                     data-content="formatPlural 'There is one trashed item.' 'There are {n} trashed items.' 'n' trashedItemsCount">
                 </span>
-                <button is="micro-button" type="button" class="link" title="Show (⌨ G)"
-                        data-run="toggleTrash">
-                    <i class="fa fa-search-plus"></i>
-                </button>
-            </p>
+            </button>
             <div>
                 <header class="micro-heading micro-panel">
                     <h1>Trashed items</h1>
@@ -414,23 +441,14 @@
             </div>
         </div>
 
-        <div class="listling-list-create-item listling-list-mode-view micro-interactive"
-             data-class-listling-list-creating-item="creatingItem">
-            <p>
-                <button is="micro-button" type="button" class="action" data-run="startCreateItem"
-                        data-shortcut="new Shortcut 'A'">
-                    <i class="fa fa-plus-circle"></i> Add item
-                </button>
-            </p>
-            <li is="listling-item" data-onedit="stopCreateItem" data-oncancel="stopCreateItem"></li>
-        </div>
-
         <aside class="listling-list-mode-view micro-interactive">
             <i class="fa fa-user-cog"></i> List by
-            <micro-user data-user="lst.authors.0"></micro-user> · <i class="fa fa-pencil-alt"></i>
-            Edited by
-            <span data-content="join lst.authors 'user'">
-                <template><micro-user data-user="user"></micro-user></template>
+            <span data-content="list owners.items 'user'">
+                <template><span><micro-user data-user="user"></micro-user> </span></template>
+            </span>
+            · <i class="fa fa-pencil-alt"></i> Edited by
+            <span data-content="list lst.authors 'user'">
+                <template><span><micro-user data-user="user"></micro-user> </span></template>
             </span>
         </aside>
 
@@ -479,14 +497,24 @@
                 >
                     <i class="fa fa-fw fa-step-forward"></i>
                 </button>
-                <button
-                    is="micro-button" type="button"
-                    class="listling-list-exit-presentation link"
-                    data-run="bindThis presentation.exit presentation"
-                    data-shortcut="new Shortcut 'Escape' 'Exit'"
-                >
-                    <i class="fa fa-fw fa-times-circle"></i>
-                </button>
+                <p class="micro-panel-main">
+                    <span data-content="switch presentationShortURL">
+                        <template>
+                            Join at <span data-content="presentationShortURL"></span>
+                        </template>
+                    </span>
+                </p>
+                <div class="listling-list-exit-presentation" data-content="switch presentationMode">
+                    <template>
+                        <button
+                            is="micro-button" type="button" class="link"
+                            data-run="bindThis presentation.exit presentation"
+                            data-shortcut="new Shortcut 'Escape' 'Exit'"
+                        >
+                            <i class="fa fa-times-circle"></i>
+                        </button>
+                    </template>
+                </div>
             </div>
         </footer>
     </template>
@@ -500,7 +528,7 @@
         }
 
         listling-list-page.listling-list-feature-play {
-            padding-bottom: calc(var(--micro-size-rm) + 2 * var(--micro-size-xs));
+            padding-bottom: calc(var(--micro-size-m) + 2 * var(--micro-size-s));
         }
 
         body[noninteractive] listling-list-page {
@@ -511,6 +539,18 @@
         .listling-list-title,
         .listling-list-items [is="listling-item"] {
             scroll-snap-align: start;
+        }
+
+        listling-list-page micro-map {
+            margin: var(--micro-size-s) 0;
+        }
+
+        .listling-list-settings {
+            border-top: 1px solid var(--micro-color-delimiter);
+        }
+
+        .listling-list-settings label {
+            margin: var(--micro-size-s) 0;
         }
 
         .listling-list-items,
@@ -527,6 +567,12 @@
             font-size: 1em;
             font-weight: bold;
             color: #888;
+        }
+
+        listling-list-page [is=listling-item],
+        .listling-list-create-item > .action,
+        .listling-list-trash > .link {
+            margin: var(--micro-size-s) 0;
         }
 
         body[noninteractive] [is="listling-item"] {
@@ -556,10 +602,6 @@
             background: white;
         }
 
-        .listling-list-exit-presentation {
-            margin-left: auto;
-        }
-
         listling-list-page:not(.listling-list-mode-view) .listling-list-mode-view,
         listling-list-page:not(.listling-list-mode-edit) .listling-list-mode-edit,
         listling-list-page:not(.listling-list-may-items-create) .listling-list-create-item-top,
@@ -568,13 +610,13 @@
         body:not(.micro-feature-service-workers) .listling-list-subscribe,
         body:not(.micro-feature-push) .listling-list-subscribe,
         body:not(.micro-ui-map-service-enabled) .listling-list-features-location,
+        .listling-list-create-item.listling-list-creating-item > .action,
+        .listling-list-create-item:not(.listling-list-creating-item) > li,
         listling-list-page:not(.listling-list-has-trashed-items) .listling-list-trash,
-        .listling-list-trash.listling-list-trash-expanded > p,
+        .listling-list-trash.listling-list-trash-expanded > .link,
         .listling-list-trash:not(.listling-list-trash-expanded) > div,
         listling-list-page:not(.listling-list-may-items-create) .listling-list-create-item,
-        .listling-list-create-item.listling-list-creating-item > p,
-        .listling-list-create-item:not(.listling-list-creating-item) > li,
-        .listling-list-settings.listling-list-settings-expanded > p,
+        .listling-list-settings.listling-list-settings-expanded > .link,
         .listling-list-settings:not(.listling-list-settings-expanded) > section,
         body:not([noninteractive]) listling-list-page:not(.listling-list-feature-play) > footer,
         listling-list-page.listling-list-feature-play .listling-list-previous,
@@ -589,6 +631,7 @@
 
     <template class="listling-item-template">
         <form
+            data-class-listling-item-has-value="neq item.value null"
             data-class-listling-item-has-content="hasContent item lst assigneesCount"
             data-class-listling-item-votes-user-voted="votesMeta.user_voted"
             data-class-listling-item-expanded="expanded"
@@ -645,30 +688,33 @@
                     ></i>
                 </button>
 
-                <h1 class="micro-panel-main">
-                    <span class="listling-item-mode-view" data-content="markup item.title"></span>
-                    <label class="listling-item-mode-edit">
-                        <input name="title" placeholder="Title" required="required"
-                               autocomplete="off" data-value="or item.title ''" />
-                    </label>
-                </h1>
-                <ul is="micro-menu"
-                    class="listling-item-menu micro-secondary listling-item-mode-view micro-interactive"
+                <h1
+                    class="micro-panel-main listling-item-mode-view"
+                    data-content="markup item.title"
+                ></h1>
+                <input
+                    class="micro-panel-main listling-item-mode-edit" name="title"
+                    placeholder="Title" required="required" autocomplete="off"
+                    data-url-detection="new URLDetection" data-onurlinput="onURLInput"
+                />
+
+                <button
+                    is="micro-button" type="button"
+                    class="listling-item-restore action listling-item-mode-view micro-interactive"
+                    data-run="restore" data-shortcut="new Shortcut 'R'"
                 >
-                    <li class="listling-item-restore">
-                        <button is="micro-button" type="button" class="action" data-run="restore"
-                                data-shortcut="new Shortcut 'R'">
-                            <i class="fa fa-trash-restore"></i> Restore
-                        </button>
-                    </li>
-                    <li>
-                        <button is="micro-button" type="button" class="link">
-                            <i class="fa fa-bars"></i>
-                        </button>
-                        <ul is="micro-menu">
+                    <i class="fa fa-trash-restore"></i> Restore
+                </button>
+                <div class="listling-item-menu listling-item-mode-view micro-interactive">
+                    <button is="micro-button" type="button" class="link">
+                        <i class="fa fa-bars"></i>
+                    </button>
+                    <micro-contextual class="micro-entity-list">
+                        <ul>
                             <li class="listling-item-play-pause">
                                 <button
-                                    is="micro-button" type="button" class="action"
+                                    is="micro-button" type="button"
+                                    class="action micro-contextual-deactivate"
                                     data-run="playablePlayPause"
                                     data-content="switch playablePlaying" title="⌨ P"
                                 >
@@ -682,10 +728,8 @@
                             </li>
                             <li class="listling-item-edit">
                                 <button
-                                    is="micro-button"
-                                    type="button"
-                                    class="action"
-                                    data-run="startEdit"
+                                    is="micro-button" type="button"
+                                    class="action micro-contextual-deactivate" data-run="startEdit"
                                     data-shortcut="new Shortcut 'E'"
                                 >
                                     <i class="fa fa-fw fa-pencil-alt"></i> Edit
@@ -693,7 +737,8 @@
                             </li>
                             <li class="listling-item-assign">
                                 <button
-                                    is="micro-button" type="button" class="action" data-run="assign"
+                                    is="micro-button" type="button"
+                                    class="action micro-contextual-deactivate" data-run="assign"
                                     data-shortcut="new Shortcut 'U'"
                                 >
                                     <i class="fa fa-fw fa-id-badge"></i> Assign
@@ -701,18 +746,28 @@
                             </li>
                             <li class="listling-item-trash">
                                 <button
-                                    is="micro-button"
-                                    type="button"
-                                    class="action"
-                                    data-run="trash"
+                                    is="micro-button" type="button" class="action" data-run="trash"
                                     data-shortcut="new Shortcut 'T'"
                                 >
                                     <i class="fa fa-fw fa-trash"></i> Trash
                                 </button>
                             </li>
                         </ul>
-                    </li>
-                </ul>
+                    </micro-contextual>
+                </div>
+
+                <button
+                    is="micro-button" class="action listling-item-mode-edit"
+                    data-run="edit" data-shortcut="new Shortcut 'Control+Enter'"
+                >
+                    <i class="fa fa-check-circle"></i> Done
+                </button>
+                <button
+                    is="micro-button" type="button" class="link listling-item-mode-edit"
+                    data-run="cancelEdit" data-shortcut="new Shortcut 'Escape' 'Cancel'"
+                >
+                    <i class="fa fa-times-circle"></i>
+                </button>
             </header>
 
             <div class="listling-item-content">
@@ -726,97 +781,50 @@
                 </p>
 
                 <dl class="listling-item-meta">
+                    <dt class="listling-item-value" title="Value">
+                        <i class="fa fa-calculator"></i>
+                    </dt>
+                    <dd class="micro-panel">
+                        <p class="micro-panel-main listling-item-mode-view">
+                            <span data-content="item.value"></span>
+                            <span data-content="lst.value_unit"><span>
+                        </p>
+                        <input
+                            class="micro-panel-main listling-item-mode-edit" name="value"
+                            type="number" step="any" placeholder="Value (optional)"
+                        />
+                        <p class="listling-item-mode-edit" data-content="lst.value_unit"></p>
+                    </dd>
                     <dt class="listling-item-location" title="Location">
-                        <i class="fa fa-fw fa-map-marker-alt"></i>
+                        <i class="fa fa-map-marker-alt"></i>
                     </dt>
                     <dd>
                         <a
                             class="link listling-item-mode-view" data-href="makeItemURL item true"
                             data-content="item.location.name"
                         ></a>
-                        <span class="listling-item-mode-view" data-content="item.location.name">
-                        </span>
+                        <p class="listling-item-mode-view" data-content="item.location.name"></p>
                         <micro-location-input
                             class="listling-item-mode-edit" name="location"
-                            placeholder="Location (optional)" data-value="item.location"
+                            placeholder="Location (optional)"
                         >
                         </micro-location-input>
                     </dd>
                 </dl>
 
+                <!-- Do not switch because micro-video (iframe) resets state when detached -->
                 <div
-                    class="listling-item-resource listling-item-mode-view"
+                    class="listling-item-resource micro-block listling-item-mode-view"
                     data-content="resourceElem"
                 >
                 </div>
-
                 <p
                     class="listling-item-text listling-item-mode-view micro-multiline"
                     data-content="markup item.text"
                 ></p>
-                <label class="listling-item-mode-edit">
-                    <div class="micro-input-wrapper">
-                        <textarea
-                            name="text" placeholder="Text (optional)" data-value="or item.text ''"
-                        ></textarea>
-                        <div class="micro-panel">
-                            <p class="micro-panel-main micro-small">
-                                Attach additional content like images, videos, … by inserting a
-                                link.
-                            </p>
-                            <div>
-                                <button type="button" class="link">
-                                    <i class="fa fa-fw fa-info-circle"></i>
-                                </button>
-                                <micro-contextual>
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <td>You type:</td>
-                                                <td>You get:</td>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>*Emphasized*</td>
-                                                <td><em>Emphasized</em></td>
-                                            </tr>
-                                            <tr>
-                                                <td>**Important**</td>
-                                                <td><strong>Important</strong></td>
-                                            </tr>
-                                            <tr>
-                                                <td>* List item</td>
-                                                <td>&nbsp;• List item</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </micro-contextual>
-                            </div>
-                        </div>
-                    </div>
-                </label>
-
                 <div data-content="switch editMode">
                     <template>
-                        <ul is="micro-menu">
-                            <li>
-                                <button
-                                    is="micro-button" class="action" data-run="edit"
-                                    data-shortcut="new Shortcut 'Control+Enter'"
-                                >
-                                    <i class="fa fa-check-circle"></i> Done
-                                </button>
-                            </li>
-                            <li>
-                                <button
-                                    is="micro-button" type="button" class="link"
-                                    data-run="cancelEdit" data-shortcut="new Shortcut 'Escape'"
-                                >
-                                    Cancel
-                                </button>
-                            </li>
-                        </ul>
+                        <micro-content-input placeholder="Text (optional)"></micro-content-input>
                     </template>
                 </div>
             </div>
@@ -834,8 +842,7 @@
     <style>
         [is=listling-item] {
             border: 1px solid var(--micro-color-delimiter);
-            border-radius: var(--micro-size-xxs);
-            margin: 1.5rem 0;
+            border-radius: var(--micro-size-xs);
             list-style: none;
             cursor: pointer;
         }
@@ -847,6 +854,8 @@
         [is=listling-item] > form {
             position: relative;
             --listling-item-progress: 0%;
+            --micro-link-max-height: calc((70ch - 2 * var(--micro-size-s)) * 9 / 16);
+            --micro-image-max-height: var(--micro-link-max-height);
         }
 
         [is=listling-item] > form::after {
@@ -855,8 +864,8 @@
             top: 0;
             left: 0;
             right: 0;
-            height: var(--micro-size-xxs);
-            border-radius: var(--micro-size-xxs) var(--micro-size-xxs) 0 0;
+            height: var(--micro-size-xs);
+            border-radius: var(--micro-size-xs) var(--micro-size-xs) 0 0;
             background: var(--micro-color-primary) content-box;
             padding-right: calc(100% - var(--listling-item-progress));
         }
@@ -866,9 +875,9 @@
         }
 
         [is=listling-item] .micro-ol-handle {
-            padding: calc(1.5em / 4);
-            width: calc(1.5em / 2 + 1.5em / 2);
-            height: calc(1.5em + 1.5em / 2);
+            padding: var(--micro-size-s);
+            min-width: calc(var(--micro-size-m) / 2 + 2 * var(--micro-size-s));
+            height: calc(var(--micro-size-m) + 2 * var(--micro-size-s));
             background:
                 radial-gradient(circle closest-side, #888 0%, #888 50%, transparent 50%) content-box
                     0 0 / calc(1.5rem / 4) calc(1.5rem / 4);
@@ -887,42 +896,46 @@
             display: none;
         }
 
-        .micro-panel > .listling-item-vote {
-            color: var(--micro-color-text-subtle);
-        }
-
-        [is=listling-item] > form.listling-item-votes-user-voted .listling-item-vote {
-            color: forestgreen;
-        }
-
         .listling-item-vote i {
-            width: 1em;
+            width: 1rem;
+            color: var(--micro-color-text-subtle);
             text-align: center;
             transform: scale(1.6);
+        }
+
+        [is=listling-item] > form.listling-item-votes-user-voted .listling-item-vote i {
+            color: forestgreen;
         }
 
         .listling-item-votes micro-contextual {
             right: auto;
         }
 
-        .micro-panel > .listling-item-check {
+        .listling-item-check i {
             color: var(--micro-color-border);
         }
 
-        [is=listling-item].listling-item-checked:not(.listling-item-trashed) .micro-panel > .listling-item-check {
+        [is=listling-item].listling-item-checked:not(.listling-item-trashed) .micro-panel > .listling-item-check i {
             color: forestgreen;
         }
 
-        [is=listling-item] h1 {
+        [is=listling-item] h1,
+        [is=listling-item] h1 + input {
             font-weight: bold;
+        }
+
+        [is=listling-item] h1 {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        [is=listling-item] > form.listling-item-expanded h1 {
+            white-space: normal;
         }
 
         [is=listling-item].listling-item-trashed h1 {
             color: inherit;
-        }
-
-        [is=listling-item] h1 > label {
-            margin-bottom: 0;
         }
 
         listling-list-page:not(.listling-list-feature-assign) .listling-item-assign,
@@ -931,7 +944,6 @@
         }
 
         .listling-item-content {
-            padding: 0 var(--micro-size-xs);
             border-top: 1px solid var(--micro-color-delimiter);
         }
 
@@ -939,55 +951,45 @@
             display: none;
         }
 
-        .listling-item-content p,
-        .listling-item-content ul,
-        .listling-item-content dl,
-        .listling-item-content label {
-            margin: var(--micro-size-rxs) 0;
+        .listling-item-meta {
+            padding: 0;
+            column-gap: 0;
         }
 
-        .listling-item-content .micro-panel p,
-        .listling-item-content .micro-entity-list > ul {
-            margin: 0;
+        [is=listling-item].listling-item-mode-edit .listling-item-meta dt,
+        [is=listling-item].listling-item-mode-edit .listling-item-meta dd {
+            border-bottom: 1px solid var(--micro-color-delimiter);
         }
 
-        listling-list-page:not(.listling-list-feature-assign) .listling-item-assignees {
+        .listling-item-meta > dt {
+            padding: var(--micro-size-s);
+        }
+
+        listling-list-page:not(.listling-list-feature-value) .listling-item-value,
+        listling-list-page:not(.listling-list-feature-value) .listling-item-value + dd,
+        [is=listling-item].listling-item-mode-view > form:not(.listling-item-has-value) .listling-item-value,
+        [is=listling-item].listling-item-mode-view > form:not(.listling-item-has-value) .listling-item-value + dd {
             display: none;
         }
 
-        .listling-item-resource {
-            --micro-link-max-height: calc((70ch - 2 * var(--micro-size-xs)) * 3 / 4);
-            --micro-image-max-height: var(--micro-link-max-height);
-            margin: var(--micro-size-xs) 0;
+        body:not(.micro-ui-map-service-enabled) .listling-item-location,
+        body:not(.micro-ui-map-service-enabled) .listling-item-location + dd,
+        listling-list-page:not(.listling-list-feature-location) .listling-item-location,
+        listling-list-page:not(.listling-list-feature-location) .listling-item-location + dd,
+        [is=listling-item].listling-item-mode-view:not(.listling-item-has-location) .listling-item-location,
+        [is=listling-item].listling-item-mode-view:not(.listling-item-has-location) .listling-item-location + dd {
+            display: none;
         }
 
-        .listling-item-resource > * {
+        .listling-item-resource > *,
+        [is=listling-item] .micro-content-input-resource-wrapper,
+        [is=listling-item] .micro-content-input-resource > * {
             display: block;
             width: auto;
         }
 
-        [is=listling-item].listling-item-mode-edit .listling-item-meta {
-            row-gap: var(--micro-size-xs);
-        }
-
-        .listling-item-text + label .micro-panel {
-            border-top: 1px solid var(--micro-color-delimiter);
-        }
-
-        .listling-item-text + label p {
-            align-self: end;
-        }
-
-        .listling-item-text + label table {
-            border-style: hidden;
-        }
-
-        .listling-item-text + label tbody td:first-child {
-            font: 0.875em / 1.5 monospace, monospace;
-        }
-
         .listling-item-footer {
-            padding: var(--micro-size-rxs);
+            padding: var(--micro-size-s);
             border-top: 1px solid var(--micro-color-delimiter);
         }
 
@@ -1007,12 +1009,9 @@
         listling-list-page:not(.listling-list-feature-play) .listling-item-play-pause,
         [is=listling-item]:not(.listling-item-may-modify) .listling-item-edit,
         [is=listling-item]:not(.listling-item-may-modify) .listling-item-trash,
-        [is=listling-item].listling-item-trashed .listling-item-menu li:last-child,
-        body:not(.micro-ui-map-service-enabled) .listling-item-meta,
-        listling-list-page:not(.listling-list-feature-location) .listling-item-meta,
-        [is=listling-item].listling-item-mode-view:not(.listling-item-has-location) .listling-item-meta,
-        [is=listling-item].listling-item-has-location-coords .listling-item-location + dd > span,
-        [is=listling-item]:not(.listling-item-has-location-coords) .listling-item-location + dd > a {
+        [is=listling-item].listling-item-trashed .listling-item-menu,
+        [is=listling-item].listling-item-has-location-coords .listling-item-location + dd p,
+        [is=listling-item]:not(.listling-item-has-location-coords) .listling-item-location + dd .link {
             display: none;
         }
     </style>
@@ -1025,5 +1024,6 @@
     </template>
 
     {% include 'listling/components/list.html' %}
+    {% include 'listling/components/share.html' %}
     {% include 'listling/components/start.html' %}
 </body>

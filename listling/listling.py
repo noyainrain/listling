@@ -1,5 +1,5 @@
 # Open Listling
-# Copyright (C) 2019 Open Listling contributors
+# Copyright (C) 2020 Open Listling contributors
 #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
 # Affero General Public License as published by the Free Software Foundation, either version 3 of
@@ -14,21 +14,30 @@
 
 """Open Listling core."""
 
+from __future__ import annotations
+
 import json
 from time import time
+import typing
+from typing import Any, Callable, Dict, Optional, Set, cast
+from urllib.parse import urlsplit
 
 import micro
-from micro import (Activity, Application, Collection, Editable, Location, Object, Orderable,
-                   Trashable, Settings, Event, WithContent, error)
-from micro.jsonredis import JSONRedis, RedisSortedSet, script
-from micro.util import parse_isotime, randstr, str_or_none
+from micro import (Activity, Application, AuthRequest, Collection, Editable, Location, Object,
+                   Orderable, Trashable, Settings, Event, WithContent, error)
+from micro.core import RewriteFunc, context
+from micro.jsonredis import JSONRedis, RedisList, RedisSortedSet, script
+from micro.resource import Resource
+from micro.util import expect_type, randstr, str_or_none
+
+from .list import Owners, OwnersEvent
 
 _USE_CASES = {
     'simple': {'title': 'New list', 'features': []},
     'todo': {'title': 'New to-do list', 'features': ['check', 'assign']},
     'poll': {'title': 'New poll', 'features': ['vote'], 'mode': 'view'},
     'shopping': {'title': 'New shopping list', 'features': ['check']},
-    'meeting-agenda': {'title': 'New meeting agenda', 'features': []},
+    'meeting-agenda': {'title': 'New meeting agenda', 'value_unit': 'min', 'features': ['value']},
     'playlist': {'title': 'New playlist', 'features': ['play']},
     'map': {'title': 'New map', 'features': ['location']}
 }
@@ -66,8 +75,12 @@ _EXAMPLE_DATA = {
         'We meet on Monday and discuss important issues.',
         [
             {'title': 'Round of introductions'},
-            {'title': 'Lunch poll', 'text': 'Where will we have lunch today?'},
-            {'title': 'Next meeting', 'text': 'When and where will our next meeting be?'}
+            {'title': 'Lunch poll', 'text': 'Where will we have lunch today?', 'value': 45},
+            {
+                'title': 'Next meeting',
+                'text': 'When and where will our next meeting be?',
+                'value': 5
+            }
         ]
     ),
     'playlist': (
@@ -76,12 +89,10 @@ _EXAMPLE_DATA = {
         [
             {
                 'title': 'Rick Astley - Never Gonna Give You Up',
-                'text': 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
                 'resource': 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
             },
             {
                 'title': 'Rihanna - Diamonds',
-                'text': 'https://www.youtube.com/watch?v=lWA2pjMjpBs',
                 'resource': 'https://www.youtube.com/watch?v=lWA2pjMjpBs'
             },
             {
@@ -96,19 +107,19 @@ _EXAMPLE_DATA = {
         [
             {
                 'title': 'Glück to go',
-                'text': 'Website: http://www.glueck-to-go.de/',
+                'text': 'http://www.glueck-to-go.de/',
                 'location': Location('Friesenstraße 26, 10965 Berlin, Germany',
                                      (52.48866, 13.394651))
             },
             {
                 'title': 'L’herbivore',
-                'text': 'Website: https://lherbivore.de/',
+                'text': 'https://lherbivore.de/',
                 'location': Location('Petersburger Straße 38, 10249 Berlin, Germany',
                                      (52.522951, 13.449482))
             },
             {
                 'title': 'YELLOW SUNSHINE',
-                'text': 'Website: http://www.yellow-sunshine.de/',
+                'text': 'http://www.yellow-sunshine.de/',
                 'location': Location('Wiener Straße 19, 10999 Berlin, Germany',
                                      (52.497561, 13.430773))
             }
@@ -119,43 +130,47 @@ _EXAMPLE_DATA = {
 class Listling(Application):
     """See :ref:`Listling`."""
 
-    class Lists(Collection):
+    class Lists(Collection['List']):
         """See :ref:`Lists`."""
 
-        def create(self, use_case='simple', *, v=2):
+        app: Listling
+
+        def create(self, use_case: str = 'simple') -> List:
             """See :http:post:`/api/lists`."""
-            # pylint: disable=unused-argument; former feature toggle
-            # Compatibility for endpoint version (deprecated since 0.22.0)
-            if not self.app.user:
-                raise PermissionError()
+            user = context.user.get()
+            if not user:
+                raise error.PermissionError()
             if use_case not in _USE_CASES:
-                raise micro.ValueError('use_case_unknown')
+                raise error.ValueError('use_case_unknown')
 
             data = _USE_CASES[use_case]
             id = 'List:{}'.format(randstr())
+            now = time()
             lst = List(
-                id=id, app=self.app, authors=[self.app.user.id], title=data['title'],
-                description=None, features=data['features'], mode=data.get('mode', 'collaborate'),
+                id=id, app=self.app, authors=[user.id], title=data['title'], description=None,
+                value_unit=data.get('value_unit'), features=data['features'],
+                mode=data.get('mode', 'collaborate'), item_template=None,
                 activity=Activity('{}.activity'.format(id), self.app, subscriber_ids=[]))
             self.app.r.oset(lst.id, lst)
-            self.app.r.zadd('{}.users'.format(lst.id), {self.app.user.id.encode(): -time()})
-            self.app.r.rpush(self.map_key, lst.id)
-            self.app.user.lists.add(lst, user=self.app.user)
+            self.app.r.zadd(f'{lst.id}.owners', {user.id.encode(): -now})
+            self.app.r.zadd(f'{lst.id}.users', {user.id.encode(): -now})
+            self.app.r.rpush(self.ids.key, lst.id)
+            user.lists.add(lst)
             self.app.activity.publish(
                 Event.create('create-list', None, {'lst': lst}, app=self.app))
             return lst
 
-        async def create_example(self, use_case):
+        async def create_example(self, use_case: str) -> List:
             """See :http:post:`/api/lists/create-example`."""
             if use_case not in _EXAMPLE_DATA:
-                raise micro.ValueError('use_case_unknown')
+                raise error.ValueError('use_case_unknown')
             data = _EXAMPLE_DATA[use_case]
             description = (
                 '{}\n\n*This example was created just for you, so please feel free to play around.*'
                 .format(data[1]))
 
-            lst = self.create(use_case, v=2)
-            lst.edit(title=data[0], description=description)
+            lst = self.create(use_case)
+            await lst.edit(title=data[0], description=description)
             for item in data[2]:
                 args = dict(item)
                 checked = args.pop('checked', False)
@@ -170,58 +185,88 @@ class Listling(Application):
                     item.votes.vote(user=self.app.user)
             return lst
 
-    def __init__(self, redis_url='', email='bot@localhost', smtp_url='',
-                 render_email_auth_message=None, *, video_service_keys={}):
-        super().__init__(redis_url, email, smtp_url, render_email_auth_message,
-                         video_service_keys=video_service_keys)
-        self.types.update({'User': User, 'List': List, 'Item': Item})
-        self.lists = Listling.Lists((self, 'lists'))
+    def __init__(
+            self, redis_url: str = '', email: str = 'bot@localhost', smtp_url: str = '',
+            render_email_auth_message: Callable[[str, AuthRequest, str], str] = None, *,
+            files_path: str = 'data', video_service_keys: Dict[str, str] = {}) -> None:
+        super().__init__(
+            redis_url=redis_url, email=email, smtp_url=smtp_url,
+            render_email_auth_message=render_email_auth_message, files_path=files_path,
+            video_service_keys=video_service_keys)
+        self.types.update({'User': User, 'List': List, 'Item': Item, 'OwnersEvent': OwnersEvent})
+        self.lists = Listling.Lists(RedisList('lists', self.r.r), app=self)
+        self.items = Items(self)
 
-    def do_update(self):
-        version = self.r.get('version')
-        if not version:
-            self.r.set('version', 8)
-            return
+    def do_update(self) -> Dict[str, int]:
+        if not self.r.get('version'):
+            self.r.set('version', 9)
+            return {}
 
-        version = int(version)
-        r = JSONRedis(self.r.r)
+        r: JSONRedis[Dict[str, object]] = JSONRedis(self.r.r)
         r.caching = False
 
-        # Deprecated since 0.14.0
-        if version < 7:
-            now = time()
-            lists = r.omget(r.lrange('lists', 0, -1))
-            for lst in lists:
-                r.zadd('{}.lists'.format(lst['authors'][0]), {lst['id']: -now})
-            r.set('version', 7)
+        list_updates = {}
+        list_rel_updates = set()
+        items_updates = 0
+        item_updates = {}
 
-        # Deprecated since 0.23.0
-        if version < 8:
-            lists = r.omget(r.lrange('lists', 0, -1))
-            for lst in lists:
-                users_key = '{}.users'.format(lst['id'])
-                self.r.zadd(users_key, {lst['authors'][0].encode(): 0})
-                events = r.omget(r.lrange('{}.activity.items'.format(lst['id']), 0, -1))
-                for event in reversed(events):
-                    t = parse_isotime(event['time'], aware=True).timestamp()
-                    self.r.zadd(users_key, {event['user'].encode(): -t})
-            r.set('version', 8)
+        # Deprecated since 0.39.0
+        if not r.scard('items'):
+            list_ids = [id.decode() for id in r.lrange('lists', 0, -1)]
+            item_ids = [id.decode() for list_id in list_ids for id in r.lrange(f"{list_id}.items", 0, -1)]
+            if item_ids:
+                r.sadd('items', *item_ids)
+                items_updates = 1
+
+        lists = r.omget(r.lrange('lists', 0, -1), default=AssertionError)
+        for lst in lists:
+            # Deprecated since 0.35.0
+            if 'value_unit' not in lst:
+                lst['value_unit'] = None
+                list_updates[cast(str, lst['id'])] = lst
+
+            # Deprecated since 0.36.0
+            owners_key = f"{lst['id']}.owners"
+            if not r.zcard(owners_key):
+                r.zadd(owners_key, {cast(typing.List[str], lst['authors'])[0]: 0})
+                list_rel_updates.add(lst['id'])
+
+            items = r.omget(r.lrange(f"{lst['id']}.items", 0, -1), default=AssertionError)
+            for item in items:
+                # Deprecated since 0.33.0
+                if 'value' not in item:
+                    item['value'] = None
+                    item_updates[cast(str, item['id'])] = item
+        r.omset(list_updates)
+        r.omset(item_updates)
+
+        return {
+            'List': len(set(list_updates) | list_rel_updates),
+            'Items': items_updates,
+            'Item': len(item_updates)
+        }
 
     def create_user(self, data):
         return User(**data)
 
-    def create_settings(self):
+    def create_settings(self) -> Settings:
         # pylint: disable=unexpected-keyword-arg; decorated
         return Settings(
             id='Settings', app=self, authors=[], title='My Open Listling', icon=None,
             icon_small=None, icon_large=None, provider_name=None, provider_url=None,
-            provider_description={}, feedback_url=None, staff=[], push_vapid_private_key=None,
-            push_vapid_public_key=None, v=2)
+            provider_description={}, feedback_url=None, staff=[], push_vapid_private_key='',
+            push_vapid_public_key='')
+
+    def file_references(self):
+        for lst in self.lists[:]:
+            for item in lst.items[:]:
+                if item.resource and urlsplit(item.resource.url).scheme == 'file':
+                    yield item.resource.url
 
 class User(micro.User):
     """See :ref:`User`."""
 
-    class Lists(Collection):
+    class Lists(Collection['List']):
         """See :ref:`UserLists`."""
         # We use setattr / getattr to work around a Pylint error for Generic classes (see
         # https://github.com/PyCQA/pylint/issues/2443)
@@ -230,47 +275,46 @@ class User(micro.User):
             super().__init__(RedisSortedSet('{}.lists'.format(user.id), user.app.r), app=user.app)
             setattr(self, 'user', user)
 
-        def add(self, lst, *, user):
+        def add(self, lst: List) -> None:
             """See: :http:post:`/users/(id)/lists`."""
-            if user != getattr(self, 'user'):
-                raise PermissionError()
+            if context.user.get() != getattr(self, 'user'):
+                raise error.PermissionError()
             self.app.r.zadd(self.ids.key, {lst.id: -time()})
 
-        def remove(self, lst, *, user):
+        def remove(self, lst: List) -> None:
             """See :http:delete:`/users/(id)/lists/(list-id)`.
 
             If *lst* is not in the collection, a :exc:`micro.error.ValueError` is raised.
             """
-            if user != getattr(self, 'user'):
-                raise PermissionError()
-            if lst.authors[0] == getattr(self, 'user'):
-                raise micro.ValueError(
-                    'user {} is owner of lst {}'.format(getattr(self, 'user').id, lst.id))
+            if context.user.get() != getattr(self, 'user'):
+                raise error.PermissionError()
+            if getattr(self, 'user') in lst.owners:
+                raise error.ValueError(f"user {getattr(self, 'user').id} is owner of lst {lst.id}")
             if self.app.r.zrem(self.ids.key, lst.id) == 0:
-                raise micro.ValueError(
+                raise error.ValueError(
                     'No lst {} in lists of user {}'.format(lst.id, getattr(self, 'user').id))
 
         def read(self, *, user):
             """Return collection for reading."""
             if user != getattr(self, 'user'):
-                raise PermissionError()
+                raise error.PermissionError()
             return self
 
-    def __init__(self, *, app, **data):
+    def __init__(self, *, app: Application, **data: object) -> None:
         super().__init__(app=app, **data)
         self.lists = User.Lists(self)
 
-    def json(self, restricted=False, include=False):
+    def json(self, restricted=False, include=False, *, rewrite=None):
         return {
-            **super().json(restricted=restricted, include=include),
-            **({'lists': self.lists.json(restricted=restricted, include=include)}
+            **super().json(restricted=restricted, include=include, rewrite=rewrite),
+            **({'lists': self.lists.json(restricted=restricted, include=include, rewrite=rewrite)}
                if restricted and self.app.user == self else {})
         }
 
 class List(Object, Editable):
     """See :ref:`List`."""
 
-    _PERMISSIONS = {
+    _PERMISSIONS: Dict[str, Dict[str, Set[str]]] = {
         'collaborate': {
             'item-owner': {                                    'item-modify'},
             'user':       {'list-modify', 'list-items-create', 'item-modify'}
@@ -288,39 +332,60 @@ class List(Object, Editable):
     class Items(Collection, Orderable):
         """See :ref:`Items`."""
 
-        async def create(self, title, *, text=None, resource=None, location=None):
+        app: Listling
+
+        def __init__(self, lst: List) -> None:
+            super().__init__(RedisList(f'{lst.id}.items', lst.app.r.r), app=lst.app)
+            self.lst = lst
+
+        async def create(self, title: str, *, text: str = None, resource: str = None,
+                         value: float = None, location: Location = None) -> Item:
             """See :http:post:`/api/lists/(id)/items`."""
             # pylint: disable=protected-access; List is a friend
-            self.host[0]._check_permission(self.app.user, 'list-items-create')
+            user = context.user.get()
+            self.lst._check_permission(user, 'list-items-create')
+            assert user
             attrs = await WithContent.process_attrs({'text': text, 'resource': resource},
                                                     app=self.app)
             if str_or_none(title) is None:
-                raise micro.ValueError('title_empty')
+                raise error.ValueError('title_empty')
 
             item = Item(
-                id='Item:{}'.format(randstr()), app=self.app, authors=[self.app.user.id],
-                trashed=False, text=attrs['text'], resource=attrs['resource'],
-                list_id=self.host[0].id, title=title,
-                location=location.json() if location else None, checked=False)
-            self.app.r.oset(item.id, item)
-            self.app.r.rpush(self.map_key, item.id)
-            self.host[0].activity.publish(
-                Event.create('list-create-item', self.host[0], {'item': item}, self.app))
+                id='Item:{}'.format(randstr()), app=self.app, authors=[user.id], trashed=False,
+                text=attrs['text'], resource=attrs['resource'], list_id=self.lst.id, title=title,
+                value=value, location=location.json() if location else None, checked=False)
+            f = script(self.app.r.r, """
+                local item_data = ARGV[1]
+                local item = cjson.decode(item_data)
+                redis.call("SET", item.id, item_data)
+                redis.call("SADD", "items", item.id)
+                redis.call("RPUSH", item.list_id .. ".items", item.id)
+            """)
+            f([], [json.dumps(item.json())])
+            self.lst.activity.publish(
+                Event.create('list-create-item', self.lst, {'item': item}, self.app))
             return item
 
-        def move(self, item, to):
+        def move(self, item: Object, to: Optional[Object]) -> None:
             # pylint: disable=protected-access; List is a friend
-            self.host[0]._check_permission(self.app.user, 'list-modify')
+            self.lst._check_permission(self.app.user, 'list-modify')
             super().move(item, to)
 
-    def __init__(self, *, id, app, authors, title, description, features, mode, activity):
-        super().__init__(id=id, app=app)
-        Editable.__init__(self, authors=authors, activity=activity)
-        self.title = title
-        self.description = description
-        self.features = features
-        self.mode = mode
-        self.items = List.Items((self, 'items'))
+    class _ListOwners(Owners):
+        post_grant_script = 'redis.call("ZADD", user_id .. ".lists", -now, object_id)'
+
+    def __init__(self, *, app: Listling, **data: object) -> None:
+        activity = cast(Activity, data['activity'])
+        super().__init__(id=cast(str, data['id']), app=app)
+        Editable.__init__(self, authors=cast(typing.List[str], data['authors']), activity=activity)
+        self.title = cast(str, data['title'])
+        self.description = cast(Optional[str], data['description'])
+        self.value_unit = cast(Optional[str], data['value_unit'])
+        self.features = cast(typing.List[str], data['features'])
+        self.mode = cast(str, data['mode'])
+        self.owners = List._ListOwners(self)
+        self.item_template = cast(Optional[str], data['item_template'])
+        self.items = List.Items(self)
         self.activity = activity
         self.activity.post = self._on_activity_publish
         self.activity.host = self
@@ -346,52 +411,64 @@ class List(Object, Editable):
         users = f(['{}.users'.format(self.id)], [name])
         return [User(app=self.app, **json.loads(user.decode())) for user in users]
 
-    def do_edit(self, **attrs):
+    def do_edit(self, **attrs: Any) -> None:
         self._check_permission(self.app.user, 'list-modify')
         if 'title' in attrs and str_or_none(attrs['title']) is None:
-            raise micro.ValueError('title_empty')
-        if ('features' in attrs and
-                not set(attrs['features']) <= {'check', 'assign', 'vote', 'location', 'play'}):
-            raise micro.ValueError('feature_unknown')
+            raise error.ValueError('title_empty')
+        features = {'check', 'assign', 'vote', 'value', 'location', 'play'}
+        if 'features' in attrs and not set(attrs['features']) <= features:
+            raise error.ValueError('feature_unknown')
         if 'mode' in attrs and attrs['mode'] not in {'collaborate', 'contribute', 'view'}:
-            raise micro.ValueError('Unknown mode')
+            raise error.ValueError('Unknown mode')
 
         if 'title' in attrs:
             self.title = attrs['title']
         if 'description' in attrs:
             self.description = str_or_none(attrs['description'])
+        if 'value_unit' in attrs:
+            self.value_unit = str_or_none(attrs['value_unit'])
         if 'features' in attrs:
             self.features = attrs['features']
         if 'mode' in attrs:
             self.mode = attrs['mode']
+        if 'item_template' in attrs:
+            self.item_template = str_or_none(attrs['item_template'])
 
-    def json(self, restricted=False, include=False):
+    def json(self, restricted=False, include=False, *, rewrite=None):
         return {
-            **super().json(restricted, include),
-            **Editable.json(self, restricted, include),
+            **super().json(restricted=restricted, include=include, rewrite=rewrite),
+            **Editable.json(self, restricted=restricted, include=include, rewrite=rewrite),
             'title': self.title,
             'description': self.description,
+            'value_unit': self.value_unit,
             'features': self.features,
             'mode': self.mode,
-            'activity': self.activity.json(restricted),
-            **({'items': self.items.json(restricted=restricted, include=include)} if restricted
-               else {}),
+            'item_template': self.item_template,
+            'activity': self.activity.json(restricted=restricted, rewrite=rewrite),
+            **(
+                {
+                    'owners': self.owners.json(restricted=restricted, include=include,
+                                               rewrite=rewrite),
+                    'items': self.items.json(restricted=restricted, include=include,
+                                             rewrite=rewrite)
+                } if restricted else {})
         }
 
-    def _check_permission(self, user, op):
+    def _check_permission(self, user: User, op: str) -> None:
         permissions = List._PERMISSIONS[self.mode]
         if not (
             user and (
                 op in permissions['user'] or
-                user == self.authors[0] or
+                user in self.owners or
                 user in self.app.settings.staff)):
-            raise micro.PermissionError()
+            raise error.PermissionError()
 
     def _on_activity_publish(self, event):
         self.app.r.zadd('{}.users'.format(self.id), {event.user.id.encode(): -time()})
 
 class Item(Object, Editable, Trashable, WithContent):
     """See :ref:`Item`."""
+    # pylint: disable=invalid-overridden-method; do_edit may be async
 
     class Assignees(Collection):
         """See :ref:`ItemAssignees`."""
@@ -401,7 +478,7 @@ class Item(Object, Editable, Trashable, WithContent):
             self.item = item
 
         def assign(self, assignee, *, user):
-            """See :http:post:`/api/lists/(list-id)/items/(id)/assignees`."""
+            """See :http:post:`/api/items/(id)/assignees`."""
             # pylint: disable=protected-access; Item is a friend
             self.item._check_permission(user, 'list-modify')
             if 'assign' not in self.item.list.features:
@@ -416,7 +493,7 @@ class Item(Object, Editable, Trashable, WithContent):
                              app=self.app))
 
         def unassign(self, assignee, *, user):
-            """See :http:delete:`/api/lists/(list-id)/items/(id)/assignees/(assignee-id)`."""
+            """See :http:delete:`/api/items/(id)/assignees/(assignee-id)`."""
             # pylint: disable=protected-access; Item is a friend
             self.item._check_permission(user, 'list-modify')
             if 'assign' not in self.item.list.features:
@@ -438,9 +515,9 @@ class Item(Object, Editable, Trashable, WithContent):
             self.item = item
 
         def vote(self, *, user):
-            """See :http:post:`/api/lists/(list-id)/items/(id)/votes`."""
+            """See :http:post:`/api/items/(id)/votes`."""
             if not user:
-                raise PermissionError()
+                raise error.PermissionError()
             if 'vote' not in self.item.list.features:
                 raise error.ValueError('Disabled item list features vote')
             if self.app.r.zadd(self.ids.key, {user.id.encode(): -time()}):
@@ -448,9 +525,9 @@ class Item(Object, Editable, Trashable, WithContent):
                     Event.create('item-votes-vote', self.item, app=self.app))
 
         def unvote(self, *, user):
-            """See :http:delete:`/api/lists/(list-id)/items/(id)/votes/user`."""
+            """See :http:delete:`/api/items/(id)/votes/user`."""
             if not user:
-                raise PermissionError()
+                raise error.PermissionError()
             if 'vote' not in self.item.list.features:
                 raise error.ValueError('Disabled item list features vote')
             if self.app.r.zrem(self.ids.key, user.id.encode()):
@@ -461,22 +538,26 @@ class Item(Object, Editable, Trashable, WithContent):
             """See :ref:`ItemVotes` *user_voted*."""
             return user and user in self
 
-        def json(self, restricted=False, include=False, *, slc=None):
+        def json(self, restricted=False, include=False, *, rewrite=None, slc=None):
             return {
-                **super().json(restricted=restricted, include=include, slc=slc),
+                **super().json(restricted=restricted, include=include, rewrite=rewrite, slc=slc),
                 **({'user_voted': self.has_user_voted(self.app.user)} if restricted else {})
             }
 
-    def __init__(self, *, id, app, authors, trashed, text, resource, list_id, title, location,
-                 checked):
-        super().__init__(id, app)
-        Editable.__init__(self, authors, lambda: self.list.activity)
-        Trashable.__init__(self, trashed, lambda: self.list.activity)
-        WithContent.__init__(self, text=text, resource=resource)
-        self._list_id = list_id
-        self.title = title
-        self.location = Location.parse(location) if location else None
-        self.checked = checked
+    def __init__(self, *, app: Listling, **data: object) -> None:
+        super().__init__(id=cast(str, data['id']), app=app)
+        Editable.__init__(self, authors=cast(typing.List[str], data['authors']),
+                          activity=lambda: self.list.activity)
+        Trashable.__init__(self, trashed=cast(bool, data['trashed']),
+                           activity=lambda: self.list.activity)
+        WithContent.__init__(self, text=cast(Optional[str], data['text']),
+                             resource=cast(Optional[Resource], data['resource']))
+        self._list_id = cast(str, data['list_id'])
+        self.title = cast(str, data['title'])
+        self.value = cast(Optional[float], data['value'])
+        self.location = (
+            Location.parse(cast(Dict[str, object], data['location'])) if data['location'] else None)
+        self.checked = cast(bool, data['checked'])
         self.assignees = Item.Assignees(self, app=app)
         self.votes = Item.Votes(self, app=app)
 
@@ -485,35 +566,49 @@ class Item(Object, Editable, Trashable, WithContent):
         # pylint: disable=missing-docstring; already documented
         return self.app.lists[self._list_id]
 
-    def delete(self):
-        self.app.r.lrem(self.list.items.ids.key, 1, self.id.encode())
-        self.app.r.delete(self.id)
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, Object) and self.id == other.id
 
-    def check(self):
-        """See :http:post:`/api/lists/(list-id)/items/(id)/check`."""
+    def __hash__(self) -> int:
+        return hash(self.id)
+
+    def delete(self) -> None:
+        f = script(self.app.r.r, """
+            local id = KEYS[1]
+            local item = cjson.decode(redis.call("GET", id))
+            redis.call("DEL", id)
+            redis.call("SREM", "items", id)
+            redis.call("LREM", item.list_id .. ".items", 1, id)
+        """)
+        f([self.id])
+
+    def check(self) -> None:
+        """See :http:post:`/api/items/(id)/check`."""
         _check_feature(self.app.user, 'check', self)
-        self._check_permission(self.app.user, 'item-modify')
+        self._check_permission(context.user.get(), 'item-modify')
         self.checked = True
         self.app.r.oset(self.id, self)
         self.list.activity.publish(Event.create('item-check', self, app=self.app))
 
-    def uncheck(self):
-        """See :http:post:`/api/lists/(list-id)/items/(id)/uncheck`."""
+    def uncheck(self) -> None:
+        """See :http:post:`/api/items/(id)/uncheck`."""
         _check_feature(self.app.user, 'check', self)
-        self._check_permission(self.app.user, 'item-modify')
+        self._check_permission(context.user.get(), 'item-modify')
         self.checked = False
         self.app.r.oset(self.id, self)
         self.list.activity.publish(Event.create('item-uncheck', self, app=self.app))
 
-    async def do_edit(self, **attrs):
+    async def do_edit(self, **attrs: Any) -> None:
         self._check_permission(self.app.user, 'item-modify')
-        attrs = await WithContent.pre_edit(self, attrs)
+        attrs = cast(Dict[str, Any], await WithContent.pre_edit(self, attrs))
         if 'title' in attrs and str_or_none(attrs['title']) is None:
-            raise micro.ValueError('title_empty')
+            raise error.ValueError('title_empty')
 
         WithContent.do_edit(self, **attrs)
         if 'title' in attrs:
             self.title = attrs['title']
+        if 'value' in attrs:
+            self.value = attrs['value']
         if 'location' in attrs:
             self.location = attrs['location']
 
@@ -525,26 +620,29 @@ class Item(Object, Editable, Trashable, WithContent):
         self._check_permission(self.app.user, 'item-modify')
         super().restore()
 
-    def json(self, restricted=False, include=False):
+    def json(self, restricted: bool = False, include: bool = False, *,
+             rewrite: RewriteFunc = None) -> Dict[str, object]:
         return {
-            **super().json(restricted, include),
-            **Editable.json(self, restricted, include),
-            **Trashable.json(self, restricted, include),
-            **WithContent.json(self, restricted, include),
+            **super().json(restricted=restricted, include=include, rewrite=rewrite),
+            **Editable.json(self, restricted=restricted, include=include, rewrite=rewrite),
+            **Trashable.json(self, restricted=restricted, include=include, rewrite=rewrite),
+            **WithContent.json(self, restricted=restricted, include=include, rewrite=rewrite),
             'list_id': self._list_id,
             'title': self.title,
+            'value': self.value,
             'location': self.location.json() if self.location else None,
             'checked': self.checked,
             **(
                 {
-                    'assignees':
-                        self.assignees.json(restricted=restricted, include=include, slc=slice(None))
+                    'assignees': self.assignees.json(restricted=restricted, include=include,
+                                                     rewrite=rewrite, slc=slice(None))
                 } if include else {}),
-            **({'votes': self.votes.json(restricted=restricted, include=include)} if include
-               else {})
+            **(
+                {'votes': self.votes.json(restricted=restricted, include=include, rewrite=rewrite)}
+                if include else {})
         }
 
-    def _check_permission(self, user, op):
+    def _check_permission(self, user: User, op: str) -> None:
         lst = self.list
         # pylint: disable=protected-access; List is a friend
         permissions = List._PERMISSIONS[lst.mode]
@@ -552,12 +650,23 @@ class Item(Object, Editable, Trashable, WithContent):
             user and (
                 op in permissions['user'] or
                 user == self.authors[0] and op in permissions['item-owner'] or
-                user == lst.authors[0] or
+                user in lst.owners or
                 user in self.app.settings.staff)):
-            raise micro.PermissionError()
+            raise error.PermissionError()
+
+class Items:
+    """See :ref:`Items`."""
+
+    def __init__(self, app: Listling) -> None:
+        self.app = app
+
+    def __getitem__(self, key: str) -> Item:
+        if not key.startswith('Item:'):
+            raise KeyError(key)
+        return self.app.r.oget(key, default=KeyError, expect=expect_type(Item))
 
 def _check_feature(user, feature, item):
     if feature not in item.list.features:
-        raise micro.ValueError('feature_disabled')
+        raise error.ValueError('feature_disabled')
     if not user:
-        raise PermissionError()
+        raise error.PermissionError()

@@ -1,14 +1,15 @@
-dist: xenial
+dist: bionic
 language: python
 python:
-    - 3.5
-    - 3.6
     - 3.7
+    - 3.8
 git:
     # Commit history is required for update tests
     depth: false
 services:
     - redis-server
+before_install:
+    - nvm use 10.16.0
 install:
     - make deps
     - make deps-dev
@@ -33,4 +34,4 @@ jobs:
         - <<: *test-ui
           env: BROWSER=firefox PLATFORM="Windows 10"
         - <<: *test-ui
-          env: BROWSER=safari PLATFORM="macOS 10.13" BROWSER_VERSION=12
+          env: BROWSER=safari PLATFORM="macOS 10.15"

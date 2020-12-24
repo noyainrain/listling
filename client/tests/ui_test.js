@@ -1,6 +1,6 @@
 /*
  * Open Listling
- * Copyright (C) 2019 Open Listling contributors
+ * Copyright (C) 2020 Open Listling contributors
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU Affero General Public License as published by the Free Software Foundation, either version 3
@@ -20,6 +20,8 @@
 "use strict";
 
 let {exec, spawn} = require("child_process");
+const {mkdtemp} = require("fs").promises;
+const {hostname, tmpdir} = require("os");
 let {promisify} = require("util");
 
 let {expect} = require("chai");
@@ -38,14 +40,14 @@ describe("UI", function() {
     this.timeout(5 * 60 * 1000);
 
     async function createExampleList() {
-        await browser.findElement({css: ".micro-ui-header-menu"}).click();
+        await browser.findElement({css: ".micro-ui-menu"}).click();
         await browser.findElement({css: ".listling-ui-intro"}).click();
-        await browser.findElement({css: ".listling-intro-create-example button"}).click();
+        await browser.findElement({css: ".listling-intro-create-example"}).click();
         await browser.wait(until.elementLocated({css: "listling-list-page"}));
     }
 
     async function readItemPlayPause(item) {
-        await item.findElement({css: ".listling-item-menu li:last-child"}).click();
+        await item.findElement({css: ".listling-item-menu"}).click();
         const text = await item.findElement({css: ".listling-item-play-pause"}).getText();
         await item.click();
         return text.trim();
@@ -53,8 +55,12 @@ describe("UI", function() {
 
     beforeEach(async function() {
         await promisify(exec)("redis-cli -n 15 flushdb");
-        server = spawn("python3", ["-m", "listling", "--port", "8081", "--redis-url", "15"],
-                       {cwd: "..", stdio: "inherit"});
+        const filesPath = await mkdtemp(`${tmpdir()}/`);
+        server = spawn(
+            "python3",
+            ["-m", "listling", "--port", "8081", "--redis-url", "15", "--files-path", filesPath],
+            {cwd: "..", stdio: "inherit"}
+        );
         browser = startBrowser(this.currentTest, "Open Listling");
         timeout = browser.remote ? 10 * 1000 : 1000;
     });
@@ -74,10 +80,11 @@ describe("UI", function() {
         let itemMenu;
 
         // View intro page
-        await getWithServiceWorker(browser, `${URL}/`);
+        // Work around Sauce Labs buffering on localhost
+        await browser.get(`http://${hostname()}:8081/`);
         await browser.wait(
             untilElementTextLocated({css: ".micro-logo"}, "My Open Listling"), timeout);
-        const menu = await browser.findElement({css: ".micro-ui-header-menu"});
+        const menu = await browser.findElement({css: ".micro-ui-menu"});
 
         // Create list
         await browser.findElement({css: ".listling-intro-create-list"}).click();
@@ -92,8 +99,8 @@ describe("UI", function() {
         );
 
         // Create list
-        await browser.findElement({css: ".listling-start-create"}).click();
-        await browser.findElement({css: ".listling-start-create [is=micro-menu] li:last-child"})
+        await browser.findElement({css: ".listling-start-create .action"}).click();
+        await browser.findElement({css: ".listling-start-create li:last-child"})
             .click();
         await browser.wait(
             untilElementTextLocated({css: "listling-list-page h1"}, "New list"), timeout
@@ -114,6 +121,8 @@ describe("UI", function() {
         await input.sendKeys("Cat colony tasks");
         await form.findElement({name: "description"}).sendKeys("What has to be done!");
         await form.findElement({css: "[name=features][value=vote]"}).click();
+        await form.findElement({css: "[name=features][value=value]"}).click();
+        await form.findElement({name: "value-unit"}).sendKeys("min");
         await form.findElement({css: "[name=features][value=play]"}).click();
         await form.findElement({css: "button:not([type])"}).click();
         await browser.wait(
@@ -126,37 +135,55 @@ describe("UI", function() {
         await browser.executeScript(() => scroll(0, document.scrollingElement.scrollHeight));
         form = await browser.findElement({css: ".listling-list-create-item form"});
         await form.findElement({name: "title"}).sendKeys("Sleep");
-        await form.findElement({name: "text"}).sendKeys("Very important!");
-        await form.findElement({css: "button:not([type])"}).click();
+        await form.findElement({name: "value"}).sendKeys("45");
+        await form.findElement({css: ".micro-content-input-text"}).sendKeys("Very important!");
+        // Work around Safari 13 missing elements on click (see
+        // https://bugs.webkit.org/show_bug.cgi?id=202589)
+        await browser.executeScript(
+            () => document.querySelector(".listling-list-create-item button:not([type])").click()
+        );
         await browser.wait(
             untilElementTextLocated({css: "[is=listling-item]:last-child h1"}, "Sleep"), timeout);
 
         // Edit item
-        itemMenu = await browser.findElement({css: ".listling-item-menu li:last-child"});
+        await browser.executeScript(() => scroll(0, 0));
+        itemMenu = await browser.findElement({css: ".listling-item-menu"});
         await itemMenu.click();
         await browser.findElement({css: ".listling-item-edit"}).click();
         form = await browser.findElement({css: "[is=listling-item] form"});
         input = await form.findElement({name: "title"});
         await input.clear();
         await input.sendKeys("Research");
+        await form.findElement({name: "value"}).sendKeys("15");
         await form.findElement({css: "button:not([type])"}).click();
         await browser.wait(untilElementTextLocated({css: "[is=listling-item] h1"}, "Research"),
                            timeout);
 
         // Trash item
         await itemMenu.click();
-        await browser.findElement({css: ".listling-item-trash"}).click();
+        // Work around Safari 13 missing elements on click (see
+        // https://bugs.webkit.org/show_bug.cgi?id=202589)
+        await browser.executeScript(
+            () => document.querySelector(".listling-item-trash .action").click()
+        );
         await browser.wait(
-            until.elementIsVisible(await browser.findElement({css: ".listling-list-trash p"})),
-            timeout);
+            until.elementIsVisible(await browser.findElement({css: ".listling-list-trash .link"})),
+            timeout
+        );
 
         // Restore item
-        await browser.findElement({css: ".listling-list-trash button"}).click();
-        await browser.findElement({css: ".listling-list-trash .listling-item-restore"}).click();
+        await browser.executeScript(() => scroll(0, document.scrollingElement.scrollHeight));
+        await browser.findElement({css: ".listling-list-trash .link"}).click();
+        // Work around Safari 13 missing elements on click (see
+        // https://bugs.webkit.org/show_bug.cgi?id=202589)
+        await browser.executeScript(
+            () => document.querySelector(".listling-list-trash .listling-item-restore").click()
+        );
         await browser.wait(untilElementTextLocated({css: "[is=listling-item] h1"}, "Research"),
                            timeout);
 
         // Uncheck item
+        await browser.executeScript(() => scroll(0, 0));
         const checkIcon = await browser.findElement({css: ".listling-item-check i"});
         await checkIcon.click();
         await browser.wait(
@@ -209,13 +236,21 @@ describe("UI", function() {
         expect(text).to.equal("Pause");
 
         // Play next of list
-        await browser.findElement({css: ".listling-list-play-next"}).click();
+        // Work around Safari 13 missing elements on click (see
+        // https://bugs.webkit.org/show_bug.cgi?id=202589)
+        await browser.executeScript(
+            () => document.querySelector(".listling-list-play-next").click()
+        );
         item = await browser.findElement({css: "[is=listling-item]:nth-child(3)"});
         text = await readItemPlayPause(item);
         expect(text).to.equal("Pause");
 
         // Pause list
-        await browser.findElement({css: ".listling-list-play-pause"}).click();
+        // Work around Safari 13 missing elements on click (see
+        // https://bugs.webkit.org/show_bug.cgi?id=202589)
+        await browser.executeScript(
+            () => document.querySelector(".listling-list-play-pause").click()
+        );
         text = await readItemPlayPause(item);
         expect(text).to.equal("Play");
 
@@ -236,12 +271,12 @@ describe("UI", function() {
     });
 
     it("should work for staff", async function() {
-        await browser.get(`${URL}/`);
+        await getWithServiceWorker(browser, `${URL}/`);
         await browser.wait(until.elementLocated({css: "listling-intro-page"}), timeout);
         await createExampleList();
 
         // View activity page
-        await browser.findElement({css: ".micro-ui-header-menu"}).click();
+        await browser.findElement({css: ".micro-ui-menu"}).click();
         await browser.findElement({css: ".micro-ui-activity"}).click();
         await browser.wait(
             untilElementTextLocated({css: "micro-activity-page .micro-timeline li"},

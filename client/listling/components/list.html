@@ -1,24 +1,26 @@
 <template id="listling-share-dialog-template">
-    <div class="micro-ui-inside">
-        <h1>Share list</h1>
-        <p>Simply pass along this link to share the list with others:</p>
-        <label>
-            <input type="url" readonly="readonly" data-value="url" data-onfocus="onFocus" />
-        </label>
-        <p>
+    <div class="micro-ui-inside" data-shortcut-context="new ShortcutContext">
+        <header class="micro-heading micro-panel">
+            <h1>Share list</h1>
             <button
-                is="micro-button" type="button" class="action" data-run="close"
-                data-shortcut="new Shortcut 'Enter'"
+                is="micro-button" type="button" class="link" data-run="close"
+                data-shortcut="new Shortcut 'Escape' 'Close'"
             >
-                <i class="fa fa-check-circle"></i> Done
+                <i class="fa fa-times-circle"></i>
             </button>
-        </p>
+        </header>
+        <p>Simply pass along this link to share the list with others:</p>
+        <input type="url" readonly="readonly" data-value="url" data-onfocus="onFocus" />
     </div>
 </template>
 
 <style>
     listling-share-dialog {
         display: block;
+    }
+
+    listling-share-dialog input:not([type=checkbox]) {
+        border-top: 1px solid var(--micro-color-delimiter);
     }
 </style>
 
@@ -74,8 +76,8 @@
                             </micro-options>
                         </div>
                         <button
-                            is="micro-button" class="listling-assign-add action" title="⌨ Enter"
-                            data-run="add"
+                            is="micro-button" class="listling-assign-add action micro-highlight"
+                            title="⌨ Enter" data-run="add"
                         >
                             <i class="fa fa-plus-circle"></i> Add
                         </button>
