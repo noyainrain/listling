@@ -348,9 +348,14 @@
                             <template>
                                 <p>
                                     <span data-content="toText option"></span>
-                                    <small data-content="switch option 'collaborate' 'view'">
+                                    <small
+                                        data-content="switch option 'collaborate' 'contribute' 'view'"
+                                    >
                                         <template>
                                             Users collaborate on the list. They can edit everything.
+                                        </template>
+                                        <template>
+                                            Users contribute to the list. They can edit their items.
                                         </template>
                                         <template>
                                             Users view the list. They cannot edit anything.
@@ -599,7 +604,7 @@
 
         listling-list-page:not(.listling-list-mode-view) .listling-list-mode-view,
         listling-list-page:not(.listling-list-mode-edit) .listling-list-mode-edit,
-        listling-list-page:not(.listling-list-may-modify) .listling-list-create-item-top,
+        listling-list-page:not(.listling-list-may-items-create) .listling-list-create-item-top,
         listling-list-page:not(.listling-list-may-modify) .listling-list-edit,
         body:not(.micro-feature-es6-typed-array) .listling-list-subscribe,
         body:not(.micro-feature-service-workers) .listling-list-subscribe,
@@ -610,7 +615,7 @@
         listling-list-page:not(.listling-list-has-trashed-items) .listling-list-trash,
         .listling-list-trash.listling-list-trash-expanded > .link,
         .listling-list-trash:not(.listling-list-trash-expanded) > div,
-        listling-list-page:not(.listling-list-may-modify) .listling-list-create-item,
+        listling-list-page:not(.listling-list-may-items-create) .listling-list-create-item,
         .listling-list-settings.listling-list-settings-expanded > .link,
         .listling-list-settings:not(.listling-list-settings-expanded) > section,
         body:not([noninteractive]) listling-list-page:not(.listling-list-feature-play) > footer,

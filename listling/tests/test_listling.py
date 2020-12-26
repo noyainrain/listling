@@ -127,9 +127,36 @@ class ListTest(ListlingTestCase):
         self.assertEqual([user.id for user in users], [grumpy.id, self.user.id])
 
 class ListItemsTest(ListlingTestCase):
-    @gen_test
-    async def test_create(self) -> None:
+    async def make_list(self, *, mode=None):
         lst = self.app.lists.create()
+        if mode:
+            await lst.edit(mode=mode)
+        return lst
+
+    @gen_test
+    async def test_create_as_user(self):
+        lst = await self.make_list()
+        context.user.set(self.app.devices.sign_in().user)
+        item = await lst.items.create('Sleep')
+        self.assertEqual(self.app.items[item.id], item)
+
+    @gen_test
+    async def test_create_contribute_mode_as_user(self):
+        lst = await self.make_list(mode='contribute')
+        context.user.set(self.app.devices.sign_in().user)
+        item = await lst.items.create('Sleep')
+        self.assertEqual(self.app.items[item.id], item)
+
+    @gen_test
+    async def test_create_view_mode_as_user(self):
+        lst = await self.make_list(mode='view')
+        context.user.set(self.app.devices.sign_in().user)
+        with self.assertRaises(error.PermissionError):
+            await lst.items.create('Sleep')
+
+    @gen_test
+    async def test_create_view_mode_as_list_owner(self):
+        lst = await self.make_list(mode='view')
         item = await lst.items.create('Sleep', value=42)
         self.assertEqual(item.value, 42)
         self.assertEqual(self.app.items[item.id], item)
@@ -146,6 +173,21 @@ class ItemTest(ListlingTestCase):
         if mode:
             await lst.edit(mode=mode)
         return await lst.items.create('Sleep')
+
+    async def make_list(self, use_case='simple', *, mode=None):
+        lst = self.app.lists.create(use_case)
+        if mode:
+            await lst.edit(mode=mode)
+        return lst
+
+    async def make_items(self, *, mode=None):
+        lst = self.app.lists.create('todo')
+        token = context.user.set(self.app.devices.sign_in().user)
+        item = await lst.items.create('Sleep')
+        context.user.reset(token)
+        if mode:
+            await lst.edit(mode=mode)
+        return item
 
     @gen_test
     async def test_edit(self) -> None:
@@ -177,17 +219,63 @@ class ItemTest(ListlingTestCase):
 
     @gen_test
     async def test_check_as_user(self):
-        item = await self.make_item(use_case='todo')
+        item = await self.make_items()
         context.user.set(self.app.devices.sign_in().user)
         item.check()
         self.assertTrue(item.checked)
 
     @gen_test
-    async def test_check_view_mode_as_user(self):
-        item = await self.make_item(use_case='todo', mode='view')
+    async def test_check_as_item_owner(self):
+        item = await self.make_items()
+        context.user.set(item.authors[0])
+        item.check()
+        self.assertTrue(item.checked)
+
+    @gen_test
+    async def test_check_as_list_owner(self):
+        item = await self.make_items()
+        item.check()
+        self.assertTrue(item.checked)
+
+    @gen_test
+    async def test_check_contribute_mode_as_user(self):
+        item = await self.make_items(mode='contribute')
         context.user.set(self.app.devices.sign_in().user)
         with self.assertRaises(error.PermissionError):
             item.check()
+
+    @gen_test
+    async def test_check_contribute_mode_as_item_owner(self):
+        item = await self.make_items(mode='contribute')
+        context.user.set(item.authors[0])
+        item.check()
+        self.assertTrue(item.checked)
+
+    @gen_test
+    async def test_check_contribute_mode_as_list_owner(self):
+        item = await self.make_items(mode='contribute')
+        item.check()
+        self.assertTrue(item.checked)
+
+    @gen_test
+    async def test_check_view_mode_as_user(self):
+        item = await self.make_items(mode='view')
+        context.user.set(self.app.devices.sign_in().user)
+        with self.assertRaises(error.PermissionError):
+            item.check()
+
+    @gen_test
+    async def test_check_view_mode_as_item_owner(self):
+        item = await self.make_items(mode='view')
+        context.user.set(item.authors[0])
+        with self.assertRaises(error.PermissionError):
+            item.check()
+
+    @gen_test
+    async def test_check_view_mode_as_list_owner(self):
+        item = await self.make_items(mode='view')
+        item.check()
+        self.assertTrue(item.checked)
 
     @gen_test
     async def test_uncheck(self):

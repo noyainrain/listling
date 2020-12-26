@@ -315,8 +315,18 @@ class List(Object, Editable):
     """See :ref:`List`."""
 
     _PERMISSIONS: Dict[str, Dict[str, Set[str]]] = {
-        'collaborate': {'user': {'list-modify', 'item-modify'}},
-        'view':        {'user': set()}
+        'collaborate': {
+            'item-owner': {                                    'item-modify'},
+            'user':       {'list-modify', 'list-items-create', 'item-modify'}
+        },
+        'contribute': {
+            'item-owner': {                                    'item-modify'},
+            'user': {                     'list-items-create'               }
+        },
+        'view': {
+            'item-owner': set(),
+            'user':       set()
+        }
     }
 
     class Items(Collection, Orderable):
@@ -332,18 +342,18 @@ class List(Object, Editable):
                          value: float = None, location: Location = None) -> Item:
             """See :http:post:`/api/lists/(id)/items`."""
             # pylint: disable=protected-access; List is a friend
-            self.lst._check_permission(self.app.user, 'list-modify')
-            assert self.app.user
+            user = context.user.get()
+            self.lst._check_permission(user, 'list-items-create')
+            assert user
             attrs = await WithContent.process_attrs({'text': text, 'resource': resource},
                                                     app=self.app)
             if str_or_none(title) is None:
                 raise error.ValueError('title_empty')
 
             item = Item(
-                id='Item:{}'.format(randstr()), app=self.app, authors=[self.app.user.id],
-                trashed=False, text=attrs['text'], resource=attrs['resource'], list_id=self.lst.id,
-                title=title, value=value, location=location.json() if location else None,
-                checked=False)
+                id='Item:{}'.format(randstr()), app=self.app, authors=[user.id], trashed=False,
+                text=attrs['text'], resource=attrs['resource'], list_id=self.lst.id, title=title,
+                value=value, location=location.json() if location else None, checked=False)
             f = script(self.app.r.r, """
                 local item_data = ARGV[1]
                 local item = cjson.decode(item_data)
@@ -408,7 +418,7 @@ class List(Object, Editable):
         features = {'check', 'assign', 'vote', 'value', 'location', 'play'}
         if 'features' in attrs and not set(attrs['features']) <= features:
             raise error.ValueError('feature_unknown')
-        if 'mode' in attrs and attrs['mode'] not in {'collaborate', 'view'}:
+        if 'mode' in attrs and attrs['mode'] not in {'collaborate', 'contribute', 'view'}:
             raise error.ValueError('Unknown mode')
 
         if 'title' in attrs:
@@ -446,7 +456,8 @@ class List(Object, Editable):
 
     def _check_permission(self, user: User, op: str) -> None:
         permissions = List._PERMISSIONS[self.mode]
-        if not (user and (
+        if not (
+            user and (
                 op in permissions['user'] or
                 user in self.owners or
                 user in self.app.settings.staff)):
@@ -469,7 +480,7 @@ class Item(Object, Editable, Trashable, WithContent):
         def assign(self, assignee, *, user):
             """See :http:post:`/api/items/(id)/assignees`."""
             # pylint: disable=protected-access; Item is a friend
-            self.item._check_permission(user, 'list-modify')
+            self.item._check_permission(user, 'item-modify')
             if 'assign' not in self.item.list.features:
                 raise error.ValueError('Disabled item list features assign')
             if self.item.trashed:
@@ -484,7 +495,7 @@ class Item(Object, Editable, Trashable, WithContent):
         def unassign(self, assignee, *, user):
             """See :http:delete:`/api/items/(id)/assignees/(assignee-id)`."""
             # pylint: disable=protected-access; Item is a friend
-            self.item._check_permission(user, 'list-modify')
+            self.item._check_permission(user, 'item-modify')
             if 'assign' not in self.item.list.features:
                 raise error.ValueError('Disabled item list features assign')
             if self.item.trashed:
@@ -571,18 +582,18 @@ class Item(Object, Editable, Trashable, WithContent):
         """)
         f([self.id])
 
-    def check(self):
+    def check(self) -> None:
         """See :http:post:`/api/items/(id)/check`."""
         _check_feature(self.app.user, 'check', self)
-        self._check_permission(self.app.user, 'item-modify')
+        self._check_permission(context.user.get(), 'item-modify')
         self.checked = True
         self.app.r.oset(self.id, self)
         self.list.activity.publish(Event.create('item-check', self, app=self.app))
 
-    def uncheck(self):
+    def uncheck(self) -> None:
         """See :http:post:`/api/items/(id)/uncheck`."""
         _check_feature(self.app.user, 'check', self)
-        self._check_permission(self.app.user, 'item-modify')
+        self._check_permission(context.user.get(), 'item-modify')
         self.checked = False
         self.app.r.oset(self.id, self)
         self.list.activity.publish(Event.create('item-uncheck', self, app=self.app))
@@ -635,8 +646,10 @@ class Item(Object, Editable, Trashable, WithContent):
         lst = self.list
         # pylint: disable=protected-access; List is a friend
         permissions = List._PERMISSIONS[lst.mode]
-        if not (user and (
+        if not (
+            user and (
                 op in permissions['user'] or
+                user == self.authors[0] and op in permissions['item-owner'] or
                 user in lst.owners or
                 user in self.app.settings.staff)):
             raise error.PermissionError()
