@@ -133,27 +133,19 @@ class ListItemsTest(ListlingTestCase):
             await lst.edit(mode=mode)
         return lst
 
-    #@gen_test
-    #async def test_create(self) -> None:
-    #    lst = self.app.lists.create()
-    #    item = await lst.items.create('Sleep', value=42)
-    #    self.assertEqual(item.value, 42)
-    #    self.assertEqual(self.app.items[item.id], item)
-    #    self.assertEqual(lst.items[:], [item])
-
     @gen_test
     async def test_create_as_user(self):
         lst = await self.make_list()
         context.user.set(self.app.devices.sign_in().user)
         item = await lst.items.create('Sleep')
-        self.assertIn(item.id, lst.items)
+        self.assertEqual(self.app.items[item.id], item)
 
     @gen_test
     async def test_create_contribute_mode_as_user(self):
         lst = await self.make_list(mode='contribute')
         context.user.set(self.app.devices.sign_in().user)
         item = await lst.items.create('Sleep')
-        self.assertIn(item.id, lst.items)
+        self.assertEqual(self.app.items[item.id], item)
 
     @gen_test
     async def test_create_view_mode_as_user(self):
@@ -165,8 +157,10 @@ class ListItemsTest(ListlingTestCase):
     @gen_test
     async def test_create_view_mode_as_list_owner(self):
         lst = await self.make_list(mode='view')
-        item = await lst.items.create('Sleep')
-        self.assertIn(item.id, lst.items)
+        item = await lst.items.create('Sleep', value=42)
+        self.assertEqual(item.value, 42)
+        self.assertEqual(self.app.items[item.id], item)
+        self.assertEqual(lst.items[:], [item])
 
 class ItemTest(ListlingTestCase):
     def setUp(self) -> None:
@@ -233,7 +227,7 @@ class ItemTest(ListlingTestCase):
     @gen_test
     async def test_check_as_item_owner(self):
         item = await self.make_items()
-        self.app.user = item.authors[0]
+        context.user.set(item.authors[0])
         item.check()
         self.assertTrue(item.checked)
 
@@ -253,7 +247,7 @@ class ItemTest(ListlingTestCase):
     @gen_test
     async def test_check_contribute_mode_as_item_owner(self):
         item = await self.make_items(mode='contribute')
-        self.app.user = item.authors[0]
+        context.user.set(item.authors[0])
         item.check()
         self.assertTrue(item.checked)
 
