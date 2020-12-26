@@ -160,9 +160,6 @@ listling.ListPage = class extends micro.Page {
             toggleTrash: () => {
                 this._data.trashExpanded = !this._data.trashExpanded;
             },
-            stopCreateItem: () => {
-                this._data.creatingItem = false;
-            },
             toggleSettings: () => {
                 this._data.settingsExpanded = !this._data.settingsExpanded;
             },
@@ -177,6 +174,7 @@ listling.ListPage = class extends micro.Page {
                     const list = await ui.call("POST", `/api/lists/${this._data.lst.id}`, {
                         title: this._form.elements.title.value,
                         description: this._form.elements.description.value,
+                        reversed: this._form.elements.reversed.checked,
                         value_unit: this._form.elements["value-unit"].value || null,
                         features:
                             Array.from(this._form.elements.features, e => e.checked && e.value)
@@ -269,6 +267,9 @@ listling.ListPage = class extends micro.Page {
         micro.bind.bind(this.children, this._data);
 
         let updateClass = () => {
+            this.classList.toggle(
+                "listling-list-reversed", this._data.lst && this._data.lst.reversed
+            );
             this.classList.toggle("listling-list-has-trashed-items", this._data.trashedItemsCount);
             this.classList.toggle("listling-list-mode-view", !this._data.editMode);
             this.classList.toggle("listling-list-mode-edit", this._data.editMode);
@@ -320,7 +321,11 @@ listling.ListPage = class extends micro.Page {
                 await micro.Activity.open(`/api/lists/${this._data.lst.id}/activity/stream`);
             this.activity.events.addEventListener("list-create-item", event => {
                 if (!this._items.find(item => item.id === event.detail.event.detail.item.id)) {
-                    this._items.push(event.detail.event.detail.item);
+                    if (event.detail.event.object.reversed) {
+                        this._items.unshift(event.detail.event.detail.item);
+                    } else {
+                        this._items.push(event.detail.event.detail.item);
+                    }
                 }
             });
             const events = [
@@ -441,13 +446,10 @@ listling.ListPage = class extends micro.Page {
      * :meth:`ItemElement.startEdit`. *text* defaults to :attr:`list` *item_template*.
      */
     startCreateItem({title = null, text, resource = null, value = null, location = null} = {}) {
-        if (text === undefined) {
-            text = this._data.lst.item_template;
-        }
-        this._data.creatingItem = true;
-        const elem = this.querySelector(".listling-list-create-item [is=listling-item]");
-        elem.startEdit({title, text, resource, value, location});
-        elem.scrollIntoView(false);
+        const elem = this.querySelector(
+            this._data.lst.reversed
+                ? "listling-new-item:first-of-type" : "listling-new-item:last-of-type");
+        elem.startCreate({title, text, resource, value, location});
     }
 
     handleEvent(event) {

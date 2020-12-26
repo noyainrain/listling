@@ -176,7 +176,7 @@
                 <button
                     is="micro-button" type="button"
                     class="listling-list-create-item-top action listling-list-mode-view micro-interactive"
-                    title="Add item (⌨ A)" data-run="startCreateItem"
+                    data-run="startCreateItem" data-shortcut="new Shortcut 'A' 'Add item'"
                 >
                     <i class="fa fa-plus-circle"></i>
                 </button>
@@ -283,6 +283,11 @@
                     </header>
 
                     <label class="micro-block">
+                        <input type="checkbox" name="reversed" data-checked="lst.reversed" />
+                        Reverse list (new items on top)
+                    </label>
+
+                    <label class="micro-block">
                         <input
                             type="checkbox" name="features" value="check"
                             data-checked="includes lst.features 'check'"
@@ -377,6 +382,9 @@
 
         </form>
 
+        <listling-new-item class="listling-list-mode-view micro-interactive" data-list="lst">
+        </listling-new-item>
+
         <ol
             is="micro-ol"
             class="listling-list-items listling-list-mode-view"
@@ -391,21 +399,8 @@
             </template>
         </ol>
 
-        <div
-            class="listling-list-create-item listling-list-mode-view micro-interactive"
-            data-class-listling-list-creating-item="creatingItem"
-        >
-            <button
-                is="micro-button" type="button" class="action micro-highlight"
-                data-run="startCreateItem" data-shortcut="new Shortcut 'A'"
-            >
-                <i class="fa fa-plus-circle"></i> Add item
-            </button>
-            <li
-                is="listling-item" data-list="lst" data-onedit="stopCreateItem"
-                data-oncancel="stopCreateItem"
-            ></li>
-        </div>
+        <listling-new-item class="listling-list-mode-view micro-interactive" data-list="lst">
+        </listling-new-item>
 
         <div class="listling-list-trash listling-list-mode-view micro-interactive"
              data-class-listling-list-trash-expanded="trashExpanded">
@@ -553,6 +548,11 @@
             margin: var(--micro-size-s) 0;
         }
 
+        listling-list-page:not(.listling-list-reversed) listling-new-item:first-of-type,
+        listling-list-page.listling-list-reversed listling-new-item:last-of-type {
+            display: none;
+        }
+
         .listling-list-items,
         .listling-list-trashed-items {
             padding: 0;
@@ -610,12 +610,10 @@
         body:not(.micro-feature-service-workers) .listling-list-subscribe,
         body:not(.micro-feature-push) .listling-list-subscribe,
         body:not(.micro-ui-map-service-enabled) .listling-list-features-location,
-        .listling-list-create-item.listling-list-creating-item > .action,
-        .listling-list-create-item:not(.listling-list-creating-item) > li,
         listling-list-page:not(.listling-list-has-trashed-items) .listling-list-trash,
         .listling-list-trash.listling-list-trash-expanded > .link,
         .listling-list-trash:not(.listling-list-trash-expanded) > div,
-        listling-list-page:not(.listling-list-may-items-create) .listling-list-create-item,
+        listling-list-page:not(.listling-list-may-items-create) listling-new-item,
         .listling-list-settings.listling-list-settings-expanded > .link,
         .listling-list-settings:not(.listling-list-settings-expanded) > section,
         body:not([noninteractive]) listling-list-page:not(.listling-list-feature-play) > footer,

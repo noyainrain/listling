@@ -651,3 +651,41 @@ listling.components.list.Playable = class {
 };
 
 listling.components.list.Playable.STATIC_DURATION = 20;
+
+listling.components.list.NewItemElement = class extends HTMLElement {
+    createdCallback() {
+        this.appendChild(
+            document.importNode(document.querySelector("#listling-new-item-template").content, true)
+        );
+        this._data = new micro.bind.Watchable({
+            lst: null,
+            creating: false,
+            startCreate: this.startCreate.bind(this),
+            stopCreate: this.stopCreate.bind(this)
+        });
+        micro.bind.bind(this.children, this._data);
+    }
+
+    get list() {
+        return this._data.lst;
+    }
+
+    set list(value) {
+        this._data.lst = value;
+    }
+
+    startCreate({title = null, text, resource = null, value = null, location = null} = {}) {
+        if (text === undefined) {
+            text = this._data.lst.item_template;
+        }
+        this._data.creating = true;
+        const elem = this.querySelector("[is=listling-item]");
+        elem.startEdit({title, text, resource, value, location});
+        elem.scrollIntoView(false);
+    }
+
+    stopCreate() {
+        this._data.creating = false;
+    }
+};
+document.registerElement("listling-new-item", listling.components.list.NewItemElement);

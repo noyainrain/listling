@@ -259,6 +259,7 @@ class Expect:
 
     str = expect_type(builtins.str)
     float = expect_type(Real) # type: ignore
+    bool = expect_type(builtins.bool)
 
     @staticmethod
     def list(expect_item: ExpectFunc[_T]) -> ExpectFunc[List[_T]]:
