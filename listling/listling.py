@@ -480,7 +480,7 @@ class Item(Object, Editable, Trashable, WithContent):
         def assign(self, assignee, *, user):
             """See :http:post:`/api/items/(id)/assignees`."""
             # pylint: disable=protected-access; Item is a friend
-            self.item._check_permission(user, 'list-modify')
+            self.item._check_permission(user, 'item-modify')
             if 'assign' not in self.item.list.features:
                 raise error.ValueError('Disabled item list features assign')
             if self.item.trashed:
@@ -495,7 +495,7 @@ class Item(Object, Editable, Trashable, WithContent):
         def unassign(self, assignee, *, user):
             """See :http:delete:`/api/items/(id)/assignees/(assignee-id)`."""
             # pylint: disable=protected-access; Item is a friend
-            self.item._check_permission(user, 'list-modify')
+            self.item._check_permission(user, 'item-modify')
             if 'assign' not in self.item.list.features:
                 raise error.ValueError('Disabled item list features assign')
             if self.item.trashed:
