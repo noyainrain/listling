@@ -47,8 +47,10 @@ describe("UI", function() {
     }
 
     async function readItemPlayPause(item) {
-        await item.findElement({css: ".listling-item-menu"}).click();
-        const text = await item.findElement({css: ".listling-item-play-pause"}).getText();
+        await item.findElement({css: ".listling-list-items .listling-item-menu"}).click();
+        const text = await item.findElement(
+            {css: ".listling-list-items .listling-item-play-pause"}
+        ).getText();
         await item.click();
         return text.trim();
     }
@@ -131,40 +133,50 @@ describe("UI", function() {
         await browser.findElement({css: ".listling-list-menu"}).click();
 
         // Create item
-        await browser.findElement({css: ".listling-list-create-item button"}).click();
+        await browser.findElement({css: "listling-new-item:last-of-type button"}).click();
         await browser.executeScript(() => scroll(0, document.scrollingElement.scrollHeight));
-        form = await browser.findElement({css: ".listling-list-create-item form"});
+        form = await browser.findElement({css: "listling-new-item:last-of-type form"});
         await form.findElement({name: "title"}).sendKeys("Sleep");
         await form.findElement({name: "value"}).sendKeys("45");
         await form.findElement({css: ".micro-content-input-text"}).sendKeys("Very important!");
         // Work around Safari 13 missing elements on click (see
         // https://bugs.webkit.org/show_bug.cgi?id=202589)
         await browser.executeScript(
-            () => document.querySelector(".listling-list-create-item button:not([type])").click()
+            () => document.querySelector(
+                "listling-new-item:last-of-type button:not([type])"
+            ).click()
         );
         await browser.wait(
-            untilElementTextLocated({css: "[is=listling-item]:last-child h1"}, "Sleep"), timeout);
+            untilElementTextLocated(
+                {css: ".listling-list-items [is=listling-item]:last-child h1"}, "Sleep"
+            ), timeout
+        );
 
         // Edit item
         await browser.executeScript(() => scroll(0, 0));
-        itemMenu = await browser.findElement({css: ".listling-item-menu"});
+        itemMenu = await browser.findElement({css: ".listling-list-items .listling-item-menu"});
         await itemMenu.click();
-        await browser.findElement({css: ".listling-item-edit"}).click();
-        form = await browser.findElement({css: "[is=listling-item] form"});
+        await browser.findElement({css: ".listling-list-items .listling-item-edit"}).click();
+        form = await browser.findElement({css: ".listling-list-items [is=listling-item] form"});
         input = await form.findElement({name: "title"});
         await input.clear();
         await input.sendKeys("Research");
         await form.findElement({name: "value"}).sendKeys("15");
         await form.findElement({css: "button:not([type])"}).click();
-        await browser.wait(untilElementTextLocated({css: "[is=listling-item] h1"}, "Research"),
-                           timeout);
+        await browser.wait(
+            untilElementTextLocated(
+                {css: ".listling-list-items [is=listling-item] h1"}, "Research"
+            ), timeout
+        );
 
         // Trash item
         await itemMenu.click();
         // Work around Safari 13 missing elements on click (see
         // https://bugs.webkit.org/show_bug.cgi?id=202589)
         await browser.executeScript(
-            () => document.querySelector(".listling-item-trash .action").click()
+            () => document.querySelector(
+                ".listling-list-items .listling-item-trash .action"
+            ).click()
         );
         await browser.wait(
             until.elementIsVisible(await browser.findElement({css: ".listling-list-trash .link"})),
@@ -179,12 +191,17 @@ describe("UI", function() {
         await browser.executeScript(
             () => document.querySelector(".listling-list-trash .listling-item-restore").click()
         );
-        await browser.wait(untilElementTextLocated({css: "[is=listling-item] h1"}, "Research"),
-                           timeout);
+        await browser.wait(
+            untilElementTextLocated(
+                {css: ".listling-list-items [is=listling-item] h1"}, "Research"
+            ), timeout
+        );
 
         // Uncheck item
         await browser.executeScript(() => scroll(0, 0));
-        const checkIcon = await browser.findElement({css: ".listling-item-check i"});
+        const checkIcon = await browser.findElement(
+            {css: ".listling-list-items .listling-item-check i"}
+        );
         await checkIcon.click();
         await browser.wait(
             untilElementAttributeMatches(checkIcon, "className", /fa-square/u), timeout
@@ -197,8 +214,8 @@ describe("UI", function() {
         );
 
         // Assign to item
-        await browser.findElement({css: ".listling-item-menu"}).click();
-        await browser.findElement({css: ".listling-item-assign"}).click();
+        await browser.findElement({css: ".listling-list-items .listling-item-menu"}).click();
+        await browser.findElement({css: ".listling-list-items .listling-item-assign"}).click();
         await browser.findElement({css: "[name=assignee] + micro-options li"}).click();
         await browser.wait(
             untilElementTextLocated({css: ".listling-assign-assignees p"}, "Guest"),
@@ -211,11 +228,15 @@ describe("UI", function() {
         await browser.wait(until.elementTextIs(ul, ""), timeout);
         await browser.findElement({css: ".listling-assign-close"}).click();
         // Work around Edge not firing blur event when a button gets disabled
-        await browser.findElement({css: ".listling-item-menu"}).click();
+        await browser.findElement({css: ".listling-list-items .listling-item-menu"}).click();
 
         // Vote for item
-        const voteButton = await browser.findElement({css: ".listling-item-vote"});
-        const votesP = await browser.findElement({css: ".listling-item-votes > p"});
+        const voteButton = await browser.findElement(
+            {css: ".listling-list-items .listling-item-vote"}
+        );
+        const votesP = await browser.findElement(
+            {css: ".listling-list-items .listling-item-votes > p"}
+        );
         await voteButton.click();
         await browser.wait(until.elementTextIs(votesP, "1"), timeout);
 
@@ -224,14 +245,17 @@ describe("UI", function() {
         await browser.wait(until.elementTextIs(votesP, "0"), timeout);
 
         // View item details
-        await browser.findElement({css: "[is=listling-item]"}).click();
-        const footerVisible =
-            await browser.findElement({css: ".listling-item-footer"}).isDisplayed();
+        await browser.findElement({css: ".listling-list-items [is=listling-item]"}).click();
+        const footerVisible = await browser.findElement(
+            {css: ".listling-list-items .listling-item-footer"}
+        ).isDisplayed();
         expect(footerVisible).to.be.true;
 
         // Play list
         await browser.findElement({css: ".listling-list-play-pause"}).click();
-        let item = await browser.findElement({css: "[is=listling-item]:nth-child(2)"});
+        let item = await browser.findElement(
+            {css: ".listling-list-items [is=listling-item]:nth-child(2)"}
+        );
         let text = await readItemPlayPause(item);
         expect(text).to.equal("Pause");
 
@@ -241,7 +265,9 @@ describe("UI", function() {
         await browser.executeScript(
             () => document.querySelector(".listling-list-play-next").click()
         );
-        item = await browser.findElement({css: "[is=listling-item]:nth-child(3)"});
+        item = await browser.findElement(
+            {css: ".listling-list-items [is=listling-item]:nth-child(3)"}
+        );
         text = await readItemPlayPause(item);
         expect(text).to.equal("Pause");
 

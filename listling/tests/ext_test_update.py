@@ -65,8 +65,7 @@ class UpdateTest(AsyncTestCase):
         app = Listling(redis_url='15', files_path=mkdtemp())
         app.update()
 
-        self.assertEqual({id.decode() for id in app.r.smembers('items')},
-                         {item.id for item in app.lists[0].items[:]})
+        self.assertFalse(app.lists[0].reversed)
 
     def test_update_db_version_first(self) -> None:
         self.setup_db('0.32.1')
@@ -83,3 +82,5 @@ class UpdateTest(AsyncTestCase):
         # Items
         self.assertEqual({id.decode() for id in app.r.smembers('items')},
                          {item.id for item in lst.items[:]})
+        # List.reversed
+        self.assertFalse(lst.reversed)

@@ -89,9 +89,10 @@ class ListTest(ListlingTestCase):
     @gen_test
     async def test_edit(self) -> None:
         lst = self.app.lists.create()
-        await lst.edit(description='What has to be done!', value_unit='min', features=['value'],
-                       mode='view', item_template="Details:")
+        await lst.edit(description='What has to be done!', reversed=True, value_unit='min',
+                       features=['value'], mode='view', item_template="Details:")
         self.assertEqual(lst.description, 'What has to be done!')
+        self.assertTrue(lst.reversed)
         self.assertEqual(lst.value_unit, 'min')
         self.assertEqual(lst.features, ['value'])
         self.assertEqual(lst.mode, 'view')
@@ -127,6 +128,10 @@ class ListTest(ListlingTestCase):
         self.assertEqual([user.id for user in users], [grumpy.id, self.user.id])
 
 class ListItemsTest(ListlingTestCase):
+    def setUp(self) -> None:
+        super().setUp()
+        self.list = self.app.lists.create()
+
     async def make_list(self, *, mode=None):
         lst = self.app.lists.create()
         if mode:
@@ -157,10 +162,17 @@ class ListItemsTest(ListlingTestCase):
     @gen_test
     async def test_create_view_mode_as_list_owner(self):
         lst = await self.make_list(mode='view')
-        item = await lst.items.create('Sleep', value=42)
-        self.assertEqual(item.value, 42)
-        self.assertEqual(self.app.items[item.id], item)
-        self.assertEqual(lst.items[:], [item])
+        items = [await lst.items.create('Sleep', value=42), await lst.items.create('Feast')]
+        self.assertEqual(items[0].value, 42)
+        self.assertEqual(self.app.items[items[0].id], items[0])
+        self.assertEqual(lst.items[:], items)
+
+    @gen_test
+    async def test_create_reversed_list(self) -> None:
+        await self.list.edit(reversed=True)
+        items = [await self.list.items.create('Sleep'), await self.list.items.create('Feast')]
+        items.reverse()
+        self.assertEqual(self.list.items[:], items)
 
 class ItemTest(ListlingTestCase):
     def setUp(self) -> None:

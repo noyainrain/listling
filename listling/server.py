@@ -136,6 +136,8 @@ class _ListEndpoint(Endpoint):
             'mode': (str, 'opt'),
             'item_template': (str, None, 'opt')
         })
+        if 'reversed' in self.args:
+            args['reversed'] = self.get_arg('reversed', Expect.bool)
         if 'value_unit' in self.args:
             args['value_unit'] = self.get_arg('value_unit', Expect.opt(Expect.str))
         await lst.edit(**args)

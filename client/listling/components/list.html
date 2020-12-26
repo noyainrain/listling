@@ -114,3 +114,23 @@
         pointer-events: none;
     }
 </style>
+
+<template id="listling-new-item-template">
+    <div data-class-listling-new-item-creating="creating">
+        <button
+            is="micro-button" type="button" class="action micro-highlight" title="⌨ A"
+            data-run="startCreate"
+        >
+            <i class="fa fa-plus-circle"></i> Add item
+        </button>
+        <li is="listling-item" data-list="lst" data-onedit="stopCreate" data-oncancel="stopCreate">
+        </li>
+    </div>
+</template>
+
+<style>
+    listling-new-item > div.listling-new-item-creating > .action,
+    listling-new-item > div:not(.listling-new-item-creating) > li {
+        display: none;
+    }
+</style>

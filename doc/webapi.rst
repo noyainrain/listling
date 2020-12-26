@@ -124,6 +124,10 @@ List
 
    Description of the list as *markup text*. May be ``null``.
 
+.. describe:: reversed
+
+   TODO.
+
 .. describe:: value_unit
 
    Unit of :ref:`Item` *value* s. May be ``null``.

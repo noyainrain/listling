@@ -148,7 +148,7 @@ class Listling(Application):
             now = time()
             lst = List(
                 id=id, app=self.app, authors=[user.id], title=data['title'], description=None,
-                value_unit=data.get('value_unit'), features=data['features'],
+                reversed=False, value_unit=data.get('value_unit'), features=data['features'],
                 mode=data.get('mode', 'collaborate'), item_template=None,
                 activity=Activity('{}.activity'.format(id), self.app, subscriber_ids=[]))
             self.app.r.oset(lst.id, lst)
@@ -230,6 +230,10 @@ class Listling(Application):
             if not r.zcard(owners_key):
                 r.zadd(owners_key, {cast(typing.List[str], lst['authors'])[0]: 0})
                 list_rel_updates.add(lst['id'])
+
+            if 'reversed' not in lst:
+                lst['reversed'] = False
+                list_updates[lst['id']] = lst
 
             items = r.omget(r.lrange(f"{lst['id']}.items", 0, -1), default=AssertionError)
             for item in items:
@@ -357,9 +361,10 @@ class List(Object, Editable):
             f = script(self.app.r.r, """
                 local item_data = ARGV[1]
                 local item = cjson.decode(item_data)
+                local list = cjson.decode(redis.call("GET", item.list_id))
                 redis.call("SET", item.id, item_data)
                 redis.call("SADD", "items", item.id)
-                redis.call("RPUSH", item.list_id .. ".items", item.id)
+                redis.call(list.reversed and "LPUSH" or "RPUSH", item.list_id .. ".items", item.id)
             """)
             f([], [json.dumps(item.json())])
             self.lst.activity.publish(
@@ -380,6 +385,7 @@ class List(Object, Editable):
         Editable.__init__(self, authors=cast(typing.List[str], data['authors']), activity=activity)
         self.title = cast(str, data['title'])
         self.description = cast(Optional[str], data['description'])
+        self.reversed = cast(bool, data['reversed'])
         self.value_unit = cast(Optional[str], data['value_unit'])
         self.features = cast(typing.List[str], data['features'])
         self.mode = cast(str, data['mode'])
@@ -425,6 +431,8 @@ class List(Object, Editable):
             self.title = attrs['title']
         if 'description' in attrs:
             self.description = str_or_none(attrs['description'])
+        if 'reversed' in attrs:
+            self.reversed = attrs['reversed']
         if 'value_unit' in attrs:
             self.value_unit = str_or_none(attrs['value_unit'])
         if 'features' in attrs:
@@ -440,6 +448,7 @@ class List(Object, Editable):
             **Editable.json(self, restricted=restricted, include=include, rewrite=rewrite),
             'title': self.title,
             'description': self.description,
+            'reversed': self.reversed,
             'value_unit': self.value_unit,
             'features': self.features,
             'mode': self.mode,
