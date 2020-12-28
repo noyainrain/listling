@@ -25,6 +25,7 @@ const {hostname, tmpdir} = require("os");
 const {cwd} = require("process");
 let {promisify} = require("util");
 
+const {expect} = require("chai");
 let {until} = require("selenium-webdriver");
 
 const {getWithServiceWorker, startBrowser, untilElementTextLocated, request} =
@@ -78,6 +79,15 @@ describe("UI", function() {
         );
         await browser.wait(until.elementLocated({css: "micro-image"}), timeout);
         await form.findElement({css: "button:not([type])"}).click();
+
+        const dialog = await browser.findElement({css: "micro-onboard-dialog"});
+        form = await dialog.findElement({css: "micro-onboard-dialog form"});
+        await form.findElement({name: "name"}).sendKeys("Grumpy");
+        await form.findElement({css: "button:not([type])"}).click();
+        const dialogStale = await until.stalenessOf(dialog).fn();
+        expect(dialogStale).to.be.true;
+        // TODO test that user name changes
+
         await browser.wait(
             untilElementTextLocated({css: ".hello-start-greetings li > p"}, "Meow!"), timeout
         );

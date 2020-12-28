@@ -485,6 +485,15 @@ micro.UI = class extends HTMLBodyElement {
         space.appendChild(notification);
     }
 
+    /** TODO. */
+    async onboard() {
+        if (!sessionStorage.onboard && ui.user.name === "Guest") {
+            // sessionStorage.onboard = true;
+            this.dialog = document.createElement("micro-onboard-dialog");
+            await this.dialog.result;
+        }
+    }
+
     /**
      * Show a dialog about enabling device notifications to the user.
      *
@@ -810,6 +819,16 @@ micro.Activity = class {
     }
 };
 
+/** TODO. */
+micro.editUser = async function(attrs) {
+    try {
+        const user = await ui.call("POST", `/api/users/${ui.user.id}`, attrs);
+        ui.dispatchEvent(new CustomEvent("user-edit", {detail: {user}}));
+    } catch (e) {
+        ui.handleCallError(e);
+    }
+};
+
 /**
  * Simple notification.
  */
@@ -848,6 +867,32 @@ micro.ErrorNotification = class extends HTMLElement {
         }
     }
 };
+
+micro.OnboardDialog = class extends micro.core.Dialog {
+    createdCallback() {
+        super.createdCallback();
+        this.appendChild(
+            document.importNode(ui.querySelector("#micro-onboard-dialog-template").content, true));
+        this._data = {
+            user: ui.user,
+            settings: ui.settings,
+
+            save: async() => {
+                let form = this.querySelector("form");
+                await micro.editUser({name: form.elements.name.value});
+                this._data.close();
+            },
+
+            close: () => this.result.when()
+        };
+        micro.bind.bind(this.children, this._data);
+    }
+
+    attachedCallback() {
+        this.querySelector("input").focus();
+    }
+};
+document.registerElement("micro-onboard-dialog", micro.OnboardDialog);
 
 /**
  * Enhanced ordered list.
