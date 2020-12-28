@@ -195,6 +195,40 @@
     </div>
 </template>
 
+<template id="micro-onboard-dialog-template">
+    <div>
+        <!--<h1 data-content="format 'Welcome to {title}' 'title' settings.title"></h1>-->
+        <header class="micro-heading micro-panel">
+            <h1>Welcome!</h1>
+            <button
+                is="micro-button" type="button" class="link" data-run="close"
+                data-shortcut="new Shortcut 'Escape' 'Close'"
+            >
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </header>
+        <!--<p>Nice to see you contributing!</p>-->
+        <!--<p>
+            How about you tell us your name, so other users will have an idea who you are. Currently
+            you appear as <micro-user data-user="user"></micro-user>.
+        </p>-->
+        <p>
+            Great to see you! Please tell us your name or nick name, so other users have an idea who
+            you are.
+        </p>
+        <form class="micro-panel">
+            <input class="micro-panel-main" name="name" placeholder="Name" required="required"></input>
+            <button is="micro-button" class="micro-highlight action" data-run="save"><i class="fa fa-check-circle"></i> Done</button>
+        </form>
+    </div>
+</template>
+
+<style>
+    micro-onboard-dialog form {
+        border-top: 1px solid var(--micro-color-delimiter);
+    }
+</style>
+
 <template id="micro-options-template">
     <div class="micro-entity-list">
         <ul data-content="list options 'option'">

@@ -49,15 +49,7 @@ micro.components.user.EditUserPage = class extends micro.Page {
             user: null,
 
             edit: async() => {
-                try {
-                    const user = await ui.call(
-                        "POST", `/api/users/${this._data.user.id}`,
-                        {name: this._form.elements.name.value}
-                    );
-                    ui.dispatchEvent(new CustomEvent("user-edit", {detail: {user}}));
-                } catch (e) {
-                    ui.handleCallError(e);
-                }
+                await micro.editUser({name: this._form.elements.name.value});
             },
 
             setEmail: () => {
