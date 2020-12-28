@@ -197,9 +197,9 @@
 
 <template id="micro-onboard-dialog-template">
     <div>
-        <!--<h1 data-content="format 'Welcome to {title}' 'title' settings.title"></h1>-->
         <header class="micro-heading micro-panel">
-            <h1>Welcome!</h1>
+            <!--<h1>Welcome!</h1>-->
+            <h1 data-content="format 'Welcome to {title}' 'title' settings.title"></h1>
             <button
                 is="micro-button" type="button" class="link" data-run="close"
                 data-shortcut="new Shortcut 'Escape' 'Close'"
@@ -212,9 +212,20 @@
             How about you tell us your name, so other users will have an idea who you are. Currently
             you appear as <micro-user data-user="user"></micro-user>.
         </p>-->
-        <p>
+        <!--<p>
             Great to see you! Please tell us your name or nick name, so other users have an idea who
             you are.
+        </p>-->
+        <!--<p>
+            Great to see you! Which name or nick name should we show to other users?
+        </p>-->
+        <!--<p>
+            Great to see you! Please tell us your name or nick name, which will appear to other
+            users.
+        </p>-->
+        <p>
+            Great to see you! Please tell us your name or nick name, so other users can recognize
+            you.
         </p>
         <form class="micro-panel">
             <input class="micro-panel-main" name="name" placeholder="Name" required="required"></input>

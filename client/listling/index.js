@@ -536,6 +536,9 @@ listling.ItemElement = class extends HTMLLIElement {
                 const url = this._data.item
                     ? `/api/items/${this._data.item.id}` : `/api/lists/${this._data.lst.id}/items`;
 
+                if (!this._data.lst.owners.user_owner) {
+                    await ui.onboard();
+                }
                 let item;
                 try {
                     item = await ui.call("POST", url, {
