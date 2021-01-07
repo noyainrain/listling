@@ -180,9 +180,9 @@ class Listling(Application):
                 if checked:
                     item.check()
                 if user_assigned:
-                    item.assignees.assign(self.app.user, user=self.app.user)
+                    item.assignees.assign(context.user.get())
                 if user_voted:
-                    item.votes.vote(user=self.app.user)
+                    item.votes.vote()
             return lst
 
     def __init__(
@@ -209,6 +209,7 @@ class Listling(Application):
         list_rel_updates = set()
         items_updates = 0
         item_updates = {}
+        item_rel_updates = set()
 
         # Deprecated since 0.39.0
         if not r.scard('items'):
@@ -240,10 +241,17 @@ class Listling(Application):
         r.omset(list_updates)
         r.omset(item_updates)
 
+        # Deprecated since 0.39.1
+        item_ids_valid = {id.decode() for id in r.smembers('items')}
+        item_ids_db = {key.decode().split('.')[0] for key in r.keys('Item:*')}
+        for id in item_ids_db - item_ids_valid:
+            r.delete(f'{id}.assignees', f'{id}.votes')
+            item_rel_updates.add(id)
+
         return {
             'List': len(set(list_updates) | list_rel_updates),
             'Items': items_updates,
-            'Item': len(item_updates)
+            'Item': len(set(item_updates) | item_rel_updates)
         }
 
     def create_user(self, data):
@@ -466,10 +474,10 @@ class Item(Object, Editable, Trashable, WithContent):
             super().__init__(RedisSortedSet('{}.assignees'.format(item.id), app.r), app=app)
             self.item = item
 
-        def assign(self, assignee, *, user):
+        def assign(self, assignee: User) -> None:
             """See :http:post:`/api/items/(id)/assignees`."""
             # pylint: disable=protected-access; Item is a friend
-            self.item._check_permission(user, 'list-modify')
+            self.item._check_permission(context.user.get(), 'list-modify')
             if 'assign' not in self.item.list.features:
                 raise error.ValueError('Disabled item list features assign')
             if self.item.trashed:
@@ -481,10 +489,10 @@ class Item(Object, Editable, Trashable, WithContent):
                 Event.create('item-assignees-assign', self.item, detail={'assignee': assignee},
                              app=self.app))
 
-        def unassign(self, assignee, *, user):
+        def unassign(self, assignee: User) -> None:
             """See :http:delete:`/api/items/(id)/assignees/(assignee-id)`."""
             # pylint: disable=protected-access; Item is a friend
-            self.item._check_permission(user, 'list-modify')
+            self.item._check_permission(context.user.get(), 'list-modify')
             if 'assign' not in self.item.list.features:
                 raise error.ValueError('Disabled item list features assign')
             if self.item.trashed:
@@ -503,8 +511,9 @@ class Item(Object, Editable, Trashable, WithContent):
             super().__init__(RedisSortedSet('{}.votes'.format(item.id), app.r.r), app=app)
             self.item = item
 
-        def vote(self, *, user):
+        def vote(self) -> None:
             """See :http:post:`/api/items/(id)/votes`."""
+            user = context.user.get()
             if not user:
                 raise error.PermissionError()
             if 'vote' not in self.item.list.features:
@@ -513,8 +522,9 @@ class Item(Object, Editable, Trashable, WithContent):
                 self.item.list.activity.publish(
                     Event.create('item-votes-vote', self.item, app=self.app))
 
-        def unvote(self, *, user):
+        def unvote(self) -> None:
             """See :http:delete:`/api/items/(id)/votes/user`."""
+            user = context.user.get()
             if not user:
                 raise error.PermissionError()
             if 'vote' not in self.item.list.features:
@@ -565,7 +575,7 @@ class Item(Object, Editable, Trashable, WithContent):
         f = script(self.app.r.r, """
             local id = KEYS[1]
             local item = cjson.decode(redis.call("GET", id))
-            redis.call("DEL", id)
+            redis.call("DEL", id, id .. ".assignees", id .. ".votes")
             redis.call("SREM", "items", id)
             redis.call("LREM", item.list_id .. ".items", 1, id)
         """)

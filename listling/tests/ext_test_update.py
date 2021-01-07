@@ -26,6 +26,7 @@ from listling import Listling
 SETUP_DB_SCRIPT = """\
 from asyncio import get_event_loop
 from micro.core import context
+from micro.util import ON
 from listling import Listling
 
 async def main():
@@ -33,8 +34,18 @@ async def main():
     app.r.flushdb()
     app.update()
 
-    context.user.set(app.login())
-    await app.lists.create_example('todo')
+    user = app.login()
+    context.user.set(user)
+    lst = await app.lists.create_example('todo')
+    # Compatibility with synchronous edit (deprecated since 0.34.0)
+    await lst.edit(features=['check', 'assign', 'vote'], asynchronous=ON)
+    item = lst.items[1]
+    item.votes.vote(user=user)
+    item = await lst.items.create('Sleep')
+    item.assignees.assign(user, user=user)
+    item.votes.vote(user=user)
+    item.trash()
+    item.delete()
 
 get_event_loop().run_until_complete(main())
 """
@@ -61,12 +72,16 @@ class UpdateTest(AsyncTestCase):
         self.assertEqual(app.settings.title, 'My Open Listling')
 
     def test_update_db_version_previous(self) -> None:
-        self.setup_db('0.38.0')
+        self.setup_db('0.39.0')
         app = Listling(redis_url='15', files_path=mkdtemp())
         app.update()
 
-        self.assertEqual({id.decode() for id in app.r.smembers('items')},
-                         {item.id for item in app.lists[0].items[:]})
+        user = next(iter(app.users))
+        items = app.lists[0].items[:]
+        self.assertEqual(items[1].assignees[:], [user])
+        self.assertEqual(items[1].votes[:], [user])
+        self.assertEqual({key.decode().split('.')[0] for key in app.r.keys('Item:*')},
+                         {item.id for item in items})
 
     def test_update_db_version_first(self) -> None:
         self.setup_db('0.32.1')
@@ -75,11 +90,18 @@ class UpdateTest(AsyncTestCase):
 
         # Item.value
         lst = app.lists[0]
-        self.assertIsNone(lst.items[0].value)
+        items = lst.items[:]
+        self.assertIsNone(items[0].value)
         # List.value_unit
         self.assertIsNone(lst.value_unit)
         # List.owners
         self.assertEqual(list(lst.owners), [lst.authors[0]])
         # Items
         self.assertEqual({id.decode() for id in app.r.smembers('items')},
-                         {item.id for item in lst.items[:]})
+                         {item.id for item in items})
+        # Item deletion
+        user = next(iter(app.users))
+        self.assertEqual(items[1].assignees[:], [user])
+        self.assertEqual(items[1].votes[:], [user])
+        self.assertEqual({key.decode().split('.')[0] for key in app.r.keys('Item:*')},
+                         {item.id for item in items})

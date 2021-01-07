@@ -156,10 +156,15 @@ class ItemTest(ListlingTestCase):
 
     @gen_test
     async def test_delete(self) -> None:
+        await self.list.edit(features=['assign', 'vote'])
+        self.item.assignees.assign(self.user)
+        self.item.votes.vote()
         self.item.delete()
         with self.assertRaises(KeyError):
             # pylint: disable=pointless-statement; error raised on access
             self.app.items[self.item.id]
+        self.assertFalse(self.item.assignees)
+        self.assertFalse(self.item.votes)
         self.assertFalse(self.list.items)
 
     @gen_test
@@ -201,17 +206,17 @@ class ItemAssigneesTest(ListlingTestCase):
     async def test_assign(self) -> None:
         item = await self.app.lists.create('todo').items.create('Sleep')
         user = self.app.devices.sign_in().user
-        item.assignees.assign(self.user, user=self.user)
-        item.assignees.assign(user, user=self.user)
+        item.assignees.assign(self.user)
+        item.assignees.assign(user)
         self.assertEqual(list(item.assignees), [user, self.user])
 
     @gen_test
     async def test_unassign(self) -> None:
         item = await self.app.lists.create('todo').items.create('Sleep')
         user = self.app.devices.sign_in().user
-        item.assignees.assign(self.user, user=self.user)
-        item.assignees.assign(user, user=self.user)
-        item.assignees.unassign(user, user=self.user)
+        item.assignees.assign(self.user)
+        item.assignees.assign(user)
+        item.assignees.unassign(user)
         self.assertEqual(list(item.assignees), [self.user])
 
 class ItemVotesTest(ListlingTestCase):
@@ -219,22 +224,23 @@ class ItemVotesTest(ListlingTestCase):
         lst = self.app.lists.create('poll')
         item = await lst.items.create('Mouse')
         user = self.app.devices.sign_in().user
-        context.user.set(user)
-        item.votes.vote(user=user)
+        token = context.user.set(user)
+        item.votes.vote()
+        context.user.reset(token)
         return item, user
 
     @gen_test
     async def test_vote(self) -> None:
         item, user = await self.make_item()
-        item.votes.vote(user=self.user)
-        item.votes.vote(user=self.user)
+        item.votes.vote()
+        item.votes.vote()
         self.assertEqual(list(item.votes), [self.user, user])
         self.assertTrue(item.votes.has_user_voted(self.user))
 
     @gen_test
     async def test_unvote(self) -> None:
         item, user = await self.make_item()
-        item.votes.vote(user=self.user)
-        item.votes.unvote(user=self.user)
+        item.votes.vote()
+        item.votes.unvote()
         self.assertEqual(list(item.votes), [user])
         self.assertFalse(item.votes.has_user_voted(self.user))

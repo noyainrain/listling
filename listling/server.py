@@ -248,7 +248,7 @@ class _ItemAssigneesEndpoint(CollectionEndpoint):
             assignee = self.app.users[assignee_id]
         except KeyError as e:
             raise error.ValueError(f'No assignee {assignee_id}') from e
-        assignees.assign(assignee, user=self.current_user)
+        assignees.assign(assignee)
         self.set_status(HTTPStatus.CREATED)
         self.write({})
 
@@ -256,7 +256,7 @@ class _ItemAssigneeEndpoint(Endpoint):
     def delete(self, id: str, assignee_id: str) -> None:
         assignees = self.app.items[id].assignees
         assignee = assignees[assignee_id]
-        assignees.unassign(assignee, user=self.current_user)
+        assignees.unassign(assignee)
         self.write({})
 
 class _ItemVotesEndpoint(CollectionEndpoint):
@@ -267,14 +267,14 @@ class _ItemVotesEndpoint(CollectionEndpoint):
 
     def post(self, id: str) -> None:
         votes = self.get_collection(id)
-        votes.vote(user=self.current_user)
+        votes.vote()
         self.set_status(HTTPStatus.CREATED)
         self.write({})
 
 class _ItemVoteEndpoint(Endpoint):
     def delete(self, id: str) -> None:
         votes = self.app.items[id].votes
-        votes.unvote(user=self.current_user)
+        votes.unvote()
         self.write({})
 
 class _Shorts(RequestHandler):
