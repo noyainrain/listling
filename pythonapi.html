@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>3. Python API &#8212; Open Listling 0.39.0 documentation</title>
+    <title>3. Python API &#8212; Open Listling 0.39.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -48,13 +48,13 @@
 <dd><p>See <a class="reference internal" href="webapi.html#itemassignees"><span class="std std-ref">Assignees</span></a>.</p>
 <dl class="method">
 <dt id="listling.Item.Assignees.assign">
-<code class="sig-name descname">assign</code><span class="sig-paren">(</span><em class="sig-param">assignee</em>, <em class="sig-param">*</em>, <em class="sig-param">user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Assignees.assign" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">assign</code><span class="sig-paren">(</span><em class="sig-param">assignee: listling.listling.User</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#listling.Item.Assignees.assign" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#post--api-items-(id)-assignees" title="POST /api/items/(id)/assignees"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/items/(id)/assignees</span></code></a>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="listling.Item.Assignees.unassign">
-<code class="sig-name descname">unassign</code><span class="sig-paren">(</span><em class="sig-param">assignee</em>, <em class="sig-param">*</em>, <em class="sig-param">user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Assignees.unassign" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">unassign</code><span class="sig-paren">(</span><em class="sig-param">assignee: listling.listling.User</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#listling.Item.Assignees.unassign" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#delete--api-items-(id)-assignees-(assignee-id)" title="DELETE /api/items/(id)/assignees/(assignee-id)"><code class="xref http http-delete docutils literal notranslate"><span class="pre">DELETE</span> <span class="pre">/api/items/(id)/assignees/(assignee-id)</span></code></a>.</p>
 </dd></dl>
 
@@ -66,13 +66,13 @@
 <dd><p>See <a class="reference internal" href="webapi.html#itemvotes"><span class="std std-ref">Votes</span></a>.</p>
 <dl class="method">
 <dt id="listling.Item.Votes.vote">
-<code class="sig-name descname">vote</code><span class="sig-paren">(</span><em class="sig-param">*</em>, <em class="sig-param">user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Votes.vote" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">vote</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#listling.Item.Votes.vote" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#post--api-items-(id)-votes" title="POST /api/items/(id)/votes"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/items/(id)/votes</span></code></a>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="listling.Item.Votes.unvote">
-<code class="sig-name descname">unvote</code><span class="sig-paren">(</span><em class="sig-param">*</em>, <em class="sig-param">user</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.Votes.unvote" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">unvote</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#listling.Item.Votes.unvote" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#delete--api-items-(id)-votes-user" title="DELETE /api/items/(id)/votes/user"><code class="xref http http-delete docutils literal notranslate"><span class="pre">DELETE</span> <span class="pre">/api/items/(id)/votes/user</span></code></a>.</p>
 </dd></dl>
 
