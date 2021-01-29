@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>2. Web API &#8212; Open Listling 0.39.1 documentation</title>
+    <title>2. Web API &#8212; Open Listling 0.40.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -56,6 +56,8 @@ action.</p>
 </div>
 <div class="section" id="additional-types">
 <h2><span class="section-number">2.3. </span>Additional types<a class="headerlink" href="#additional-types" title="Permalink to this headline">¶</a></h2>
+<p>A <em>datetime</em> is an ISO 8601 date and time string in UTC, e.g. <code class="docutils literal notranslate"><span class="pre">2015-08-27T00:42:00.000Z</span></code>.</p>
+<p>A <em>date</em> is an ISO 8601 date string, e.g. <code class="docutils literal notranslate"><span class="pre">2015-08-27</span></code>.</p>
 <p>A <em>slice</em> represents a range of a list, as array <code class="docutils literal notranslate"><span class="pre">[start,</span> <span class="pre">stop]</span></code>, from index <em>start</em> (inclusive)
 to <em>stop</em> (exclusive). Both <em>start</em> and <em>stop</em> may be <code class="docutils literal notranslate"><span class="pre">null</span></code>, referring to the beginning (0) and
 end (list length) of the list respectively.</p>
@@ -155,7 +157,7 @@ the items from index 10 up to including 19.</p>
 <dl class="describe">
 <dt>
 <code class="sig-name descname">authenticate_time</code></dt>
-<dd><p>Time the device last authenticated.</p>
+<dd><p><em>datetime</em> the device last authenticated.</p>
 </dd></dl>
 
 <dl class="describe">
@@ -300,7 +302,7 @@ if the event is global.</p>
 <dl class="describe">
 <dt>
 <code class="sig-name descname">time</code></dt>
-<dd><p>Date and time at which the event happened.</p>
+<dd><p><em>datetime</em> at which the event happened.</p>
 </dd></dl>
 
 <dl class="describe">
@@ -450,7 +452,7 @@ if the event is global.</p>
 <dl class="describe">
 <dt>
 <code class="sig-name descname">t</code></dt>
-<dd><p>Time the statistic was collected.</p>
+<dd><p><em>datetime</em> the statistic was collected.</p>
 </dd></dl>
 
 <dl class="describe">
@@ -478,7 +480,7 @@ if the event is global.</p>
 <dl class="describe">
 <dt>
 <code class="sig-name descname">time</code></dt>
-<dd><p>Date and time of the referral.</p>
+<dd><p><em>datetime</em> of the referral.</p>
 </dd></dl>
 
 </div>
@@ -983,7 +985,7 @@ with <em>list_id</em>, a <a class="reference internal" href="#valueerror"><span 
 <dt>
 <code class="sig-name descname">features</code></dt>
 <dd><p>Set of features enabled for the list.</p>
-<p>Available features are <code class="docutils literal notranslate"><span class="pre">check</span></code>, <code class="docutils literal notranslate"><span class="pre">vote</span></code>, <code class="docutils literal notranslate"><span class="pre">value</span></code>, <code class="docutils literal notranslate"><span class="pre">location</span></code> and <code class="docutils literal notranslate"><span class="pre">play</span></code>.</p>
+<p>Available features are <code class="docutils literal notranslate"><span class="pre">check</span></code>, <code class="docutils literal notranslate"><span class="pre">vote</span></code>, <code class="docutils literal notranslate"><span class="pre">value</span></code>, <code class="docutils literal notranslate"><span class="pre">time</span></code>, <code class="docutils literal notranslate"><span class="pre">location</span></code> and <code class="docutils literal notranslate"><span class="pre">play</span></code>.</p>
 </dd></dl>
 
 <dl class="describe">
@@ -1214,6 +1216,12 @@ the items from index 10 up to including 19.</p>
 <dt>
 <code class="sig-name descname">value</code></dt>
 <dd><p>Decimal value associated with the item. May be <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="sig-name descname">time</code></dt>
+<dd><p><em>datetime</em> or <em>date</em> of the item. May be <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
 </dd></dl>
 
 <dl class="describe">

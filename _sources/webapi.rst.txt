@@ -132,7 +132,7 @@ List
 
    Set of features enabled for the list.
 
-   Available features are ``check``, ``vote``, ``value``, ``location`` and ``play``.
+   Available features are ``check``, ``vote``, ``value``, ``time``, ``location`` and ``play``.
 
 .. describe:: mode
 
@@ -289,6 +289,10 @@ Item
 .. describe:: value
 
    Decimal value associated with the item. May be ``null``.
+
+.. describe:: time
+
+   *datetime* or *date* of the item. May be ``null``.
 
 .. describe:: location
 

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>3. Python API &#8212; Open Listling 0.39.1 documentation</title>
+    <title>3. Python API &#8212; Open Listling 0.40.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -150,7 +150,7 @@ attributes of <code class="xref py py-class docutils literal notranslate"><span 
 <dd><p>See <a class="reference internal" href="webapi.html#id40"><span class="std std-ref">Items</span></a>.</p>
 <dl class="method">
 <dt id="listling.List.Items.create">
-<em class="property">async </em><code class="sig-name descname">create</code><span class="sig-paren">(</span><em class="sig-param">title: str</em>, <em class="sig-param">*</em>, <em class="sig-param">text: Optional[str] = None</em>, <em class="sig-param">resource: Optional[str] = None</em>, <em class="sig-param">value: Optional[float] = None</em>, <em class="sig-param">location: Optional[micro.micro.Location] = None</em><span class="sig-paren">)</span> &#x2192; listling.listling.Item<a class="headerlink" href="#listling.List.Items.create" title="Permalink to this definition">¶</a></dt>
+<em class="property">async </em><code class="sig-name descname">create</code><span class="sig-paren">(</span><em class="sig-param">title: str</em>, <em class="sig-param">*</em>, <em class="sig-param">text: Optional[str] = None</em>, <em class="sig-param">resource: Optional[str] = None</em>, <em class="sig-param">value: Optional[float] = None</em>, <em class="sig-param">time: Optional[datetime.date] = None</em>, <em class="sig-param">location: Optional[micro.micro.Location] = None</em><span class="sig-paren">)</span> &#x2192; listling.listling.Item<a class="headerlink" href="#listling.List.Items.create" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#post--api-lists-(id)-items" title="POST /api/lists/(id)/items"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/lists/(id)/items</span></code></a>.</p>
 </dd></dl>
 
@@ -207,6 +207,12 @@ attributes of <code class="xref py py-class docutils literal notranslate"><span 
 <dd><p>See <a class="reference internal" href="webapi.html#post--api-lists-create-example" title="POST /api/lists/create-example"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/lists/create-example</span></code></a>.</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="method">
+<dt id="listling.Listling.now">
+<em class="property">static </em><code class="sig-name descname">now</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; datetime.datetime<a class="headerlink" href="#listling.Listling.now" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the current UTC date and time, as aware object.</p>
 </dd></dl>
 
 <dl class="method">
