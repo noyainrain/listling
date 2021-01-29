@@ -270,7 +270,7 @@ listling.ListPage = class extends micro.Page {
             this.classList.toggle("listling-list-has-trashed-items", this._data.trashedItemsCount);
             this.classList.toggle("listling-list-mode-view", !this._data.editMode);
             this.classList.toggle("listling-list-mode-edit", this._data.editMode);
-            for (let feature of ["check", "assign", "vote", "value", "location", "play"]) {
+            for (let feature of ["check", "assign", "vote", "value", "time", "location", "play"]) {
                 this.classList.toggle(
                     `listling-list-feature-${feature}`,
                     this._data.lst && this._data.lst.features.includes(feature)
@@ -431,16 +431,18 @@ listling.ListPage = class extends micro.Page {
     /**
      * Start to create an :ref:`Item` via editor.
      *
-     * *title*, *text*, *resource*, *value* and *location* correspond to the arguments of
+     * *title*, *text*, *resource*, *value*, *time* and *location* correspond to the arguments of
      * :meth:`ItemElement.startEdit`. *text* defaults to :attr:`list` *item_template*.
      */
-    startCreateItem({title = null, text, resource = null, value = null, location = null} = {}) {
+    startCreateItem(
+        {title = null, text, resource = null, value = null, time = null, location = null} = {}
+    ) {
         if (text === undefined) {
             text = this._data.lst.item_template;
         }
         this._data.creatingItem = true;
         const elem = this.querySelector(".listling-list-create-item [is=listling-item]");
-        elem.startEdit({title, text, resource, value, location});
+        elem.startEdit({title, text, resource, value, time, location});
         elem.scrollIntoView(false);
     }
 
@@ -525,6 +527,7 @@ listling.ItemElement = class extends HTMLLIElement {
                         resource: resource && resource.url,
                         title: this._form.elements.title.value,
                         value,
+                        time: this.querySelector("micro-datetime-input").value || null,
                         location: this._form.elements.location.wrapper.valueAsObject
                     });
                 } catch (e) {
@@ -647,6 +650,7 @@ listling.ItemElement = class extends HTMLLIElement {
                 item && lst && (
                     item.text || item.resource ||
                     lst.features.includes("value") && item.value !== null ||
+                    lst.features.includes("time") && item.time ||
                     lst.features.includes("location") && item.location ||
                     lst.features.includes("assign") && assigneesCount > 0
                 ),
@@ -663,6 +667,9 @@ listling.ItemElement = class extends HTMLLIElement {
         micro.bind.bind(this.children, this._data);
 
         let updateClass = () => {
+            this.classList.toggle(
+                "listling-item-has-time", this._data.item && this._data.item.time
+            );
             this.classList.toggle(
                 "listling-item-has-location",
                 this._data.item && this._data.item.location
@@ -851,11 +858,11 @@ listling.ItemElement = class extends HTMLLIElement {
     /**
      * Start to edit :attr:`item` via edit mode.
      *
-     * The form is populated with *title*, *text*, *resource*, *value* and *location*. *resource*
-     * may also be a URL or :class:`File` to attach. They default to the corresponding :attr:`item`
-     * attributes or ``null``.
+     * The form is populated with *title*, *text*, *resource*, *value*, *time and *location*.
+     * *resource* may also be a URL or :class:`File` to attach. They default to the corresponding
+     * :attr:`item` attributes or ``null``.
      */
-    startEdit({title, text, resource, value, location} = {}) {
+    startEdit({title, text, resource, value, time, location} = {}) {
         if (title === undefined) {
             title = this._data.item && this._data.item.title;
         }
@@ -868,6 +875,9 @@ listling.ItemElement = class extends HTMLLIElement {
         if (value === undefined) {
             value = this._data.item && this._data.item.value;
         }
+        if (time === undefined) {
+            time = this._data.item && this._data.item.time;
+        }
         if (location === undefined) {
             location = this._data.item && this._data.item.location;
         }
@@ -877,6 +887,7 @@ listling.ItemElement = class extends HTMLLIElement {
         this._form.elements.title.value = title || "";
         // Work around Safari not accepting NaN for valueAsNumber
         this._form.elements.value.value = value === null ? "" : value.toString();
+        this.querySelector("micro-datetime-input").value = time || "";
         this.querySelector("micro-location-input").valueAsObject = location;
         const contentInput = this.querySelector("micro-content-input");
         if (typeof resource === "string" || resource instanceof File) {
@@ -889,9 +900,34 @@ listling.ItemElement = class extends HTMLLIElement {
     }
 };
 
+micro.bind.transforms.SHORT_CLOCK_FORMAT = {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+};
+
+micro.bind.transforms.SHORT_DAY_FORMAT = Object.assign(
+    {}, micro.bind.transforms.SHORT_DATE_FORMAT, {weekday: "short"}
+);
+
 /** Test if *a* and *b* are (strictly) unequal. */
 micro.bind.transforms.neq = function(ctx, a, b) {
     return a !== b;
+};
+
+/**
+ * Format the ISO 8601 time string *time*.
+ *
+ * *dateFormat* and *clockFormat* are :meth:`Date.toLocaleString` *options* and applied depending on
+ * the precision of *time*.
+ */
+micro.bind.transforms.formatTime = function(ctx, time, dateFormat, clockFormat) {
+    if (!time) {
+        return "";
+    }
+    return micro.bind.transforms.formatDate(
+        ctx, time, time.length === 10 ? dateFormat : Object.assign({}, dateFormat, clockFormat)
+    );
 };
 
 document.registerElement("listling-ui", {prototype: listling.UI.prototype, extends: "body"});

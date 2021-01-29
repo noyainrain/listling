@@ -123,6 +123,7 @@ describe("UI", function() {
         await form.findElement({css: "[name=features][value=vote]"}).click();
         await form.findElement({css: "[name=features][value=value]"}).click();
         await form.findElement({name: "value-unit"}).sendKeys("min");
+        await form.findElement({css: "[name=features][value=time]"}).click();
         await form.findElement({css: "[name=features][value=play]"}).click();
         await form.findElement({css: "button:not([type])"}).click();
         await browser.wait(
@@ -136,6 +137,10 @@ describe("UI", function() {
         form = await browser.findElement({css: ".listling-list-create-item form"});
         await form.findElement({name: "title"}).sendKeys("Sleep");
         await form.findElement({name: "value"}).sendKeys("45");
+        await browser.executeScript(() => {
+            document.querySelector(".listling-list-create-item micro-datetime-input").value =
+                "2015-08-27T12:00:00.000Z";
+        });
         await form.findElement({css: ".micro-content-input-text"}).sendKeys("Very important!");
         // Work around Safari 13 missing elements on click (see
         // https://bugs.webkit.org/show_bug.cgi?id=202589)
@@ -155,6 +160,9 @@ describe("UI", function() {
         await input.clear();
         await input.sendKeys("Research");
         await form.findElement({name: "value"}).sendKeys("15");
+        await browser.executeScript(() => {
+            document.querySelector("[is=listling-item] micro-datetime-input").value = "2015-08-27";
+        });
         await form.findElement({css: "button:not([type])"}).click();
         await browser.wait(untilElementTextLocated({css: "[is=listling-item] h1"}, "Research"),
                            timeout);

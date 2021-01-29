@@ -322,6 +322,14 @@
                         />
                     </label>
 
+                    <label class="listling-list-features-time micro-block">
+                        <input
+                            type="checkbox" name="features" value="time"
+                            data-checked="includes lst.features 'time'"
+                        />
+                        Items have a date / time
+                    </label>
+
                     <label class="listling-list-features-location micro-block">
                         <input
                             type="checkbox" name="features" value="location"
@@ -766,15 +774,6 @@
             </header>
 
             <div class="listling-item-content">
-                <p
-                    class="listling-item-assignees listling-item-mode-view"
-                    data-content="list assignees 'assignee'"
-                >
-                    <template>
-                        <span><micro-user data-user="assignee"></micro-user> </span>
-                    </template>
-                </p>
-
                 <dl class="listling-item-meta">
                     <dt class="listling-item-value" title="Value">
                         <i class="fa fa-calculator"></i>
@@ -786,9 +785,22 @@
                         </p>
                         <input
                             class="micro-panel-main listling-item-mode-edit" name="value"
-                            type="number" step="any" placeholder="Value (optional)"
+                            type="number" step="any" placeholder="Value"
                         />
                         <p class="listling-item-mode-edit" data-content="lst.value_unit"></p>
+                    </dd>
+                    <dt class="listling-item-time" title="Date / Time">
+                        <i class="fa fa-calendar-alt"></i>
+                    </dt>
+                    <dd>
+                        <p class="listling-item-mode-view">
+                            <time
+                                data-date-time="item.time"
+                                data-content="formatTime item.time SHORT_DAY_FORMAT SHORT_CLOCK_FORMAT"
+                            ></time>
+                        </p>
+                        <micro-datetime-input class="listling-item-mode-edit">
+                        </micro-datetime-input>
                     </dd>
                     <dt class="listling-item-location" title="Location">
                         <i class="fa fa-map-marker-alt"></i>
@@ -800,12 +812,20 @@
                         ></a>
                         <p class="listling-item-mode-view" data-content="item.location.name"></p>
                         <micro-location-input
-                            class="listling-item-mode-edit" name="location"
-                            placeholder="Location (optional)"
+                            class="listling-item-mode-edit" name="location" placeholder="Location"
                         >
                         </micro-location-input>
                     </dd>
                 </dl>
+
+                <p
+                    class="listling-item-assignees listling-item-mode-view"
+                    data-content="list assignees 'assignee'"
+                >
+                    <template>
+                        <span><micro-user data-user="assignee"></micro-user> </span>
+                    </template>
+                </p>
 
                 <!-- Do not switch because micro-video (iframe) resets state when detached -->
                 <div
@@ -819,7 +839,7 @@
                 ></p>
                 <div data-content="switch editMode">
                     <template>
-                        <micro-content-input placeholder="Text (optional)"></micro-content-input>
+                        <micro-content-input placeholder="Text"></micro-content-input>
                     </template>
                 </div>
             </div>
@@ -964,6 +984,13 @@
         listling-list-page:not(.listling-list-feature-value) .listling-item-value + dd,
         [is=listling-item].listling-item-mode-view > form:not(.listling-item-has-value) .listling-item-value,
         [is=listling-item].listling-item-mode-view > form:not(.listling-item-has-value) .listling-item-value + dd {
+            display: none;
+        }
+
+        listling-list-page:not(.listling-list-feature-time) .listling-item-time,
+        listling-list-page:not(.listling-list-feature-time) .listling-item-time + dd,
+        [is=listling-item].listling-item-mode-view:not(.listling-item-has-time) .listling-item-time,
+        [is=listling-item].listling-item-mode-view:not(.listling-item-has-time) .listling-item-time + dd {
             display: none;
         }
 
