@@ -15,6 +15,7 @@
 # pylint: disable=missing-docstring; test module
 
 import asyncio
+from datetime import date, datetime, timezone
 from tempfile import mkdtemp
 from typing import Tuple
 
@@ -89,11 +90,11 @@ class ListTest(ListlingTestCase):
     @gen_test
     async def test_edit(self) -> None:
         lst = self.app.lists.create()
-        await lst.edit(description='What has to be done!', value_unit='min', features=['value'],
-                       mode='view', item_template="Details:")
+        await lst.edit(description='What has to be done!', value_unit='min',
+                       features=['value', 'time'], mode='view', item_template="Details:")
         self.assertEqual(lst.description, 'What has to be done!')
         self.assertEqual(lst.value_unit, 'min')
-        self.assertEqual(lst.features, ['value'])
+        self.assertEqual(lst.features, ['value', 'time'])
         self.assertEqual(lst.mode, 'view')
         self.assertEqual(lst.item_template, 'Details:')
 
@@ -130,8 +131,10 @@ class ListItemsTest(ListlingTestCase):
     @gen_test
     async def test_create(self) -> None:
         lst = self.app.lists.create()
-        item = await lst.items.create('Sleep', value=42)
+        item = await lst.items.create('Sleep', value=42,
+                                      time=datetime(2015, 8, 27, 0, 42, tzinfo=timezone.utc))
         self.assertEqual(item.value, 42)
+        self.assertEqual(item.time, datetime(2015, 8, 27, 0, 42, tzinfo=timezone.utc))
         self.assertEqual(self.app.items[item.id], item)
         self.assertEqual(lst.items[:], [item])
 
@@ -150,9 +153,10 @@ class ItemTest(ListlingTestCase):
     @gen_test
     async def test_edit(self) -> None:
         item = await self.make_item()
-        await item.edit(text='Very important!', value=42, asynchronous=ON)
+        await item.edit(text='Very important!', value=42, time=date(2015, 8, 27), asynchronous=ON)
         self.assertEqual(item.text, 'Very important!')
         self.assertEqual(item.value, 42)
+        self.assertEqual(item.time, date(2015, 8, 27))
 
     @gen_test
     async def test_delete(self) -> None:

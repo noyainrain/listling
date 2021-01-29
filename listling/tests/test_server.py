@@ -61,12 +61,14 @@ class ServerTest(ServerTestCase):
         await self.request(f'/api/lists/{lst.id}/owners/{user.id}', method='DELETE')
         await self.request('/api/lists/{}/users'.format(lst.id))
         await self.request('/api/lists/{}/items'.format(lst.id))
-        await self.request('/api/lists/{}/items'.format(lst.id), method='POST',
-                           body='{"title": "Sleep", "value": 42}')
+        await self.request(
+            f'/api/lists/{lst.id}/items', method='POST',
+            body=json.dumps({'title': 'Sleep', 'value': 42, 'time': '2015-08-27T00:42:00.000Z'}))
         await self.request(f'/api/lists/{lst.id}/activity')
         await self.request(f'/api/items/{item.id}')
-        await self.request(f'/api/items/{item.id}', method='POST',
-                           body='{"text": "Very important!", "value": null}')
+        await self.request(
+            f'/api/items/{item.id}', method='POST',
+            body=json.dumps({'text': 'Very important!', 'value': None, 'time': '2015-08-27'}))
         await self.request(f'/api/items/{item.id}/check', method='POST', body='')
         await self.request(f'/api/items/{item.id}/uncheck', method='POST', body='')
         await self.request(f'/api/items/{item.id}/assignees')

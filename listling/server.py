@@ -33,7 +33,7 @@ import micro.server
 from micro.server import (
     CollectionEndpoint, Handler, Server, UI, make_activity_endpoints, make_orderable_endpoints,
     make_trashable_endpoints)
-from micro.util import Expect, randstr
+from micro.util import Expect, parse_isotime, randstr
 
 from . import Listling
 from .list import Owners
@@ -190,12 +190,17 @@ class _ListItemsEndpoint(Endpoint):
         if args.get('resource') is not None:
             args['resource'] = self.server.rewrite(args['resource'], reverse=True)
         value = self.get_arg('value', Expect.opt(Expect.float), default=None)
+        time_arg = self.get_arg('time', Expect.opt(Expect.str), default=None)
+        try:
+            time = None if time_arg is None else parse_isotime(time_arg)
+        except ValueError as e:
+            raise error.ValueError(str(e).replace('isotime', 'time')) from e
         if args.get('location') is not None:
             try:
                 args['location'] = Location.parse(args['location'])
             except TypeError as e:
                 raise error.ValueError('bad_location_type') from e
-        item = await lst.items.create(value=value, **args)
+        item = await lst.items.create(value=value, time=time, **args)
         self.write(item.json(restricted=True, include=True, rewrite=self.server.rewrite))
 
 class _ItemEndpoint(Endpoint):
@@ -215,6 +220,12 @@ class _ItemEndpoint(Endpoint):
             args['resource'] = self.server.rewrite(args['resource'], reverse=True)
         if 'value' in self.args:
             args['value'] = self.get_arg('value', Expect.opt(Expect.float))
+        if 'time' in self.args:
+            time_arg = self.get_arg('time', Expect.opt(Expect.str))
+            try:
+                args['time'] = None if time_arg is None else parse_isotime(time_arg)
+            except ValueError as e:
+                raise error.ValueError(str(e).replace('isotime', 'time')) from e
         if args.get('location') is not None:
             try:
                 args['location'] = Location.parse(args['location'])

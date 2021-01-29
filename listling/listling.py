@@ -16,8 +16,8 @@
 
 from __future__ import annotations
 
+from datetime import date, datetime, timezone
 import json
-from time import time
 import typing
 from typing import Any, Callable, Dict, Optional, Set, cast
 from urllib.parse import urlsplit
@@ -28,7 +28,7 @@ from micro import (Activity, Application, AuthRequest, Collection, Editable, Loc
 from micro.core import RewriteFunc, context
 from micro.jsonredis import JSONRedis, RedisList, RedisSortedSet, script
 from micro.resource import Resource
-from micro.util import expect_type, randstr, str_or_none
+from micro.util import expect_type, parse_isotime, randstr, str_or_none
 
 from .list import Owners, OwnersEvent
 
@@ -145,7 +145,7 @@ class Listling(Application):
 
             data = _USE_CASES[use_case]
             id = 'List:{}'.format(randstr())
-            now = time()
+            now = self.app.now().timestamp()
             lst = List(
                 id=id, app=self.app, authors=[user.id], title=data['title'], description=None,
                 value_unit=data.get('value_unit'), features=data['features'],
@@ -197,6 +197,11 @@ class Listling(Application):
         self.lists = Listling.Lists(RedisList('lists', self.r.r), app=self)
         self.items = Items(self)
 
+    @staticmethod
+    def now() -> datetime:
+        """Return the current UTC date and time, as aware object."""
+        return datetime.now(timezone.utc)
+
     def do_update(self) -> Dict[str, int]:
         if not self.r.get('version'):
             self.r.set('version', 9)
@@ -231,14 +236,19 @@ class Listling(Application):
             if not r.zcard(owners_key):
                 r.zadd(owners_key, {cast(typing.List[str], lst['authors'])[0]: 0})
                 list_rel_updates.add(lst['id'])
-
-            items = r.omget(r.lrange(f"{lst['id']}.items", 0, -1), default=AssertionError)
-            for item in items:
-                # Deprecated since 0.33.0
-                if 'value' not in item:
-                    item['value'] = None
-                    item_updates[cast(str, item['id'])] = item
         r.omset(list_updates)
+
+        items = r.omget(r.smembers('items'), default=AssertionError)
+        for item in items:
+            # Deprecated since 0.33.0
+            if 'value' not in item:
+                item['value'] = None
+                item_updates[cast(str, item['id'])] = item
+
+            # Deprecated since 0.40.0
+            if 'time' not in item:
+                item['time'] = None
+                item_updates[cast(str, item['id'])] = item
         r.omset(item_updates)
 
         # Deprecated since 0.39.1
@@ -287,7 +297,7 @@ class User(micro.User):
             """See: :http:post:`/users/(id)/lists`."""
             if context.user.get() != getattr(self, 'user'):
                 raise error.PermissionError()
-            self.app.r.zadd(self.ids.key, {lst.id: -time()})
+            self.app.r.zadd(self.ids.key, {lst.id: -self.app.now().timestamp()})
 
         def remove(self, lst: List) -> None:
             """See :http:delete:`/users/(id)/lists/(list-id)`.
@@ -337,21 +347,22 @@ class List(Object, Editable):
             self.lst = lst
 
         async def create(self, title: str, *, text: str = None, resource: str = None,
-                         value: float = None, location: Location = None) -> Item:
+                         value: float = None, time: date = None, location: Location = None) -> Item:
             """See :http:post:`/api/lists/(id)/items`."""
             # pylint: disable=protected-access; List is a friend
-            self.lst._check_permission(self.app.user, 'list-modify')
-            assert self.app.user
+            user = context.user.get()
+            self.lst._check_permission(user, 'list-modify')
+            assert user
             attrs = await WithContent.process_attrs({'text': text, 'resource': resource},
                                                     app=self.app)
             if str_or_none(title) is None:
                 raise error.ValueError('title_empty')
 
             item = Item(
-                id='Item:{}'.format(randstr()), app=self.app, authors=[self.app.user.id],
-                trashed=False, text=attrs['text'], resource=attrs['resource'], list_id=self.lst.id,
-                title=title, value=value, location=location.json() if location else None,
-                checked=False)
+                id='Item:{}'.format(randstr()), app=self.app, authors=[user.id], trashed=False,
+                text=attrs['text'], resource=attrs['resource'], list_id=self.lst.id, title=title,
+                value=value, time=time.isoformat() if time else None,
+                location=location.json() if location else None, checked=False)
             f = script(self.app.r.r, """
                 local item_data = ARGV[1]
                 local item = cjson.decode(item_data)
@@ -413,7 +424,7 @@ class List(Object, Editable):
         self._check_permission(self.app.user, 'list-modify')
         if 'title' in attrs and str_or_none(attrs['title']) is None:
             raise error.ValueError('title_empty')
-        features = {'check', 'assign', 'vote', 'value', 'location', 'play'}
+        features = {'check', 'assign', 'vote', 'value', 'time', 'location', 'play'}
         if 'features' in attrs and not set(attrs['features']) <= features:
             raise error.ValueError('feature_unknown')
         if 'mode' in attrs and attrs['mode'] not in {'collaborate', 'view'}:
@@ -452,7 +463,7 @@ class List(Object, Editable):
                 } if restricted else {})
         }
 
-    def _check_permission(self, user: User, op: str) -> None:
+    def _check_permission(self, user: Optional[micro.User], op: str) -> None:
         permissions = List._PERMISSIONS[self.mode]
         if not (user and (
                 op in permissions['user'] or
@@ -461,7 +472,8 @@ class List(Object, Editable):
             raise error.PermissionError()
 
     def _on_activity_publish(self, event):
-        self.app.r.zadd('{}.users'.format(self.id), {event.user.id.encode(): -time()})
+        self.app.r.zadd('{}.users'.format(self.id),
+                        {event.user.id.encode(): -self.app.now().timestamp()})
 
 class Item(Object, Editable, Trashable, WithContent):
     """See :ref:`Item`."""
@@ -482,7 +494,8 @@ class Item(Object, Editable, Trashable, WithContent):
                 raise error.ValueError('Disabled item list features assign')
             if self.item.trashed:
                 raise error.ValueError('Trashed item')
-            if not self.app.r.zadd(self.ids.key, {assignee.id.encode(): -time()}):
+            if not self.app.r.zadd(self.ids.key,
+                                   {assignee.id.encode(): -self.app.now().timestamp()}):
                 raise error.ValueError(
                     'assignee {} already in assignees of item {}'.format(assignee.id, self.item.id))
             self.item.list.activity.publish(
@@ -518,7 +531,7 @@ class Item(Object, Editable, Trashable, WithContent):
                 raise error.PermissionError()
             if 'vote' not in self.item.list.features:
                 raise error.ValueError('Disabled item list features vote')
-            if self.app.r.zadd(self.ids.key, {user.id.encode(): -time()}):
+            if self.app.r.zadd(self.ids.key, {user.id.encode(): -self.app.now().timestamp()}):
                 self.item.list.activity.publish(
                     Event.create('item-votes-vote', self.item, app=self.app))
 
@@ -554,6 +567,7 @@ class Item(Object, Editable, Trashable, WithContent):
         self._list_id = cast(str, data['list_id'])
         self.title = cast(str, data['title'])
         self.value = cast(Optional[float], data['value'])
+        self.time = parse_isotime(cast(str, data['time'])) if data['time'] else None
         self.location = (
             Location.parse(cast(Dict[str, object], data['location'])) if data['location'] else None)
         self.checked = cast(bool, data['checked'])
@@ -608,6 +622,8 @@ class Item(Object, Editable, Trashable, WithContent):
             self.title = attrs['title']
         if 'value' in attrs:
             self.value = attrs['value']
+        if 'time' in attrs:
+            self.time = attrs['time']
         if 'location' in attrs:
             self.location = attrs['location']
 
@@ -629,6 +645,7 @@ class Item(Object, Editable, Trashable, WithContent):
             'list_id': self._list_id,
             'title': self.title,
             'value': self.value,
+            'time': self.time.isoformat() if self.time else None,
             'location': self.location.json() if self.location else None,
             'checked': self.checked,
             **(
@@ -641,7 +658,7 @@ class Item(Object, Editable, Trashable, WithContent):
                 if include else {})
         }
 
-    def _check_permission(self, user: User, op: str) -> None:
+    def _check_permission(self, user: Optional[micro.User], op: str) -> None:
         lst = self.list
         # pylint: disable=protected-access; List is a friend
         permissions = List._PERMISSIONS[lst.mode]

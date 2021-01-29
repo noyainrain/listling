@@ -40,10 +40,22 @@ async def main():
     # Compatibility with synchronous edit (deprecated since 0.34.0)
     await lst.edit(features=['check', 'assign', 'vote'], asynchronous=ON)
     item = lst.items[1]
-    item.votes.vote(user=user)
+    # Compatibility for user argument (deprecated since 0.39.1)
+    try:
+        item.votes.vote()
+    except TypeError:
+        item.votes.vote(user=user)
     item = await lst.items.create('Sleep')
-    item.assignees.assign(user, user=user)
-    item.votes.vote(user=user)
+    # Compatibility for user argument (deprecated since 0.39.1)
+    try:
+        item.assignees.assign(user)
+    except TypeError:
+        item.assignees.assign(user, user=user)
+    # Compatibility for user argument (deprecated since 0.39.1)
+    try:
+        item.votes.vote()
+    except TypeError:
+        item.votes.vote(user=user)
     item.trash()
     item.delete()
 
@@ -72,16 +84,12 @@ class UpdateTest(AsyncTestCase):
         self.assertEqual(app.settings.title, 'My Open Listling')
 
     def test_update_db_version_previous(self) -> None:
-        self.setup_db('0.39.0')
+        self.setup_db('0.39.1')
         app = Listling(redis_url='15', files_path=mkdtemp())
         app.update()
 
-        user = next(iter(app.users))
-        items = app.lists[0].items[:]
-        self.assertEqual(items[1].assignees[:], [user])
-        self.assertEqual(items[1].votes[:], [user])
-        self.assertEqual({key.decode().split('.')[0] for key in app.r.keys('Item:*')},
-                         {item.id for item in items})
+        # Item.time
+        self.assertIsNone(app.lists[0].items[0].time)
 
     def test_update_db_version_first(self) -> None:
         self.setup_db('0.32.1')
@@ -105,3 +113,5 @@ class UpdateTest(AsyncTestCase):
         self.assertEqual(items[1].votes[:], [user])
         self.assertEqual({key.decode().split('.')[0] for key in app.r.keys('Item:*')},
                          {item.id for item in items})
+        # Item.time
+        self.assertIsNone(items[0].time)
