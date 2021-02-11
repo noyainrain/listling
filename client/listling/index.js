@@ -259,11 +259,7 @@ listling.ListPage = class extends micro.Page {
                 );
             }
         });
-        Object.assign(this._data, {
-            presentation: new listling.components.list.Presentation(this),
-            presentationMode: false,
-            presentationShortURL: null
-        });
+        this._data.presentation = new listling.components.list.Presentation(this);
         micro.bind.bind(this.children, this._data);
 
         let updateClass = () => {
@@ -635,7 +631,7 @@ listling.ItemElement = class extends HTMLLIElement {
 
             onVotesActivate: () => {
                 if (this._data.votes.count === null) {
-                    this.querySelector(".listling-item-more-votes").trigger();
+                    this.querySelector(".listling-item-more-votes").action.run();
                 }
             },
 
@@ -900,34 +896,9 @@ listling.ItemElement = class extends HTMLLIElement {
     }
 };
 
-micro.bind.transforms.SHORT_CLOCK_FORMAT = {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false
-};
-
-micro.bind.transforms.SHORT_DAY_FORMAT = Object.assign(
-    {}, micro.bind.transforms.SHORT_DATE_FORMAT, {weekday: "short"}
-);
-
 /** Test if *a* and *b* are (strictly) unequal. */
 micro.bind.transforms.neq = function(ctx, a, b) {
     return a !== b;
-};
-
-/**
- * Format the ISO 8601 time string *time*.
- *
- * *dateFormat* and *clockFormat* are :meth:`Date.toLocaleString` *options* and applied depending on
- * the precision of *time*.
- */
-micro.bind.transforms.formatTime = function(ctx, time, dateFormat, clockFormat) {
-    if (!time) {
-        return "";
-    }
-    return micro.bind.transforms.formatDate(
-        ctx, time, time.length === 10 ? dateFormat : Object.assign({}, dateFormat, clockFormat)
-    );
 };
 
 document.registerElement("listling-ui", {prototype: listling.UI.prototype, extends: "body"});

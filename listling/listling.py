@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import date
 import json
 import typing
 from typing import Any, Callable, Dict, Optional, Set, cast
@@ -196,11 +196,6 @@ class Listling(Application):
         self.types.update({'User': User, 'List': List, 'Item': Item, 'OwnersEvent': OwnersEvent})
         self.lists = Listling.Lists(RedisList('lists', self.r.r), app=self)
         self.items = Items(self)
-
-    @staticmethod
-    def now() -> datetime:
-        """Return the current UTC date and time, as aware object."""
-        return datetime.now(timezone.utc)
 
     def do_update(self) -> Dict[str, int]:
         if not self.r.get('version'):

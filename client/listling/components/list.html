@@ -3,7 +3,7 @@
         <header class="micro-heading micro-panel">
             <h1>Share list</h1>
             <button
-                is="micro-button" type="button" class="link" data-run="close"
+                type="button" class="link" data-action="new Action close"
                 data-shortcut="new Shortcut 'Escape' 'Close'"
             >
                 <i class="fa fa-times-circle"></i>
@@ -29,7 +29,7 @@
         <header class="micro-heading micro-panel">
             <h1>Assign to item</h1>
             <button
-                is="micro-button" type="button" class="listling-assign-close link" data-run="close"
+                type="button" class="listling-assign-close link" data-action="new Action close"
                 data-shortcut="new Shortcut 'Escape' 'Close'"
             >
                 <i class="fa fa-times-circle"></i>
@@ -50,8 +50,9 @@
                             <micro-user data-user="assignee"></micro-user>
                         </p>
                         <button
-                            is="micro-button" type="button" class="listling-assign-remove action"
-                            data-run="bind remove assignee" data-shortcut="new Shortcut 'T'"
+                            type="button" class="listling-assign-remove action"
+                            data-action="new Action remove assignee"
+                            data-shortcut="new Shortcut 'T'"
                         >
                             <i class="fa fa-minus-circle"></i> Remove
                         </button>
@@ -76,8 +77,8 @@
                             </micro-options>
                         </div>
                         <button
-                            is="micro-button" class="listling-assign-add action micro-highlight"
-                            title="⌨ Enter" data-run="add"
+                            class="listling-assign-add action micro-highlight" title="⌨ Enter"
+                            data-action="new Action add"
                         >
                             <i class="fa fa-plus-circle"></i> Add
                         </button>

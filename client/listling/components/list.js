@@ -208,6 +208,13 @@ listling.components.list.Presentation = class {
         this._maxWidth = null;
         this._onScrollTimeout = null;
         this._shortURLUpdate = null;
+
+        Object.assign(this._data, {
+            presentationMode: false,
+            presentationShortURL: null,
+            presentationEnter: () => this.enter(),
+            presentationExit: () => this.exit()
+        });
     }
 
     /** Enter presentation mode. */

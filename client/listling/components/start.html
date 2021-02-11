@@ -26,8 +26,9 @@
                                 <button class="link"><i class="fa fa-bars"></i></button>
                                 <micro-contextual>
                                     <button
-                                        is="micro-button" type="button" class="action"
-                                        data-run="bind remove lst" data-shortcut="new Shortcut 'T'"
+                                        type="button" class="action"
+                                        data-action="new Action remove lst"
+                                        data-shortcut="new Shortcut 'T'"
                                     >
                                         <i class="fa fa-fw fa-minus-circle"></i> Remove from your
                                         lists
@@ -42,8 +43,9 @@
                 <li data-content="switch listsComplete false">
                     <template>
                         <button
-                            is="micro-button" class="link micro-quick-nav"
-                            data-run="bind fetchCollection lists" data-shortcut="new Shortcut 'M'"
+                            type="button" class="link micro-quick-nav"
+                            data-action="new Action fetchCollection lists"
+                            data-shortcut="new Shortcut 'M'"
                         >
                             <i class="fa fa-fw fa-ellipsis-v"></i> More
                         </button>
@@ -52,8 +54,9 @@
                 <li class="listling-start-create">
                     <div>
                         <button
-                            is="micro-button" type="button" class="action micro-highlight"
-                            data-run="startCreateList" data-shortcut="new Shortcut 'A'"
+                            type="button" class="action micro-highlight"
+                            data-action="new Action startCreateList"
+                            data-shortcut="new Shortcut 'A'"
                         >
                             <i class="fa fa-fw fa-plus-circle"></i> Create new list
                         </button>

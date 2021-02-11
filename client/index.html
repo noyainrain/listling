@@ -50,17 +50,17 @@
                         </h1>
                         <div>
                             <button
-                                is="micro-button" type="button"
+                                type="button"
                                 class="listling-intro-create-list action micro-highlight"
-                                title="⌨ S" data-run="bind createList useCase.id"
+                                title="⌨ S" data-action="new Action createList useCase.id"
                                 data-onfocus="bind selectUseCase useCase"
                             >
                                 <i class="fa fa-paper-plane"></i> Start
                             </button>
                             <button
-                                is="micro-button" type="button"
+                                type="button"
                                 class="listling-intro-create-example link micro-highlight"
-                                title="⌨ E" data-run="bind createExample useCase"
+                                title="⌨ E" data-action="new Action createExample useCase"
                                 data-onfocus="bind selectUseCase useCase"
                             >
                                 <i class="fa fa-book"></i> View example
@@ -174,9 +174,9 @@
                     required="required" autocomplete="off" data-value="or lst.title ''"
                 />
                 <button
-                    is="micro-button" type="button"
+                    type="button"
                     class="listling-list-create-item-top action listling-list-mode-view micro-interactive"
-                    title="Add item (⌨ A)" data-run="startCreateItem"
+                    title="Add item (⌨ A)" data-action="new Action startCreateItem"
                 >
                     <i class="fa fa-plus-circle"></i>
                 </button>
@@ -186,27 +186,29 @@
                         <ul>
                             <li class="listling-list-edit">
                                 <button
-                                    is="micro-button" type="button"
-                                    class="action micro-contextual-deactivate"
-                                    data-run="startEdit" data-shortcut="new Shortcut 'E'"
+                                    type="button" class="action micro-contextual-deactivate"
+                                    data-action="new Action startEdit"
+                                    data-shortcut="new Shortcut 'E'"
                                 >
                                     <i class="fa fa-fw fa-pencil-alt"></i> Edit
                                 </button>
                             </li>
                             <li>
                                 <button
-                                    is="micro-button" type="button"
+                                    type="button"
                                     class="action micro-contextual-deactivate"
-                                    data-run="bind share lst" data-shortcut="new Shortcut 'S'"
+                                    data-action="new Action share lst"
+                                    data-shortcut="new Shortcut 'S'"
                                 >
                                     <i class="fa fa-fw fa-user-friends"></i> Share
                                 </button>
                             </li>
                             <li class="listling-list-subscribe">
                                 <button
-                                    is="micro-button" type="button"
+                                    type="button"
                                     class="action micro-contextual-deactivate"
-                                    data-run="subscribeUnsubscribe" data-shortcut="new Shortcut 'H'"
+                                    data-action="new Action subscribeUnsubscribe"
+                                    data-shortcut="new Shortcut 'H'"
                                     data-content="switch lst.activity.user_subscribed"
                                 >
                                     <template>
@@ -219,9 +221,8 @@
                             </li>
                             <li class="listling-list-enter-presentation">
                                 <button
-                                    is="micro-button" type="button"
-                                    class="link micro-contextual-deactivate"
-                                    data-run="bindThis presentation.enter presentation"
+                                    type="button" class="link micro-contextual-deactivate"
+                                    data-action="new Action presentationEnter"
                                     data-shortcut="new Shortcut 'D'"
                                 >
                                     <i class="fa fa-fw fa-chalkboard"></i> Presentation
@@ -231,7 +232,7 @@
                     </micro-contextual>
                 </div>
                 <button
-                    is="micro-button" class="action listling-list-mode-edit" data-run="edit"
+                    class="action listling-list-mode-edit" data-action="new Action edit"
                     data-shortcut="new Shortcut 'Control+Enter'"
                 >
                     <i class="fa fa-check-circle"></i> Done
@@ -239,7 +240,7 @@
                 <div data-content="switch editMode">
                     <template>
                         <button
-                            is="micro-button" type="button" class="link" data-run="cancelEdit"
+                            type="button" class="link" data-action="new Action cancelEdit"
                             data-shortcut="new Shortcut 'Escape' 'Cancel'"
                         >
                             <i class="fa fa-times-circle"></i>
@@ -266,8 +267,7 @@
             <div class="listling-list-settings listling-list-mode-edit"
                  data-class-listling-list-settings-expanded="settingsExpanded">
                 <button
-                    is="micro-button" type="button" class="link" title="⌨ C"
-                    data-run="toggleSettings"
+                    type="button" class="link" title="⌨ C" data-action="new Action toggleSettings"
                 >
                     <i class="fa fa-sliders-h"></i> More settings
                 </button>
@@ -275,8 +275,7 @@
                     <header class="micro-heading micro-panel">
                         <h1>Settings</h1>
                         <button
-                            is="micro-button" type="button" class="link" title="⌨ C"
-                            data-run="toggleSettings"
+                            type="button" class="link" title="⌨ C" data-action="toggleSettings"
                         >
                             <i class="fa fa-fw fa-search-minus"></i>
                         </button>
@@ -399,8 +398,8 @@
             data-class-listling-list-creating-item="creatingItem"
         >
             <button
-                is="micro-button" type="button" class="action micro-highlight"
-                data-run="startCreateItem" data-shortcut="new Shortcut 'A'"
+                type="button" class="action micro-highlight"
+                data-action="new Action startCreateItem" data-shortcut="new Shortcut 'A'"
             >
                 <i class="fa fa-plus-circle"></i> Add item
             </button>
@@ -413,8 +412,8 @@
         <div class="listling-list-trash listling-list-mode-view micro-interactive"
              data-class-listling-list-trash-expanded="trashExpanded">
             <button
-                is="micro-button" type="button" class="link micro-small" title="⌨ G"
-                data-run="toggleTrash"
+                type="button" class="link micro-small" title="⌨ G"
+                data-action="new Action toggleTrash"
             >
                 <i class="fa fa-trash"></i>
                 <span
@@ -424,8 +423,10 @@
             <div>
                 <header class="micro-heading micro-panel">
                     <h1>Trashed items</h1>
-                    <button is="micro-button" type="button" class="link" title="Hide (⌨ G)"
-                            data-run="toggleTrash">
+                    <button
+                        type="button" class="link" title="Hide (⌨ G)"
+                        data-action="new Action toggleTrash"
+                    >
                         <i class="fa fa-fw fa-search-minus"></i>
                     </button>
                 </header>
@@ -460,8 +461,8 @@
                 <div data-content="switch presentationMode">
                     <template>
                         <button
-                            is="micro-button" type="button" class="listling-list-previous link"
-                            data-run="bind quickNavigate 'prev'"
+                            type="button" class="listling-list-previous link"
+                            data-action="new Action quickNavigate 'prev'"
                             data-shortcut="new Shortcut 'ArrowUp' 'Previous'"
                         >
                             <i class="fa fa-fw fa-arrow-circle-up"></i>
@@ -469,14 +470,16 @@
                     </template>
                 </div>
                 <button
-                    is="micro-button" type="button" class="listling-list-play-previous action"
-                    data-run="playlistPlayPrevious" data-shortcut="new Shortcut 'B' 'Play previous'"
+                    type="button" class="listling-list-play-previous action"
+                    data-action="new Action playlistPlayPrevious"
+                    data-shortcut="new Shortcut 'B' 'Play previous'"
                 >
                     <i class="fa fa-fw fa-step-backward"></i>
                 </button>
                 <button
-                    is="micro-button" class="listling-list-play-pause action"
-                    data-run="playlistPlayPause" data-shortcut="new Shortcut 'P' 'Play / Pause'"
+                    class="listling-list-play-pause action"
+                    data-action="new Action playlistPlayPause"
+                    data-shortcut="new Shortcut 'P' 'Play / Pause'"
                 >
                     <i
                         class="fa fa-fw" data-class-fa-play="not playlistPlaying"
@@ -486,8 +489,8 @@
                 <div data-content="switch presentationMode">
                     <template>
                         <button
-                            is="micro-button" type="button" class="listling-list-next link"
-                            data-run="bind quickNavigate 'next'"
+                            type="button" class="listling-list-next link"
+                            data-action="new Action quickNavigate 'next'"
                             data-shortcut="new Shortcut 'ArrowDown' 'Next'"
                         >
                             <i class="fa fa-fw fa-arrow-circle-down"></i>
@@ -495,8 +498,9 @@
                     </template>
                 </div>
                 <button
-                    is="micro-button" type="button" class="listling-list-play-next action"
-                    data-run="playlistPlayNext" data-shortcut="new Shortcut 'F' 'Play next'"
+                    type="button" class="listling-list-play-next action"
+                    data-action="new Action playlistPlayNext"
+                    data-shortcut="new Shortcut 'F' 'Play next'"
                 >
                     <i class="fa fa-fw fa-step-forward"></i>
                 </button>
@@ -510,8 +514,7 @@
                 <div class="listling-list-exit-presentation" data-content="switch presentationMode">
                     <template>
                         <button
-                            is="micro-button" type="button" class="link"
-                            data-run="bindThis presentation.exit presentation"
+                            type="button" class="link" data-action="new Action presentationExit"
                             data-shortcut="new Shortcut 'Escape' 'Exit'"
                         >
                             <i class="fa fa-times-circle"></i>
@@ -645,8 +648,9 @@
                 </div>
 
                 <button
-                    is="micro-button" type="button"
-                    class="listling-item-vote action listling-item-mode-view" data-run="voteUnvote"
+                    type="button"
+                    class="listling-item-vote action listling-item-mode-view"
+                    data-action="new Action voteUnvote"
                     data-shortcut="new Shortcut 'V' 'Vote / Unvote'"
                 >
                     <i class="fa fa-caret-up"></i>
@@ -666,9 +670,9 @@
                                 <li class="micro-panel" data-content="switch votesComplete false">
                                     <template>
                                         <button
-                                            is="micro-button" type="button"
+                                            type="button"
                                             class="listling-item-more-votes link micro-panel-main"
-                                            data-run="bind fetchCollection votes 10"
+                                            data-action="new Action fetchCollection votes 10"
                                         >
                                             <i class="fa fa-ellipsis-v"></i> More
                                         </button>
@@ -680,9 +684,10 @@
                 </div>
 
                 <button
-                    is="micro-button" type="button"
+                    type="button"
                     class="listling-item-check action listling-item-mode-view"
-                    data-run="checkUncheck" data-disabled="isCheckDisabled item.trashed lst.mode"
+                    data-disabled="isCheckDisabled item.trashed lst.mode"
+                    data-action="new Action checkUncheck"
                     data-shortcut="new Shortcut 'X' 'Check / Uncheck'"
                 >
                     <i
@@ -702,23 +707,20 @@
                 />
 
                 <button
-                    is="micro-button" type="button"
+                    type="button"
                     class="listling-item-restore action listling-item-mode-view micro-interactive"
-                    data-run="restore" data-shortcut="new Shortcut 'R'"
+                    data-action="new Action restore" data-shortcut="new Shortcut 'R'"
                 >
                     <i class="fa fa-trash-restore"></i> Restore
                 </button>
                 <div class="listling-item-menu listling-item-mode-view micro-interactive">
-                    <button is="micro-button" type="button" class="link">
-                        <i class="fa fa-bars"></i>
-                    </button>
+                    <button type="button" class="link"><i class="fa fa-bars"></i></button>
                     <micro-contextual class="micro-entity-list">
                         <ul>
                             <li class="listling-item-play-pause">
                                 <button
-                                    is="micro-button" type="button"
-                                    class="action micro-contextual-deactivate"
-                                    data-run="playablePlayPause"
+                                    type="button" class="action micro-contextual-deactivate"
+                                    data-action="new Action playablePlayPause"
                                     data-content="switch playablePlaying" title="⌨ P"
                                 >
                                     <template>
@@ -731,8 +733,9 @@
                             </li>
                             <li class="listling-item-edit">
                                 <button
-                                    is="micro-button" type="button"
-                                    class="action micro-contextual-deactivate" data-run="startEdit"
+                                    type="button"
+                                    class="action micro-contextual-deactivate"
+                                    data-action="new Action startEdit"
                                     data-shortcut="new Shortcut 'E'"
                                 >
                                     <i class="fa fa-fw fa-pencil-alt"></i> Edit
@@ -740,16 +743,16 @@
                             </li>
                             <li class="listling-item-assign">
                                 <button
-                                    is="micro-button" type="button"
-                                    class="action micro-contextual-deactivate" data-run="assign"
-                                    data-shortcut="new Shortcut 'U'"
+                                    type="button"
+                                    class="action micro-contextual-deactivate"
+                                    data-action="new Action assign" data-shortcut="new Shortcut 'U'"
                                 >
                                     <i class="fa fa-fw fa-id-badge"></i> Assign
                                 </button>
                             </li>
                             <li class="listling-item-trash">
                                 <button
-                                    is="micro-button" type="button" class="action" data-run="trash"
+                                    type="button" class="action" data-action="new Action trash"
                                     data-shortcut="new Shortcut 'T'"
                                 >
                                     <i class="fa fa-fw fa-trash"></i> Trash
@@ -760,14 +763,15 @@
                 </div>
 
                 <button
-                    is="micro-button" class="action listling-item-mode-edit"
-                    data-run="edit" data-shortcut="new Shortcut 'Control+Enter'"
+                    class="action listling-item-mode-edit" data-action="new Action edit"
+                    data-shortcut="new Shortcut 'Control+Enter'"
                 >
                     <i class="fa fa-check-circle"></i> Done
                 </button>
                 <button
-                    is="micro-button" type="button" class="link listling-item-mode-edit"
-                    data-run="cancelEdit" data-shortcut="new Shortcut 'Escape' 'Cancel'"
+                    type="button" class="link listling-item-mode-edit"
+                    data-action="new Action cancelEdit"
+                    data-shortcut="new Shortcut 'Escape' 'Cancel'"
                 >
                     <i class="fa fa-times-circle"></i>
                 </button>
