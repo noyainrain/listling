@@ -75,6 +75,9 @@ class UpdateTest(AsyncTestCase):
             python = Path(getattr(sys, 'real_prefix', sys.base_prefix), 'bin/python3')
             run([str(python), '-m', 'venv', '.venv'], cwd=d, check=True)
             run(['.venv/bin/pip3', 'install', '-q', '-r', 'requirements.txt'], cwd=d, check=True)
+            # Work around missing pywebpush dependency (see
+            # https://github.com/web-push-libs/pywebpush/pull/132)
+            run(['.venv/bin/pip3', 'install', '-q', 'six~=1.15'], cwd=d, check=True)
         run(['.venv/bin/python3', '-c', SETUP_DB_SCRIPT], cwd=d, check=True)
 
     def test_update_db_fresh(self) -> None:
