@@ -314,7 +314,10 @@ listling.ListPage = class extends micro.Page {
                 await micro.Activity.open(`/api/lists/${this._data.lst.id}/activity/stream`);
             this.activity.events.addEventListener("list-create-item", event => {
                 if (!this._items.find(item => item.id === event.detail.event.detail.item.id)) {
-                    this._items.push(event.detail.event.detail.item);
+                    this._items.splice(
+                        this._index(event.detail.event.detail.item), 0,
+                        event.detail.event.detail.item
+                    );
                 }
             });
             const events = [
@@ -326,6 +329,8 @@ listling.ListPage = class extends micro.Page {
                     const object = event.detail.event.object;
                     let li;
                     let i;
+                    let from;
+                    let to;
                     switch (object.__type__) {
                     case "List":
                         if (this._data.editMode) {
@@ -344,8 +349,22 @@ listling.ListPage = class extends micro.Page {
                             this._bufferEvent(event);
                             break;
                         }
+
+                        /*
                         i = this._items.findIndex(item => item.id === object.id);
-                        this._items[i] = object;
+                        if (this.list.order) {
+                            this._items.splice(i, 1);
+                            this._items.splice(this._index(object), 0, object);
+                        } else {
+                            this._items[i] = object;
+                        }
+                        */
+
+                        from = this._items.findIndex(item => item.id === object.id);
+                        this._items.splice(from, 1);
+                        to = this.list.order ? this._index(object) : from;
+                        this._items.splice(to, 0, object);
+
                         this._data.trashedItemsCount = this._data.trashedItems.length;
                         break;
                     default:
@@ -454,6 +473,24 @@ listling.ListPage = class extends micro.Page {
                 ? this._items.findIndex(item => item.id === event.detail.to.id) + 1 : 0;
             this._items.splice(j, 0, event.detail.item);
         }
+    }
+
+    _index(item) {
+        if (!this._data.lst.order) {
+            // TODO support -1 in watchable splice
+            return this._items.length;
+        }
+        let key;
+        switch (this._data.lst.order) {
+        case "title":
+            key = object => object.title.toLowerCase().normalize("NFD");
+            break;
+        default:
+            // Unreachable
+            throw new Error();
+        }
+        const lexicalKey = key(item);
+        return this._items.findIndex(elem => key(elem) > lexicalKey);
     }
 
     async _moveItem(item, to) {
