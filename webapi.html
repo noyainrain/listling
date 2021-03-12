@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>2. Web API &#8212; Open Listling 0.40.1 documentation</title>
+    <title>2. Web API &#8212; Open Listling 0.41.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -977,6 +977,12 @@ with <em>list_id</em>, a <a class="reference internal" href="#valueerror"><span 
 
 <dl class="describe">
 <dt>
+<code class="sig-name descname">order</code></dt>
+<dd><p>Key by which items are ordered. Available keys are <code class="docutils literal notranslate"><span class="pre">title</span></code>. May be <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
 <code class="sig-name descname">value_unit</code></dt>
 <dd><p>Unit of <a class="reference internal" href="#item"><span class="std std-ref">Item</span></a> <em>value</em> s. May be <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
 </dd></dl>
@@ -1024,7 +1030,7 @@ the list. In <code class="docutils literal notranslate"><span class="pre">view</
 <dl class="describe">
 <dt>
 <code class="sig-name descname">items</code></dt>
-<dd><p>List <a class="reference internal" href="#id40"><span class="std std-ref">Items</span></a>.</p>
+<dd><p>List <a class="reference internal" href="#listitems"><span class="std std-ref">Items</span></a>.</p>
 </dd></dl>
 
 <dl class="describe">
@@ -1141,10 +1147,16 @@ the items from index 10 up to including 19.</p>
 </div>
 <div class="section" id="items">
 <span id="listitems"></span><h3><span class="section-number">2.22.3. </span>Items<a class="headerlink" href="#items" title="Permalink to this headline">¶</a></h3>
+<p>List <a class="reference internal" href="#item"><span class="std std-ref">Item</span></a> s in <a class="reference internal" href="#list"><span class="std std-ref">List</span></a> <em>order</em>.</p>
 <dl class="get">
-<dt id="get--api-lists-(id)-items">
-<code class="sig-name descname">GET </code><code class="sig-name descname">/api/lists/</code><span class="sig-paren">(</span><em class="sig-param">id</em><span class="sig-paren">)</span><code class="sig-name descname">/items</code><a class="headerlink" href="#get--api-lists-(id)-items" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get all <a class="reference internal" href="#item"><span class="std std-ref">Item</span></a> s of the list.</p>
+<dt id="get--api-(resource-url)?slice">
+<code class="sig-name descname">GET </code><code class="sig-name descname">/api/(resource-url)?slice</code><a class="headerlink" href="#get--api-(resource-url)?slice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query the collection for a <em>slice</em> of items.</p>
+<p><em>slice</em> is a <em>slice string</em>. The maximum number of items is limited to a <em>limit</em> of 100, i.e.
+<em>stop</em> is capped at <em>start</em> + <em>limit</em>. Defaults to <code class="docutils literal notranslate"><span class="pre">:</span></code>.</p>
+<p>Example: <code class="docutils literal notranslate"><span class="pre">/api/cats</span></code> (which is equivalent to <code class="docutils literal notranslate"><span class="pre">/api/cats?slice=:</span></code> or
+<code class="docutils literal notranslate"><span class="pre">/api/cats?slice=0:100</span></code>) returns the first hundred items and <code class="docutils literal notranslate"><span class="pre">/api/cats?slice=10:20</span></code> returns
+the items from index 10 up to including 19.</p>
 </dd></dl>
 
 <dl class="post">

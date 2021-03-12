@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>3. Python API &#8212; Open Listling 0.40.1 documentation</title>
+    <title>3. Python API &#8212; Open Listling 0.41.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -146,7 +146,7 @@ attributes of <code class="xref py py-class docutils literal notranslate"><span 
 <dd><p>See <a class="reference internal" href="webapi.html#list"><span class="std std-ref">List</span></a>.</p>
 <dl class="class">
 <dt id="listling.List.Items">
-<em class="property">class </em><code class="sig-name descname">Items</code><span class="sig-paren">(</span><em class="sig-param">lst: listling.listling.List</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List.Items" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-name descname">Items</code><span class="sig-paren">(</span><em class="sig-param">lst: listling.listling.List</em>, <em class="sig-param">ids: micro.jsonredis.RedisSequence</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List.Items" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#id40"><span class="std std-ref">Items</span></a>.</p>
 <dl class="method">
 <dt id="listling.List.Items.create">
@@ -156,7 +156,7 @@ attributes of <code class="xref py py-class docutils literal notranslate"><span 
 
 <dl class="method">
 <dt id="listling.List.Items.move">
-<code class="sig-name descname">move</code><span class="sig-paren">(</span><em class="sig-param">item: micro.core.Object, to: Optional[micro.core.Object]</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#listling.List.Items.move" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">move</code><span class="sig-paren">(</span><em class="sig-param">item: Object</em>, <em class="sig-param">to: Object | None</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#listling.List.Items.move" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#post--api-(collection-path)-move" title="POST /api/(collection-path)/move"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/(collection-path)/move</span></code></a>.</p>
 </dd></dl>
 

@@ -124,6 +124,10 @@ List
 
    Description of the list as *markup text*. May be ``null``.
 
+.. describe:: order
+
+   Key by which items are ordered. Available keys are ``title``. May be ``null``.
+
 .. describe:: value_unit
 
    Unit of :ref:`Item` *value* s. May be ``null``.
@@ -159,7 +163,7 @@ List
 
 .. describe:: items
 
-   List :ref:`Items`.
+   List :ref:`ListItems`.
 
 .. describe:: activity
 
@@ -251,9 +255,9 @@ Users
 Items
 ^^^^^
 
-.. http:get:: /api/lists/(id)/items
+List :ref:`Item` s in :ref:`List` *order*.
 
-   Get all :ref:`Item` s of the list.
+.. include:: micro/collection-endpoints.inc
 
 .. http:post:: /api/lists/(id)/items
 
