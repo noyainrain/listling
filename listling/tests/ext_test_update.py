@@ -19,7 +19,8 @@ from subprocess import run
 import sys
 from tempfile import gettempdir, mkdtemp
 
-from tornado.testing import AsyncTestCase
+from micro.core import context
+from tornado.testing import AsyncTestCase, gen_test
 
 from listling import Listling
 
@@ -86,15 +87,24 @@ class UpdateTest(AsyncTestCase):
         app.update()
         self.assertEqual(app.settings.title, 'My Open Listling')
 
-    def test_update_db_version_previous(self) -> None:
-        self.setup_db('0.39.1')
+    @gen_test
+    async def test_update_db_version_previous(self) -> None:
+        self.setup_db('0.40.1')
         app = Listling(redis_url='15', files_path=mkdtemp())
         app.update()
 
-        # Item.time
-        self.assertIsNone(app.lists[0].items[0].time)
+        # List.order
+        user = next(iter(app.users))
+        context.user.set(user)
+        app.user = user
+        lst = app.lists[0]
+        items = lst.items[:]
+        self.assertIsNone(lst.order)
+        await lst.edit(order='title')
+        self.assertEqual(lst.items[:], [items[1], items[0], items[2]])
 
-    def test_update_db_version_first(self) -> None:
+    @gen_test
+    async def test_update_db_version_first(self) -> None:
         self.setup_db('0.32.1')
         app = Listling(redis_url='15', files_path=mkdtemp())
         app.update()
@@ -118,3 +128,9 @@ class UpdateTest(AsyncTestCase):
                          {item.id for item in items})
         # Item.time
         self.assertIsNone(items[0].time)
+        # List.order
+        context.user.set(user)
+        app.user = user
+        self.assertIsNone(lst.order)
+        await lst.edit(order='title')
+        self.assertEqual(lst.items[:], [items[1], items[0], items[2]])

@@ -54,8 +54,13 @@ class ServerTest(ServerTestCase):
         await self.request('/api/lists/create-example', method='POST',
                            body='{"use_case": "shopping"}')
         await self.request('/api/lists/{}'.format(lst.id))
-        await self.request('/api/lists/{}'.format(lst.id), method='POST',
-                           body='{"description": "What has to be done!", "value_unit": "min"}')
+        await self.request(
+            f'/api/lists/{lst.id}', method='POST',
+            body=json.dumps({
+                'description': 'What has to be done!',
+                'order': 'title',
+                'value_unit': 'min'
+            }))
         await self.request(f'/api/lists/{lst.id}/owners', method='POST',
                            body=json.dumps({'user_id': user.id}))
         await self.request(f'/api/lists/{lst.id}/owners/{user.id}', method='DELETE')

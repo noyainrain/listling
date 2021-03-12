@@ -136,6 +136,8 @@ class _ListEndpoint(Endpoint):
             'mode': (str, 'opt'),
             'item_template': (str, None, 'opt')
         })
+        if 'order' in self.args:
+            args['order'] = self.get_arg('order', Expect.opt(Expect.str))
         if 'value_unit' in self.args:
             args['value_unit'] = self.get_arg('value_unit', Expect.opt(Expect.str))
         await lst.edit(**args)

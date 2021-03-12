@@ -26,7 +26,8 @@ import micro
 from micro import (Activity, Application, AuthRequest, Collection, Editable, Location, Object,
                    Orderable, Trashable, Settings, Event, WithContent, error)
 from micro.core import RewriteFunc, context
-from micro.jsonredis import JSONRedis, RedisList, RedisSortedSet, script
+from micro.jsonredis import (JSONRedis, LexicalRedisSortedSet, RedisList, RedisSequence,
+                             RedisSortedSet, lexical_value, script)
 from micro.resource import Resource
 from micro.util import expect_type, parse_isotime, randstr, str_or_none
 
@@ -148,7 +149,7 @@ class Listling(Application):
             now = self.app.now().timestamp()
             lst = List(
                 id=id, app=self.app, authors=[user.id], title=data['title'], description=None,
-                value_unit=data.get('value_unit'), features=data['features'],
+                order=None, value_unit=data.get('value_unit'), features=data['features'],
                 mode=data.get('mode', 'collaborate'), item_template=None,
                 activity=Activity('{}.activity'.format(id), self.app, subscriber_ids=[]))
             self.app.r.oset(lst.id, lst)
@@ -236,6 +237,16 @@ class Listling(Application):
             if not r.zcard(owners_key):
                 r.zadd(owners_key, {cast(typing.List[str], lst['authors'])[0]: 0})
                 list_rel_updates.add(lst['id'])
+
+            # Deprecated since 0.41.0
+            if 'order' not in lst:
+                lst['order'] = None
+                items = r.omget(r.lrange(f"{lst['id']}.items", 0, -1), default=AssertionError)
+                for item in items:
+                    id_by_title = lexical_value(cast(str, item['id']), cast(str, item['title']))
+                    r.zadd(f"{lst['id']}.items.by_title", {id_by_title: 0})
+                    r.hset(f"{lst['id']}.items.by_title.lexical", item['id'], id_by_title)
+                list_updates[cast(str, lst['id'])] = lst
         r.omset(list_updates)
 
         items = r.omget(r.smembers('items'), default=AssertionError)
@@ -337,13 +348,13 @@ class List(Object, Editable):
         'view':        {'user': set()}
     }
 
-    class Items(Collection, Orderable):
+    class Items(Collection['Item'], Orderable):
         """See :ref:`Items`."""
 
         app: Listling
 
-        def __init__(self, lst: List) -> None:
-            super().__init__(RedisList(f'{lst.id}.items', lst.app.r.r), app=lst.app)
+        def __init__(self, lst: List, ids: RedisSequence) -> None:
+            super().__init__(ids, app=lst.app)
             self.lst = lst
 
         async def create(self, title: str, *, text: str = None, resource: str = None,
@@ -364,20 +375,26 @@ class List(Object, Editable):
                 value=value, time=time.isoformat() if time else None,
                 location=location.json() if location else None, checked=False)
             f = script(self.app.r.r, """
-                local item_data = ARGV[1]
+                local item_data, id_by_title = unpack(ARGV)
                 local item = cjson.decode(item_data)
                 redis.call("SET", item.id, item_data)
                 redis.call("SADD", "items", item.id)
                 redis.call("RPUSH", item.list_id .. ".items", item.id)
+                redis.call("ZADD", item.list_id .. ".items.by_title", 0, id_by_title)
+                redis.call("HSET", item.list_id .. ".items.by_title.lexical", item.id, id_by_title)
             """)
-            f([], [json.dumps(item.json())])
+            f([], [json.dumps(item.json()), lexical_value(item.id, item.title)])
             self.lst.activity.publish(
                 Event.create('list-create-item', self.lst, {'item': item}, self.app))
             return item
 
-        def move(self, item: Object, to: Optional[Object]) -> None:
+        def move(self, item: Object, to: Object | None) -> None:
+            if not isinstance(self.ids, RedisList):
+                items = List.Items(self.lst, RedisList(f'{self.lst.id}.items', self.app.r.r))
+                items.move(item, to)
+                return
             # pylint: disable=protected-access; List is a friend
-            self.lst._check_permission(self.app.user, 'list-modify')
+            self.lst._check_permission(context.user.get(), 'list-modify')
             super().move(item, to)
 
     class _ListOwners(Owners):
@@ -389,15 +406,24 @@ class List(Object, Editable):
         Editable.__init__(self, authors=cast(typing.List[str], data['authors']), activity=activity)
         self.title = cast(str, data['title'])
         self.description = cast(Optional[str], data['description'])
+        self.order = cast('str | None', data['order'])
         self.value_unit = cast(Optional[str], data['value_unit'])
         self.features = cast(typing.List[str], data['features'])
         self.mode = cast(str, data['mode'])
         self.owners = List._ListOwners(self)
         self.item_template = cast(Optional[str], data['item_template'])
-        self.items = List.Items(self)
         self.activity = activity
         self.activity.post = self._on_activity_publish
         self.activity.host = self
+
+    @property
+    def items(self) -> List.Items:
+        # pylint: disable=missing-function-docstring; already documented
+        ids = (
+            RedisList(f'{self.id}.items', self.app.r.r) if self.order is None
+            else LexicalRedisSortedSet(
+                f'{self.id}.items.by_title', f'{self.id}.items.by_title.lexical', self.app.r.r))
+        return List.Items(self, ids)
 
     def users(self, name=''):
         """See :http:get:`/api/lists/(id)/users?name=`."""
@@ -421,9 +447,11 @@ class List(Object, Editable):
         return [User(app=self.app, **json.loads(user.decode())) for user in users]
 
     def do_edit(self, **attrs: Any) -> None:
-        self._check_permission(self.app.user, 'list-modify')
+        self._check_permission(context.user.get(), 'list-modify')
         if 'title' in attrs and str_or_none(attrs['title']) is None:
             raise error.ValueError('title_empty')
+        if 'order' in attrs and attrs['order'] not in {None, 'title'}:
+            raise error.ValueError(f"Unknown order {attrs['order']}")
         features = {'check', 'assign', 'vote', 'value', 'time', 'location', 'play'}
         if 'features' in attrs and not set(attrs['features']) <= features:
             raise error.ValueError('feature_unknown')
@@ -434,6 +462,8 @@ class List(Object, Editable):
             self.title = attrs['title']
         if 'description' in attrs:
             self.description = str_or_none(attrs['description'])
+        if 'order' in attrs:
+            self.order = attrs['order']
         if 'value_unit' in attrs:
             self.value_unit = str_or_none(attrs['value_unit'])
         if 'features' in attrs:
@@ -449,6 +479,7 @@ class List(Object, Editable):
             **Editable.json(self, restricted=restricted, include=include, rewrite=rewrite),
             'title': self.title,
             'description': self.description,
+            'order': self.order,
             'value_unit': self.value_unit,
             'features': self.features,
             'mode': self.mode,
@@ -576,7 +607,7 @@ class Item(Object, Editable, Trashable, WithContent):
 
     @property
     def list(self):
-        # pylint: disable=missing-docstring; already documented
+        # pylint: disable=missing-function-docstring; already documented
         return self.app.lists[self._list_id]
 
     def __eq__(self, other: object) -> bool:
@@ -592,6 +623,11 @@ class Item(Object, Editable, Trashable, WithContent):
             redis.call("DEL", id, id .. ".assignees", id .. ".votes")
             redis.call("SREM", "items", id)
             redis.call("LREM", item.list_id .. ".items", 1, id)
+            local lexical_key = item.list_id .. ".items.by_title.lexical"
+            redis.call(
+                "ZREM", item.list_id .. ".items.by_title", redis.call("HGET", lexical_key, id)
+            )
+            redis.call("HDEL", lexical_key, id)
         """)
         f([self.id])
 
@@ -620,6 +656,16 @@ class Item(Object, Editable, Trashable, WithContent):
         WithContent.do_edit(self, **attrs)
         if 'title' in attrs:
             self.title = attrs['title']
+            f = script(self.app.r.r, """
+                local id, id_by_title = unpack(KEYS), unpack(ARGV)
+                local object = cjson.decode(redis.call("GET", id))
+                local items_key = object.list_id .. ".items.by_title"
+                local lexical_key = items_key .. ".lexical"
+                redis.call("ZREM", items_key, redis.call("HGET", lexical_key, id))
+                redis.call("ZADD", items_key, 0, id_by_title)
+                redis.call("HSET", lexical_key, id, id_by_title)
+            """)
+            f([self.id], [lexical_value(self.id, self.title)])
         if 'value' in attrs:
             self.value = attrs['value']
         if 'time' in attrs:

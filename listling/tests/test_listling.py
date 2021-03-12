@@ -21,7 +21,6 @@ from typing import Tuple
 
 from micro import User, error
 from micro.core import context
-from micro.util import ON
 from tornado.testing import AsyncTestCase, gen_test
 
 from listling import Item, Listling
@@ -128,21 +127,42 @@ class ListTest(ListlingTestCase):
         self.assertEqual([user.id for user in users], [grumpy.id, self.user.id])
 
 class ListItemsTest(ListlingTestCase):
+    def setUp(self) -> None:
+        super().setUp()
+        self.list = self.app.lists.create()
+        asyncio.run(self.list.items.create('Sleep'))
+        asyncio.run(self.list.items.create('Cuddle'))
+        asyncio.run(self.list.items.create('Stroll'))
+
     @gen_test
     async def test_create(self) -> None:
-        lst = self.app.lists.create()
-        item = await lst.items.create('Sleep', value=42,
-                                      time=datetime(2015, 8, 27, 0, 42, tzinfo=timezone.utc))
+        items = self.list.items[:]
+        item = await self.list.items.create('Feast', value=42,
+                                            time=datetime(2015, 8, 27, 0, 42, tzinfo=timezone.utc))
+        self.assertEqual(item.title, 'Feast')
         self.assertEqual(item.value, 42)
         self.assertEqual(item.time, datetime(2015, 8, 27, 0, 42, tzinfo=timezone.utc))
         self.assertEqual(self.app.items[item.id], item)
-        self.assertEqual(lst.items[:], [item])
+        self.assertEqual(self.list.items[:], [*items, item])
+        await self.list.edit(order='title')
+        self.assertEqual(self.list.items[:], [items[1], item, items[0], items[2]])
+
+    @gen_test
+    async def test_move(self) -> None:
+        items = self.list.items[:]
+        await self.list.edit(order='title')
+        self.list.items.move(items[1], items[2])
+        self.assertEqual(self.list.items[:], [items[1], items[0], items[2]])
+        await self.list.edit(order=None)
+        self.assertEqual(self.list.items[:], [items[0], items[2], items[1]])
 
 class ItemTest(ListlingTestCase):
     def setUp(self) -> None:
         super().setUp()
         self.list = self.app.lists.create()
-        self.item = asyncio.run(self.list.items.create('Sleep'))
+        asyncio.run(self.list.items.create('Sleep'))
+        asyncio.run(self.list.items.create('Feast'))
+        self.item = asyncio.run(self.list.items.create('Cuddle'))
 
     async def make_item(self, *, use_case: str = 'simple', mode: str = None) -> Item:
         lst = self.app.lists.create(use_case)
@@ -152,14 +172,20 @@ class ItemTest(ListlingTestCase):
 
     @gen_test
     async def test_edit(self) -> None:
-        item = await self.make_item()
-        await item.edit(text='Very important!', value=42, time=date(2015, 8, 27), asynchronous=ON)
-        self.assertEqual(item.text, 'Very important!')
-        self.assertEqual(item.value, 42)
-        self.assertEqual(item.time, date(2015, 8, 27))
+        items = self.list.items[:]
+        await self.item.edit(title='Hug', text='Meow!', value=42, time=date(2015, 8, 27))
+        self.assertEqual(self.item.title, 'Hug')
+        self.assertEqual(self.item.text, 'Meow!')
+        self.assertEqual(self.item.value, 42)
+        self.assertEqual(self.item.time, date(2015, 8, 27))
+        self.assertEqual(self.list.items[:], items)
+        await self.list.edit(order='title')
+        self.assertEqual(self.list.items[:], [items[1], self.item, items[0]])
 
     @gen_test
     async def test_delete(self) -> None:
+        self.app.r.caching = False
+        items = self.list.items[:]
         await self.list.edit(features=['assign', 'vote'])
         self.item.assignees.assign(self.user)
         self.item.votes.vote()
@@ -169,7 +195,9 @@ class ItemTest(ListlingTestCase):
             self.app.items[self.item.id]
         self.assertFalse(self.item.assignees)
         self.assertFalse(self.item.votes)
-        self.assertFalse(self.list.items)
+        self.assertEqual(self.list.items[:], items[:2])
+        await self.list.edit(order='title')
+        self.assertEqual(self.list.items[:], [items[1], items[0]])
 
     @gen_test
     async def test_check(self):
