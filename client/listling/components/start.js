@@ -46,7 +46,7 @@ listling.components.start.getUseCases = function() {
 };
 
 /** Start page. */
-listling.components.start.StartPage = class extends micro.Page {
+listling.components.start.StartPage = class extends micro.core.Page {
     static async make() {
         const lists = new micro.Collection(`/api/users/${ui.user.id}/lists`);
         await lists.fetch(10);

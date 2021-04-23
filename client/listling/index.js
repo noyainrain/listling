@@ -55,7 +55,7 @@ listling.UI = class extends micro.UI {
 /**
  * Intro page.
  */
-listling.IntroPage = class extends micro.Page {
+listling.IntroPage = class extends micro.core.Page {
     createdCallback() {
         super.createdCallback();
         const useCases = listling.components.start.getUseCases();
@@ -120,7 +120,7 @@ listling.IntroPage = class extends micro.Page {
  *
  *    List :ref:`Activity` stream.
  */
-listling.ListPage = class extends micro.Page {
+listling.ListPage = class extends micro.core.Page {
     static async make(url, id) {
         let page = document.createElement("listling-list-page");
         page.list = await ui.call("GET", `/api/lists/List:${id}`);
@@ -604,7 +604,7 @@ listling.ItemElement = class extends HTMLLIElement {
             assign: () => {
                 const dialog = document.createElement("listling-assign-dialog");
                 dialog.itemElement = this;
-                ui.notify(dialog);
+                ui.dialog = dialog;
             },
 
             voteUnvote: async() => {

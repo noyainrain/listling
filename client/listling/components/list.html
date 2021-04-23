@@ -1,116 +1,76 @@
 <template id="listling-share-dialog-template">
-    <div class="micro-ui-inside" data-shortcut-context="new ShortcutContext">
-        <header class="micro-heading micro-panel">
-            <h1>Share list</h1>
-            <button
-                is="micro-button" type="button" class="link" data-run="close"
-                data-shortcut="new Shortcut 'Escape' 'Close'"
-            >
-                <i class="fa fa-times-circle"></i>
-            </button>
-        </header>
-        <p>Simply pass along this link to share the list with others:</p>
-        <input type="url" readonly="readonly" data-value="url" data-onfocus="onFocus" />
-    </div>
+    <header class="micro-heading micro-panel">
+        <h1>Share list</h1>
+        <button
+            is="micro-button" type="button" class="link" data-run="close"
+            data-shortcut="new Shortcut 'Escape' 'Close'"
+        >
+            <i class="fa fa-times-circle"></i>
+        </button>
+    </header>
+    <p>Simply pass along this link to share the list with others:</p>
+    <input type="url" readonly="readonly" data-value="url" data-onfocus="onFocus" />
 </template>
-
 <style>
-    listling-share-dialog {
-        display: block;
-    }
-
     listling-share-dialog input:not([type=checkbox]) {
         border-top: 1px solid var(--micro-color-delimiter);
     }
 </style>
 
 <template class="listling-assign-dialog-template">
-    <div class="micro-ui-inside" data-shortcut-context="new ShortcutContext">
-        <header class="micro-heading micro-panel">
-            <h1>Assign to item</h1>
-            <button
-                is="micro-button" type="button" class="listling-assign-close link" data-run="close"
-                data-shortcut="new Shortcut 'Escape' 'Close'"
-            >
-                <i class="fa fa-times-circle"></i>
-            </button>
-        </header>
+    <header class="micro-heading micro-panel">
+        <h1>Assign to item</h1>
+        <button
+            is="micro-button" type="button" class="listling-assign-close link" data-run="close"
+            data-shortcut="new Shortcut 'Escape' 'Close'"
+        >
+            <i class="fa fa-times-circle"></i>
+        </button>
+    </header>
 
-        <div class="micro-entity-list">
-            <ul
-                class="listling-assign-assignees"
-                data-content="list itemElement.assignees 'assignee'"
-            >
-                <template>
-                    <li
-                        class="micro-panel micro-quick-nav" tabindex="0"
-                        data-shortcut-context="new ShortcutContext"
+    <div class="micro-entity-list">
+        <ul class="listling-assign-assignees" data-content="list itemElement.assignees 'assignee'">
+            <template>
+                <li
+                    class="micro-panel micro-quick-nav" tabindex="0"
+                    data-shortcut-context="new ShortcutContext"
+                >
+                    <p class="micro-panel-main"><micro-user data-user="assignee"></micro-user></p>
+                    <button
+                        is="micro-button" type="button" class="listling-assign-remove action"
+                        data-run="bind remove assignee" data-shortcut="new Shortcut 'T'"
                     >
-                        <p class="micro-panel-main">
-                            <micro-user data-user="assignee"></micro-user>
-                        </p>
-                        <button
-                            is="micro-button" type="button" class="listling-assign-remove action"
-                            data-run="bind remove assignee" data-shortcut="new Shortcut 'T'"
-                        >
-                            <i class="fa fa-minus-circle"></i> Remove
-                        </button>
-                    </li>
-                </template>
-            </ul>
-            <ul>
-                <li>
-                    <form class="micro-panel">
-                        <div class="micro-panel-main">
-                            <input
-                                name="assignee" data-value-as-object="null" required="required"
-                                placeholder="User" title="⌨ A" data-onchange="onChange"
-                            />
-                            <micro-options
-                                data-options="queryUsers" data-delay="500" data-to-text="userToText"
-                                data-onselect="onSelect"
-                            >
-                                <template>
-                                    <p><micro-user data-user="option"></micro-user></p>
-                                </template>
-                            </micro-options>
-                        </div>
-                        <button
-                            is="micro-button" class="listling-assign-add action micro-highlight"
-                            title="⌨ Enter" data-run="add"
-                        >
-                            <i class="fa fa-plus-circle"></i> Add
-                        </button>
-                    </form>
+                        <i class="fa fa-minus-circle"></i> Remove
+                    </button>
                 </li>
-            </ul>
-        </div>
+            </template>
+        </ul>
+        <ul>
+            <li>
+                <form class="micro-panel">
+                    <div class="micro-panel-main">
+                        <input
+                            name="assignee" data-value-as-object="null" required="required"
+                            placeholder="User" data-onchange="onChange"
+                            data-shortcut="new Shortcut 'A'"
+                        />
+                        <micro-options
+                            data-options="queryUsers" data-delay="500" data-to-text="userToText"
+                            data-onselect="onSelect"
+                        >
+                            <template>
+                                <p><micro-user data-user="option"></micro-user></p>
+                            </template>
+                        </micro-options>
+                    </div>
+                    <button
+                        is="micro-button" class="listling-assign-add action micro-highlight"
+                        title="⌨ Enter" data-run="add"
+                    >
+                        <i class="fa fa-plus-circle"></i> Add
+                    </button>
+                </form>
+            </li>
+        </ul>
     </div>
 </template>
-
-<style>
-    listling-assign-dialog .micro-heading {
-        align-items: baseline;
-    }
-
-    listling-assign-dialog h1 {
-        font-size: 1rem;
-        font-weight: bold;
-    }
-
-    body.listling-ui-dialog::after {
-        content: '';
-        position: fixed;
-        z-index: 1;
-        left: 0;
-        right: 0;
-        top: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.66);
-    }
-
-    body.listling-ui-dialog main {
-        filter: blur(1px);
-        pointer-events: none;
-    }
-</style>

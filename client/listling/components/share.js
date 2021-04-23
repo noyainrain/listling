@@ -23,7 +23,7 @@ self.listling.components = self.listling.components || {};
 self.listling.components.share = {};
 
 /** Share page. */
-listling.components.share.SharePage = class extends micro.Page {
+listling.components.share.SharePage = class extends micro.core.Page {
     createdCallback() {
         super.createdCallback();
         this.caption = "Share to list";

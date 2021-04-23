@@ -45,12 +45,13 @@ listling.components.list.share = function(list) {
 
     const dialog = document.createElement("listling-share-dialog");
     dialog.list = list;
-    ui.notify(dialog);
+    ui.dialog = dialog;
 };
 
 /** Share dialog. */
-listling.components.list.ShareDialog = class extends HTMLElement {
+listling.components.list.ShareDialog = class extends micro.core.Dialog {
     createdCallback() {
+        super.createdCallback();
         this.appendChild(
             document.importNode(ui.querySelector("#listling-share-dialog-template").content, true)
         );
@@ -66,9 +67,7 @@ listling.components.list.ShareDialog = class extends HTMLElement {
                 event.target.select();
             },
 
-            close: () => {
-                this.remove();
-            }
+            close: () => this.result.when(null)
         });
         micro.bind.bind(this.children, this._data);
     }
@@ -85,8 +84,9 @@ listling.components.list.ShareDialog = class extends HTMLElement {
 document.registerElement("listling-share-dialog", listling.components.list.ShareDialog);
 
 /** Assign dialog. */
-listling.components.list.AssignDialog = class extends HTMLElement {
+listling.components.list.AssignDialog = class extends micro.core.Dialog {
     createdCallback() {
+        super.createdCallback();
         this.appendChild(
             document.importNode(ui.querySelector(".listling-assign-dialog-template").content, true)
         );
@@ -156,7 +156,7 @@ listling.components.list.AssignDialog = class extends HTMLElement {
                 });
             },
 
-            close: () => this.remove(),
+            close: () => this.result.when(null),
 
             onChange: () => {
                 if (this._input.valueAsObject) {
@@ -176,16 +176,10 @@ listling.components.list.AssignDialog = class extends HTMLElement {
         micro.bind.bind(this.children, this._data);
 
         this._input = this.querySelector("input");
-        this.querySelector("div").shortcutContext.add("A", () => this._input.focus());
     }
 
     attachedCallback() {
-        ui.classList.add("listling-ui-dialog");
         setTimeout(() => this._input.focus(), 0);
-    }
-
-    detachedCallback() {
-        ui.classList.remove("listling-ui-dialog");
     }
 
     get itemElement() {
