@@ -1,5 +1,5 @@
 parserOptions:
-    ecmaVersion: 2017
+    ecmaVersion: 2020
 env:
     browser: true
     es6: true
@@ -91,6 +91,8 @@ rules:
           ignoreUrls: true
     # Okay for i.e. default parameters, length checks, …
     no-magic-numbers: off
+    # Async signatures
+    no-return-await: off
     # Okay for private and special properties
     no-underscore-dangle:
         - error

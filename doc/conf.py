@@ -10,7 +10,7 @@ source_parsers = {'.md': 'recommonmark.parser.CommonMarkParser'}
 
 project = 'Open Listling'
 copyright = '2020 Open Listling contributors'
-version = release = '0.41.1'
+version = release = '0.41.2'
 
 html_theme_options = {
     'logo': 'listling.svg',

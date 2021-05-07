@@ -80,16 +80,12 @@ listling.IntroPage = class extends micro.core.Page {
                 }, 0);
             },
 
-            createExample: async useCase => {
-                try {
-                    const list = await ui.call(
-                        "POST", "/api/lists/create-example", {use_case: useCase.id}
-                    );
-                    ui.navigate(`/lists/${list.id.split(":")[1]}`).catch(micro.util.catch);
-                } catch (e) {
-                    ui.handleCallError(e);
-                }
-            }
+            createExample: micro.core.action(async useCase => {
+                const list = await ui.call(
+                    "POST", "/api/lists/create-example", {use_case: useCase.id}
+                );
+                ui.navigate(`/lists/${list.id.split(":")[1]}`).catch(micro.util.catch);
+            })
         });
         micro.bind.bind(this.children, this._data);
     }
@@ -145,7 +141,6 @@ listling.ListPage = class extends micro.core.Page {
             editMode: true,
             trashExpanded: false,
             creatingItem: false,
-            startCreateItem: this.startCreateItem.bind(this),
             settingsExpanded: false,
             share: listling.components.list.share,
             quickNavigate: micro.keyboard.quickNavigate,
@@ -158,17 +153,21 @@ listling.ListPage = class extends micro.core.Page {
             toggleTrash: () => {
                 this._data.trashExpanded = !this._data.trashExpanded;
             },
+
+            startCreateItem: micro.core.action(() => this.startCreateItem()),
+
             stopCreateItem: () => {
                 this._data.creatingItem = false;
             },
+
             toggleSettings: () => {
                 this._data.settingsExpanded = !this._data.settingsExpanded;
             },
 
-            startEdit: () => {
+            startEdit: micro.core.action(() => {
                 this._data.editMode = true;
                 this._form.elements.title.focus();
-            },
+            }),
 
             edit: async() => {
                 try {
@@ -298,17 +297,12 @@ listling.ListPage = class extends micro.core.Page {
         ui.shortcutContext.add("C", this._data.toggleSettings);
         ui.addEventListener("list-items-move", this);
 
-        this.ready.when((async() => {
+        this.ready.when(micro.core.request(async() => {
             const setUpItems = async() => {
                 const items = await ui.call("GET", `/api/lists/${this._data.lst.id}/items`);
                 this._items = new micro.bind.Watchable(items);
             };
-            try {
-                await Promise.all([this._data.owners.fetch(), setUpItems()]);
-            } catch (e) {
-                ui.handleCallError(e);
-                return;
-            }
+            await Promise.all([this._data.owners.fetch(), setUpItems()]);
 
             this.activity =
                 await micro.Activity.open(`/api/lists/${this._data.lst.id}/activity/stream`);
@@ -379,15 +373,21 @@ listling.ListPage = class extends micro.core.Page {
         })().catch(micro.util.catch));
 
         // Add list to lists of user
-        (async() => {
-            try {
-                await ui.call(
-                    "POST", `/api/users/${ui.user.id}/lists`, {list_id: this._data.lst.id}
-                );
-            } catch (e) {
-                ui.handleCallError(e);
-            }
-        })().catch(micro.util.catch);
+        if (ui.user) {
+            (async() => {
+                try {
+                    await ui.call(
+                        "POST", `/api/users/${ui.user.id}/lists`, {list_id: this._data.lst.id}
+                    );
+                } catch (e) {
+                    if (e instanceof micro.NetworkError) {
+                        // Ignore
+                        return;
+                    }
+                    throw e;
+                }
+            })().catch(micro.util.catch);
+        }
     }
 
     detachedCallback() {
@@ -457,15 +457,13 @@ listling.ListPage = class extends micro.core.Page {
     }
 
     async _moveItem(item, to) {
-        ui.dispatchEvent(new CustomEvent("list-items-move", {detail: {item, to}}));
-        try {
-            await ui.call("POST", `/api/lists/${this._data.lst.id}/items/move`, {
-                item_id: item.id,
-                to_id: to && to.id
-            });
-        } catch (e) {
-            ui.handleCallError(e);
-        }
+        return await micro.core.action(async() => {
+            ui.dispatchEvent(new CustomEvent("list-items-move", {detail: {item, to}}));
+            await ui.call(
+                "POST", `/api/lists/${this._data.lst.id}/items/move`,
+                {item_id: item.id, to_id: to?.id ?? null}
+            );
+        })();
     }
 
     _bufferEvent(event) {
@@ -502,13 +500,14 @@ listling.ItemElement = class extends HTMLLIElement {
             votesMeta: null,
             expanded: false,
             editMode: false,
-            startEdit: this.startEdit.bind(this),
             isCheckDisabled:
                 (ctx, trashed, mode) => trashed || !this._data.may(ctx, "item-modify", mode),
             makeItemURL: listling.util.makeItemURL,
             playable: null,
             playablePlaying: null,
             playablePlayPause: null,
+
+            startEdit: micro.core.action(() => this.startEdit()),
 
             edit: async() => {
                 const input = this.querySelector("micro-content-input");
@@ -573,65 +572,45 @@ listling.ItemElement = class extends HTMLLIElement {
                 }
             },
 
-            trash: async() => {
-                try {
-                    const item = await ui.call("POST", `/api/items/${this._data.item.id}/trash`);
-                    this._activity.events.dispatchEvent({type: "trashable-trash", object: item});
-                } catch (e) {
-                    ui.handleCallError(e);
-                }
-            },
+            trash: micro.core.action(async() => {
+                const item = await ui.call("POST", `/api/items/${this._data.item.id}/trash`);
+                this._activity.events.dispatchEvent({type: "trashable-trash", object: item});
+            }),
 
-            restore: async() => {
-                try {
-                    const item = await ui.call("POST", `/api/items/${this._data.item.id}/restore`);
-                    this._activity.events.dispatchEvent({type: "trashable-restore", object: item});
-                } catch (e) {
-                    ui.handleCallError(e);
-                }
-            },
+            restore: micro.core.action(async() => {
+                const item = await ui.call("POST", `/api/items/${this._data.item.id}/restore`);
+                this._activity.events.dispatchEvent({type: "trashable-restore", object: item});
+            }),
 
-            checkUncheck: async() => {
+            checkUncheck: micro.core.action(async() => {
                 const op = this._data.item.checked ? "uncheck" : "check";
-                try {
-                    const item = await ui.call("POST", `/api/items/${this._data.item.id}/${op}`);
-                    this._activity.events.dispatchEvent({type: `item-${op}`, object: item});
-                } catch (e) {
-                    ui.handleCallError(e);
-                }
-            },
+                const item = await ui.call("POST", `/api/items/${this._data.item.id}/${op}`);
+                this._activity.events.dispatchEvent({type: `item-${op}`, object: item});
+            }),
 
-            assign: () => {
+            assign: micro.core.action(() => {
                 const dialog = document.createElement("listling-assign-dialog");
                 dialog.itemElement = this;
                 ui.dialog = dialog;
-            },
+            }),
 
-            voteUnvote: async() => {
-                try {
-                    if (this._data.votesMeta.user_voted) {
-                        const item = Object.assign(
-                            {}, this._data.item,
-                            {votes: {count: this._data.votesMeta.count - 1, user_voted: false}}
-                        );
-                        await ui.call("DELETE", `${this._data.votes.url}/user`);
-                        this._activity.events.dispatchEvent(
-                            {type: "item-votes-unvote", object: item}
-                        );
-                    } else {
-                        const item = Object.assign(
-                            {}, this._data.item,
-                            {votes: {count: this._data.votesMeta.count + 1, user_voted: true}}
-                        );
-                        await ui.call("POST", this._data.votes.url);
-                        this._activity.events.dispatchEvent(
-                            {type: "item-votes-vote", object: item}
-                        );
-                    }
-                } catch (e) {
-                    ui.handleCallError(e);
+            voteUnvote: micro.core.action(async() => {
+                if (this._data.votesMeta.user_voted) {
+                    const item = Object.assign(
+                        {}, this._data.item,
+                        {votes: {count: this._data.votesMeta.count - 1, user_voted: false}}
+                    );
+                    await ui.call("DELETE", `${this._data.votes.url}/user`);
+                    this._activity.events.dispatchEvent({type: "item-votes-unvote", object: item});
+                } else {
+                    const item = Object.assign(
+                        {}, this._data.item,
+                        {votes: {count: this._data.votesMeta.count + 1, user_voted: true}}
+                    );
+                    await ui.call("POST", this._data.votes.url);
+                    this._activity.events.dispatchEvent({type: "item-votes-vote", object: item});
                 }
-            },
+            }),
 
             onVotesActivate: () => {
                 if (this._data.votes.count === null) {

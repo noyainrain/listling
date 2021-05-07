@@ -40,8 +40,8 @@ listling.components.share.SharePage = class extends micro.core.Page {
             )
         );
         this._data = new micro.bind.Watchable({
-            lists: new micro.Collection(`/api/users/${ui.user.id}/lists`),
-            listsComplete: false,
+            lists: null,
+            listsComplete: true,
 
             onClick: async list => {
                 const match =
@@ -62,11 +62,14 @@ listling.components.share.SharePage = class extends micro.core.Page {
                 }
             }
         });
+        if (ui.user) {
+            this._data.lists = new micro.Collection(`/api/users/${ui.user.id}/lists`);
+            this._data.lists.events.addEventListener("fetch", () => {
+                this._data.listsComplete = this._data.lists.complete;
+            });
+            this._data.listsComplete = false;
+        }
         micro.bind.bind(this.children, this._data);
-
-        this._data.lists.events.addEventListener("fetch", () => {
-            this._data.listsComplete = this._data.lists.complete;
-        });
     }
 
     attachedCallback() {
@@ -77,7 +80,9 @@ listling.components.share.SharePage = class extends micro.core.Page {
             }
         };
         navigator.serviceWorker.addEventListener("message", this._onMessage);
-        this.querySelector(".link").click();
+        if (this._data.lists) {
+            this.querySelector(".link").click();
+        }
     }
 
     detachedCallback() {

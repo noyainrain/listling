@@ -22,15 +22,11 @@ self.listling = self.listling || {};
 listling.components = listling.components || {};
 listling.components.start = {};
 
-/** Create a :ref:`List` for the given *useCase* and open it. */
-listling.components.start.createList = async function(useCase) {
-    try {
-        const list = await ui.call("POST", "/api/lists", {use_case: useCase, v: 2});
-        ui.navigate(`/lists/${list.id.split(":")[1]}`).catch(micro.util.catch);
-    } catch (e) {
-        ui.handleCallError(e);
-    }
-};
+/** :func:`micro.core.action` to create a :ref:`List` for the given *useCase* and open it. */
+listling.components.start.createList = micro.core.action(async useCase => {
+    const list = await ui.call("POST", "/api/lists", {use_case: useCase});
+    ui.navigate(`/lists/${list.id.split(":")[1]}`).catch(micro.util.catch);
+});
 
 /** Return available list use cases. */
 listling.components.start.getUseCases = function() {
@@ -48,9 +44,12 @@ listling.components.start.getUseCases = function() {
 /** Start page. */
 listling.components.start.StartPage = class extends micro.core.Page {
     static async make() {
-        const lists = new micro.Collection(`/api/users/${ui.user.id}/lists`);
-        await lists.fetch(10);
-        if (lists.count === 0) {
+        let lists = null;
+        if (ui.user) {
+            lists = new micro.Collection(`/api/users/${ui.user.id}/lists`);
+            await lists.fetch(10);
+        }
+        if (!lists?.count) {
             return document.createElement("listling-intro-page");
         }
         const page = document.createElement("listling-start-page");
