@@ -1,5 +1,5 @@
 # Open Listling
-# Copyright (C) 2020 Open Listling contributors
+# Copyright (C) 2021 Open Listling contributors
 #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
 # Affero General Public License as published by the Free Software Foundation, either version 3 of
@@ -105,19 +105,13 @@ class UpdateTest(AsyncTestCase):
 
     @gen_test
     async def test_update_db_version_first(self) -> None:
-        self.setup_db('0.32.1')
+        self.setup_db('0.38.0')
         app = Listling(redis_url='15', files_path=mkdtemp())
         app.update()
 
-        # Item.value
+        # Items
         lst = app.lists[0]
         items = lst.items[:]
-        self.assertIsNone(items[0].value)
-        # List.value_unit
-        self.assertIsNone(lst.value_unit)
-        # List.owners
-        self.assertEqual(list(lst.owners), [lst.authors[0]])
-        # Items
         self.assertEqual({id.decode() for id in app.r.smembers('items')},
                          {item.id for item in items})
         # Item deletion

@@ -1,5 +1,5 @@
 # Open Listling
-# Copyright (C) 2020 Open Listling contributors
+# Copyright (C) 2021 Open Listling contributors
 #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
 # Affero General Public License as published by the Free Software Foundation, either version 3 of
@@ -151,7 +151,7 @@ class Listling(Application):
                 id=id, app=self.app, authors=[user.id], title=data['title'], description=None,
                 order=None, value_unit=data.get('value_unit'), features=data['features'],
                 mode=data.get('mode', 'collaborate'), item_template=None,
-                activity=Activity('{}.activity'.format(id), self.app, subscriber_ids=[]))
+                activity=Activity(id=f'{id}.activity', subscriber_ids=[], app=self.app))
             self.app.r.oset(lst.id, lst)
             self.app.r.zadd(f'{lst.id}.owners', {user.id.encode(): -now})
             self.app.r.zadd(f'{lst.id}.users', {user.id.encode(): -now})
@@ -212,7 +212,6 @@ class Listling(Application):
         r.caching = False
 
         list_updates = {}
-        list_rel_updates = set()
         items_updates = 0
         item_updates = {}
         item_rel_updates = set()
@@ -227,17 +226,6 @@ class Listling(Application):
 
         lists = r.omget(r.lrange('lists', 0, -1), default=AssertionError)
         for lst in lists:
-            # Deprecated since 0.35.0
-            if 'value_unit' not in lst:
-                lst['value_unit'] = None
-                list_updates[cast(str, lst['id'])] = lst
-
-            # Deprecated since 0.36.0
-            owners_key = f"{lst['id']}.owners"
-            if not r.zcard(owners_key):
-                r.zadd(owners_key, {cast(typing.List[str], lst['authors'])[0]: 0})
-                list_rel_updates.add(lst['id'])
-
             # Deprecated since 0.41.0
             if 'order' not in lst:
                 lst['order'] = None
@@ -251,11 +239,6 @@ class Listling(Application):
 
         items = r.omget(r.smembers('items'), default=AssertionError)
         for item in items:
-            # Deprecated since 0.33.0
-            if 'value' not in item:
-                item['value'] = None
-                item_updates[cast(str, item['id'])] = item
-
             # Deprecated since 0.40.0
             if 'time' not in item:
                 item['time'] = None
@@ -270,7 +253,7 @@ class Listling(Application):
             item_rel_updates.add(id)
 
         return {
-            'List': len(set(list_updates) | list_rel_updates),
+            'List': len(list_updates),
             'Items': items_updates,
             'Item': len(set(item_updates) | item_rel_updates)
         }
