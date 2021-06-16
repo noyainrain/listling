@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>2. Web API &#8212; Open Listling 0.41.3 documentation</title>
+    <title>2. Web API &#8212; Open Listling 0.42.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -74,34 +74,35 @@ language tag.</p>
 </div>
 <div class="section" id="usage-examples">
 <h2><span class="section-number">2.4. </span>Usage examples<a class="headerlink" href="#usage-examples" title="Permalink to this headline">¶</a></h2>
-<p>A new <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> is created and logged in with the following request:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ curl -d &quot;&quot; https://example.org/api/login
+<p>A new <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> is created and signed in with the following request:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ curl -d &quot;&quot; https://example.org/api/devices
 {
-    &quot;__type__&quot;: &quot;User&quot;,
-    &quot;id&quot;: &quot;abcd&quot;,
-    &quot;auth_secret&quot;: &quot;wxyz&quot;,
+    &quot;__type__&quot;: &quot;Device&quot;,
+    &quot;id&quot;: &quot;Device:abc&quot;,
+    &quot;auth_secret&quot;: &quot;xyz&quot;,
+    &quot;user_id&quot;: &quot;User:def&quot;,
     ...
 }
 </pre></div>
 </div>
 <p>To authenticate further API calls, the returned <em>auth_secret</em> is set as cookie.</p>
 <p>Setting a user’s <em>email</em> address requires multiple steps. First:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ curl -b &quot;auth_secret=wxyz&quot; -d &#39;{&quot;email&quot;: &quot;happy@example.org&quot;}&#39; \
-       https://example.org/api/users/abcd/set-email
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ curl -b &quot;auth_secret=xyz&quot; -d &#39;{&quot;email&quot;: &quot;happy@example.org&quot;}&#39; \
+       https://example.org/api/users/User:def/set-email
 {
     &quot;__type__&quot;: &quot;AuthRequest&quot;,
-    &quot;id&quot;: &quot;efgh&quot;
+    &quot;id&quot;: &quot;AuthRequest:ghi&quot;
 }
 </pre></div>
 </div>
 <p>This triggers a third party authentication via the email provider (as layed out in
-<a class="reference internal" href="#authrequest"><span class="std std-ref">AuthRequest</span></a>). The resulting authentication code (here <code class="docutils literal notranslate"><span class="pre">stuv</span></code>) is then verified to finish
+<a class="reference internal" href="#authrequest"><span class="std std-ref">AuthRequest</span></a>). The resulting authentication code (here <code class="docutils literal notranslate"><span class="pre">uvw</span></code>) is then verified to finish
 setting the email address:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ curl -b &quot;auth_secret=wxyz&quot; -d &#39;{&quot;auth_request_id&quot;: &quot;efgh&quot;, &quot;auth&quot;: &quot;stuv&quot;}&#39; \
-       https://example.org/api/users/abcd/finish-set-email
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ curl -b &quot;auth_secret=xyz&quot; -d &#39;{&quot;auth_request_id&quot;: &quot;AuthRequest:ghi&quot;, &quot;auth&quot;: &quot;uvw&quot;}&#39; \
+       https://example.org/api/users/User:def/finish-set-email
 {
     &quot;__type__&quot;: &quot;User&quot;,
-    &quot;id&quot;: &quot;abcd&quot;,
+    &quot;id&quot;: &quot;User:def&quot;,
     &quot;email&quot;: &quot;happy@example.org&quot;,
     ...
 }
@@ -592,29 +593,6 @@ the items from index 10 up to including 19.</p>
 <dd><p>Global <a class="reference internal" href="#activity"><span class="std std-ref">Activity</span></a> feed.</p>
 </dd></dl>
 
-<dl class="get">
-<dt id="get--api-activity-v2">
-<code class="sig-name descname">GET </code><code class="sig-name descname">/api/activity/v2</code><a class="headerlink" href="#get--api-activity-v2" title="Permalink to this definition">¶</a></dt>
-<dd><p>Global <a class="reference internal" href="#activity"><span class="std std-ref">Activity</span></a> feed.</p>
-<div class="deprecated">
-<p><span class="versionmodified deprecated">Deprecated since version 0.57.0: </span>Use <a class="reference internal" href="#get--api-activity" title="GET /api/activity"><code class="xref http http-get docutils literal notranslate"><span class="pre">GET</span> <span class="pre">/api/activity</span></code></a> instead.</p>
-</div>
-</dd></dl>
-
-<dl class="post">
-<dt id="post--api-login">
-<code class="sig-name descname">POST </code><code class="sig-name descname">/api/login</code><a class="headerlink" href="#post--api-login" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="docutils literal notranslate"><span class="pre">{&quot;code&quot;:</span> <span class="pre">null}</span></code></p>
-<p>Log in an <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> (device) and return them.</p>
-<p>If <em>code</em> is given, log in an existing user with the login <em>code</em>. If the login fails, a
-<code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> (<code class="docutils literal notranslate"><span class="pre">code_invalid</span></code>) is returned.</p>
-<p>If <em>code</em> is <code class="docutils literal notranslate"><span class="pre">null</span></code>, create and log in a new user. The very first user who logs in is
-registered as staff member.</p>
-<div class="deprecated">
-<p><span class="versionmodified deprecated">Deprecated since version 0.58.0.</span></p>
-</div>
-</dd></dl>
-
 </div>
 <div class="section" id="user">
 <span id="id27"></span><h2><span class="section-number">2.18. </span>User<a class="headerlink" href="#user" title="Permalink to this headline">¶</a></h2>
@@ -646,15 +624,6 @@ registered as staff member.</p>
 
 <dl class="describe">
 <dt>
-<code class="sig-name descname">auth_secret</code></dt>
-<dd><p>Secret for authentication. Visible only to the user oneself.</p>
-<div class="deprecated">
-<p><span class="versionmodified deprecated">Deprecated since version 0.58.0: </span>Use <a class="reference internal" href="#device"><span class="std std-ref">Device</span></a> <em>auth_secret</em> instead.</p>
-</div>
-</dd></dl>
-
-<dl class="describe">
-<dt>
 <code class="sig-name descname">create_time</code></dt>
 <dd><p>Time the user account was created. Visible only to the user oneself.</p>
 </dd></dl>
@@ -663,29 +632,6 @@ registered as staff member.</p>
 <dt>
 <code class="sig-name descname">authenticate_time</code></dt>
 <dd><p>Time the user last authenticated. Visible only to the user oneself.</p>
-</dd></dl>
-
-<dl class="describe">
-<dt>
-<code class="sig-name descname">device_notification_status</code></dt>
-<dd><p>Device notification status:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">on</span></code>: Notifications are enabled</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">off</span></code>: Notifications are disabled</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">off.expired</span></code>: Notifications are disabled because <em>push_subscription</em> expired</p></li>
-</ul>
-<div class="deprecated">
-<p><span class="versionmodified deprecated">Deprecated since version 0.58.0: </span>Use <a class="reference internal" href="#device"><span class="std std-ref">Device</span></a> <em>notification_status</em> instead.</p>
-</div>
-</dd></dl>
-
-<dl class="describe">
-<dt>
-<code class="sig-name descname">push_subscription</code></dt>
-<dd><p>Push subscription token used for sending device notifications. May be <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
-<div class="deprecated">
-<p><span class="versionmodified deprecated">Deprecated since version 0.58.0: </span>Use <a class="reference internal" href="#device"><span class="std std-ref">Device</span></a> <em>push_subscription</em> instead.</p>
-</div>
 </dd></dl>
 
 <dl class="attribute">
@@ -748,22 +694,6 @@ the given email address is already associated with another user, a <a class="ref
 <dd><p>Remove the user’s current <em>email</em> address and return the user.</p>
 <p>If the user’s <em>email</em> is not set, a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a> (<code class="docutils literal notranslate"><span class="pre">user_no_email</span></code>) is returned.</p>
 <p>Permission: The user oneself.</p>
-</dd></dl>
-
-<dl class="patch">
-<dt id="patch--api-users-(id)">
-<code class="sig-name descname">PATCH </code><code class="sig-name descname">/api/users/</code><span class="sig-paren">(</span><em class="sig-param">id</em><span class="sig-paren">)</span><a class="headerlink" href="#patch--api-users-(id)" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="docutils literal notranslate"><span class="pre">{&quot;op&quot;:</span> <span class="pre">&quot;enable_device_notifications&quot;,</span> <span class="pre">&quot;push_subscription&quot;}</span></code></p>
-<p>Enable device notifications, using <em>push_subscription</em>.</p>
-<p>A confirmation message is sent to the device. If there is a communication issue, a
-<a class="reference internal" href="#communicationerror"><span class="std std-ref">CommunicationError</span></a> is returned.</p>
-<p>Permission: The user oneself.</p>
-<p><code class="docutils literal notranslate"><span class="pre">{&quot;op&quot;:</span> <span class="pre">&quot;disable_device_notifications&quot;}</span></code></p>
-<p>Disable device notifications.</p>
-<p>Permission: The user oneself.</p>
-<div class="deprecated">
-<p><span class="versionmodified deprecated">Deprecated since version 0.58.0: </span>Use <a class="reference internal" href="#patch--api-devices-(id)" title="PATCH /api/devices/(id)"><code class="xref http http-patch docutils literal notranslate"><span class="pre">PATCH</span> <span class="pre">/api/devices/(id)</span></code></a> instead.</p>
-</div>
 </dd></dl>
 
 <div class="section" id="userdevices">
@@ -1523,7 +1453,7 @@ the items from index 10 up to including 19.</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2020 Open Listling contributors.
+      &copy;2021 Open Listling contributors.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
