@@ -403,7 +403,9 @@ class List(Object, Editable):
         self.description = cast(Optional[str], data['description'])
         self.order = cast('str | None', data['order'])
         self.value_unit = cast(Optional[str], data['value_unit'])
-        self.features = cast(typing.List[str], data['features'])
+        # Work around Lua CJSON encoding empty arrays as objects (see
+        # https://github.com/mpx/lua-cjson/issues/11 and https://github.com/redis/redis/issues/8755)
+        self.features = cast('list[str]', data['features'] or [])
         self.mode = cast(str, data['mode'])
         self.item_template = cast(Optional[str], data['item_template'])
         self.value_summary_ids = cast(

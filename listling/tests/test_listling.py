@@ -113,6 +113,13 @@ class ListTest(ListlingTestCase):
         self.assertEqual(self.list.value_summary_ids, [('total', 102.5)])
 
     @gen_test
+    async def test_edit_no_features(self) -> None:
+        self.app.r.caching = False
+        await self.list.edit()
+        lst = self.app.lists[self.list.id]
+        self.assertEqual(lst.features, [])
+
+    @gen_test
     async def test_edit_as_user(self) -> None:
         lst = self.app.lists.create()
         context.user.set(self.app.devices.sign_in().user)
