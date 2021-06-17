@@ -157,6 +157,11 @@ List
 
    Template for *text* content of new items as *markup text*. May be ``null``.
 
+.. describe:: value_summary_ids
+
+   Summary table for :ref:`Item` *value* s. If *features* ``value`` is enabled, ``total`` holds the
+   sum over all items.
+
 .. describe:: owners
 
    List :ref:`ListOwners`.

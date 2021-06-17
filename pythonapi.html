@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>3. Python API &#8212; Open Listling 0.42.0 documentation</title>
+    <title>3. Python API &#8212; Open Listling 0.43.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -110,11 +110,17 @@
 </dd></dl>
 
 <dl class="method">
+<dt id="listling.Item.edit">
+<em class="property">async </em><code class="sig-name descname">edit</code><span class="sig-paren">(</span><em class="sig-param">**attrs: object</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#listling.Item.edit" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#post--api-(object-url)" title="POST /api/(object-url)"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/(object-url)</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="listling.Item.do_edit">
 <em class="property">async </em><code class="sig-name descname">do_edit</code><span class="sig-paren">(</span><em class="sig-param">**attrs: Any</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#listling.Item.do_edit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Subclass API: Perform the edit operation.</p>
 <p>More precisely, validate and then set the given <em>attrs</em>.</p>
-<p>Must be overridden by host. Called by <code class="xref py py-meth docutils literal notranslate"><span class="pre">edit()</span></code>, which takes care of basic permission
+<p>Must be overridden by host. Called by <a class="reference internal" href="#listling.Item.edit" title="listling.Item.edit"><code class="xref py py-meth docutils literal notranslate"><span class="pre">edit()</span></code></a>, which takes care of basic permission
 checking, managing <em>authors</em> and storing the updated object in the database.</p>
 </dd></dl>
 
@@ -169,17 +175,29 @@ attributes of <code class="xref py py-class docutils literal notranslate"><span 
 </dd></dl>
 
 <dl class="method">
+<dt id="listling.List.update_value_summary">
+<code class="sig-name descname">update_value_summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; listling.listling.List<a class="headerlink" href="#listling.List.update_value_summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute and update the <code class="xref py py-attr docutils literal notranslate"><span class="pre">value_summary_ids</span></code> table.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="listling.List.edit">
+<em class="property">async </em><code class="sig-name descname">edit</code><span class="sig-paren">(</span><em class="sig-param">**attrs: object</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#listling.List.edit" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#post--api-(object-url)" title="POST /api/(object-url)"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/(object-url)</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="listling.List.do_edit">
 <code class="sig-name descname">do_edit</code><span class="sig-paren">(</span><em class="sig-param">**attrs: Any</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#listling.List.do_edit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Subclass API: Perform the edit operation.</p>
 <p>More precisely, validate and then set the given <em>attrs</em>.</p>
-<p>Must be overridden by host. Called by <code class="xref py py-meth docutils literal notranslate"><span class="pre">edit()</span></code>, which takes care of basic permission
+<p>Must be overridden by host. Called by <a class="reference internal" href="#listling.List.edit" title="listling.List.edit"><code class="xref py py-meth docutils literal notranslate"><span class="pre">edit()</span></code></a>, which takes care of basic permission
 checking, managing <em>authors</em> and storing the updated object in the database.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="listling.List.json">
-<code class="sig-name descname">json</code><span class="sig-paren">(</span><em class="sig-param">restricted=False</em>, <em class="sig-param">include=False</em>, <em class="sig-param">*</em>, <em class="sig-param">rewrite=None</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.List.json" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">json</code><span class="sig-paren">(</span><em class="sig-param">restricted: bool = False</em>, <em class="sig-param">include: bool = False</em>, <em class="sig-param">*</em>, <em class="sig-param">rewrite: RewriteFunc = None</em><span class="sig-paren">)</span> &#x2192; dict[str, object]<a class="headerlink" href="#listling.List.json" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <code class="xref py py-meth docutils literal notranslate"><span class="pre">JSONifiable.json()</span></code>.</p>
 <p>Subclass API: May be overridden by subclass. The default implementation returns the
 attributes of <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code>. <em>restricted</em> and <em>include</em> are ignored.</p>
