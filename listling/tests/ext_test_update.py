@@ -35,11 +35,12 @@ async def main():
     app.r.flushdb()
     app.update()
 
-    user = app.login()
+    user = app.devices.sign_in().user
     context.user.set(user)
     lst = await app.lists.create_example('todo')
     # Compatibility with synchronous edit (deprecated since 0.34.0)
-    await lst.edit(features=['check', 'assign', 'vote'], asynchronous=ON)
+    await lst.edit(features=['check', 'assign', 'vote', 'value'], asynchronous=ON)
+    await lst.items[0].edit(value=60)
     item = lst.items[1]
     # Compatibility for user argument (deprecated since 0.39.1)
     try:
@@ -89,19 +90,13 @@ class UpdateTest(AsyncTestCase):
 
     @gen_test
     async def test_update_db_version_previous(self) -> None:
-        self.setup_db('0.40.1')
+        self.setup_db('0.42.0')
         app = Listling(redis_url='15', files_path=mkdtemp())
         app.update()
 
-        # List.order
-        user = next(iter(app.users))
-        context.user.set(user)
-        app.user = user
+        # List.value_summary_ids
         lst = app.lists[0]
-        items = lst.items[:]
-        self.assertIsNone(lst.order)
-        await lst.edit(order='title')
-        self.assertEqual(lst.items[:], [items[1], items[0], items[2]])
+        self.assertEqual(lst.value_summary_ids, [('total', 60)])
 
     @gen_test
     async def test_update_db_version_first(self) -> None:
@@ -128,3 +123,5 @@ class UpdateTest(AsyncTestCase):
         self.assertIsNone(lst.order)
         await lst.edit(order='title')
         self.assertEqual(lst.items[:], [items[1], items[0], items[2]])
+        # List.value_summary_ids
+        self.assertEqual(lst.value_summary_ids, [('total', 60)])

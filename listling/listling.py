@@ -151,6 +151,7 @@ class Listling(Application):
                 id=id, app=self.app, authors=[user.id], title=data['title'], description=None,
                 order=None, value_unit=data.get('value_unit'), features=data['features'],
                 mode=data.get('mode', 'collaborate'), item_template=None,
+                value_summary_ids=[('total', 0)] if 'value' in data['features'] else [],
                 activity=Activity(id=f'{id}.activity', subscriber_ids=[], app=self.app))
             self.app.r.oset(lst.id, lst)
             self.app.r.zadd(f'{lst.id}.owners', {user.id.encode(): -now})
@@ -252,6 +253,14 @@ class Listling(Application):
             r.delete(f'{id}.assignees', f'{id}.votes')
             item_rel_updates.add(id)
 
+        # Deprecated since 0.43.0
+        for lst in lists:
+            if 'value_summary_ids' not in lst:
+                lst['activity'] = Activity(app=self, pre=None,
+                                           **cast('dict[str, object]', lst['activity']))
+                List(app=self, value_summary_ids=[], **lst).update_value_summary()
+                list_updates[cast(str, lst['id'])] = lst
+
         return {
             'List': len(list_updates),
             'Items': items_updates,
@@ -326,6 +335,8 @@ class User(micro.User):
 class List(Object, Editable):
     """See :ref:`List`."""
 
+    app: Listling
+
     _PERMISSIONS: Dict[str, Dict[str, Set[str]]] = {
         'collaborate': {'user': {'list-modify', 'item-modify'}},
         'view':        {'user': set()}
@@ -367,6 +378,7 @@ class List(Object, Editable):
                 redis.call("HSET", item.list_id .. ".items.by_title.lexical", item.id, id_by_title)
             """)
             f([], [json.dumps(item.json()), lexical_value(item.id, item.title)])
+            self.lst.update_value_summary()
             self.lst.activity.publish(
                 Event.create('list-create-item', self.lst, {'item': item}, self.app))
             return item
@@ -393,8 +405,11 @@ class List(Object, Editable):
         self.value_unit = cast(Optional[str], data['value_unit'])
         self.features = cast(typing.List[str], data['features'])
         self.mode = cast(str, data['mode'])
-        self.owners = List._ListOwners(self)
         self.item_template = cast(Optional[str], data['item_template'])
+        self.value_summary_ids = cast(
+            'list[tuple[str, float]]',
+            [tuple(entry) for entry in data['value_summary_ids']]) # type: ignore[attr-defined]
+        self.owners = List._ListOwners(self)
         self.activity = activity
         self.activity.post = self._on_activity_publish
         self.activity.host = self
@@ -429,6 +444,48 @@ class List(Object, Editable):
         users = f(['{}.users'.format(self.id)], [name])
         return [User(app=self.app, **json.loads(user.decode())) for user in users]
 
+    def update_value_summary(self) -> List:
+        """Compute and update the :attr:`value_summary_ids` table."""
+        f = script(self.app.r.r, """
+            local id = unpack(KEYS)
+            local list = cjson.decode(redis.call("GET", id))
+            local features = {}
+            for _, feature in pairs(list.features) do
+                features[feature] = true
+            end
+
+            local items = nil
+            if features.value then
+                local item_ids = redis.call("LRANGE", id .. ".items", 0, -1)
+                if next(item_ids) then
+                    items = redis.call("MGET", unpack(item_ids))
+                else
+                    items = {}
+                end
+            end
+            return items
+        """)
+        items_data = cast('list[bytes] | None', f([self.id]))
+
+        self.value_summary_ids = []
+        if items_data is not None:
+            items = (Item(app=self.app, **json.loads(item)) for item in items_data)
+            self.value_summary_ids.append(
+                ('total', sum(item.value or .0 for item in items if not item.trashed)))
+
+        f = script(self.app.r.r, """
+            local id, value_summary_ids = unpack(KEYS), unpack(ARGV)
+            local list = cjson.decode(redis.call("GET", id))
+            list.value_summary_ids = cjson.decode(value_summary_ids)
+            redis.call("SET", id, cjson.encode(list))
+        """)
+        f([self.id], [json.dumps(self.value_summary_ids)])
+        return self
+
+    async def edit(self, **attrs: object) -> None:
+        await super().edit(**attrs)
+        self.update_value_summary()
+
     def do_edit(self, **attrs: Any) -> None:
         self._check_permission(context.user.get(), 'list-modify')
         if 'title' in attrs and str_or_none(attrs['title']) is None:
@@ -456,7 +513,8 @@ class List(Object, Editable):
         if 'item_template' in attrs:
             self.item_template = str_or_none(attrs['item_template'])
 
-    def json(self, restricted=False, include=False, *, rewrite=None):
+    def json(self, restricted: bool = False, include: bool = False, *,
+             rewrite: RewriteFunc = None) -> dict[str, object]:
         return {
             **super().json(restricted=restricted, include=include, rewrite=rewrite),
             **Editable.json(self, restricted=restricted, include=include, rewrite=rewrite),
@@ -467,6 +525,7 @@ class List(Object, Editable):
             'features': self.features,
             'mode': self.mode,
             'item_template': self.item_template,
+            'value_summary_ids': self.value_summary_ids,
             'activity': self.activity.json(restricted=restricted, rewrite=rewrite),
             **(
                 {
@@ -630,6 +689,10 @@ class Item(Object, Editable, Trashable, WithContent):
         self.app.r.oset(self.id, self)
         self.list.activity.publish(Event.create('item-uncheck', self, app=self.app))
 
+    async def edit(self, **attrs: object) -> None:
+        await super().edit(**attrs)
+        self.list.update_value_summary()
+
     async def do_edit(self, **attrs: Any) -> None:
         self._check_permission(self.app.user, 'item-modify')
         attrs = cast(Dict[str, Any], await WithContent.pre_edit(self, attrs))
@@ -659,10 +722,12 @@ class Item(Object, Editable, Trashable, WithContent):
     def trash(self):
         self._check_permission(self.app.user, 'item-modify')
         super().trash()
+        self.list.update_value_summary()
 
     def restore(self):
         self._check_permission(self.app.user, 'item-modify')
         super().restore()
+        self.list.update_value_summary()
 
     def json(self, restricted: bool = False, include: bool = False, *,
              rewrite: RewriteFunc = None) -> Dict[str, object]:

@@ -48,19 +48,20 @@ class ListlingTest(ListlingTestCase):
         references = list(self.app.file_references())
         self.assertEqual(references, urls)
 
-    def test_lists_create(self) -> None:
-        lst = self.app.lists.create()
-        self.assertEqual(lst.title, 'New list')
-        self.assertEqual(list(lst.owners), [self.user])
-        self.assertIn(lst.id, self.app.lists)
-        self.assertIn(lst.id, self.user.lists)
-
     @gen_test
     async def test_lists_create_example(self):
         lst = await self.app.lists.create_example('shopping')
         self.assertEqual(lst.title, 'Kitchen shopping list')
         self.assertTrue(lst.items)
         self.assertIn(lst.id, self.app.lists)
+
+class ListlingListsTest(ListlingTestCase):
+    def test_create(self) -> None:
+        lst = self.app.lists.create()
+        self.assertEqual(lst.title, 'New list')
+        self.assertEqual(list(lst.owners), [self.user])
+        self.assertIn(lst.id, self.app.lists)
+        self.assertIn(lst.id, self.user.lists)
 
 class UserListsTest(ListlingTestCase):
     def test_add(self) -> None:
@@ -86,16 +87,30 @@ class UserListsTest(ListlingTestCase):
             self.user.lists.remove(lst)
 
 class ListTest(ListlingTestCase):
+    def setUp(self) -> None:
+        super().setUp()
+        self.list = self.app.lists.create()
+
     @gen_test
     async def test_edit(self) -> None:
-        lst = self.app.lists.create()
-        await lst.edit(description='What has to be done!', value_unit='min',
-                       features=['value', 'time'], mode='view', item_template="Details:")
-        self.assertEqual(lst.description, 'What has to be done!')
-        self.assertEqual(lst.value_unit, 'min')
-        self.assertEqual(lst.features, ['value', 'time'])
-        self.assertEqual(lst.mode, 'view')
-        self.assertEqual(lst.item_template, 'Details:')
+        await self.list.edit(description='What has to be done!', features=['time'], mode='view',
+                             item_template="Details:")
+        self.assertEqual(self.list.description, 'What has to be done!')
+        self.assertEqual(self.list.features, ['time'])
+        self.assertEqual(self.list.mode, 'view')
+        self.assertEqual(self.list.item_template, 'Details:')
+        self.assertEqual(self.list.value_summary_ids, [])
+
+    @gen_test
+    async def test_edit_value_features(self) -> None:
+        await self.list.items.create('Sleep', value=60)
+        await self.list.items.create('Feast', value=42.5)
+        await self.list.items.create('Cuddle')
+        item = await self.list.items.create('Stroll', value=15)
+        item.trash()
+        await self.list.edit(value_unit='min', features=['value'])
+        self.assertEqual(self.list.value_unit, 'min')
+        self.assertEqual(self.list.value_summary_ids, [('total', 102.5)])
 
     @gen_test
     async def test_edit_as_user(self) -> None:
@@ -130,6 +145,7 @@ class ListItemsTest(ListlingTestCase):
     def setUp(self) -> None:
         super().setUp()
         self.list = self.app.lists.create()
+        asyncio.run(self.list.edit(features=['value']))
         asyncio.run(self.list.items.create('Sleep'))
         asyncio.run(self.list.items.create('Cuddle'))
         asyncio.run(self.list.items.create('Stroll'))
@@ -143,6 +159,7 @@ class ListItemsTest(ListlingTestCase):
         self.assertEqual(item.value, 42)
         self.assertEqual(item.time, datetime(2015, 8, 27, 0, 42, tzinfo=timezone.utc))
         self.assertEqual(self.app.items[item.id], item)
+        self.assertEqual(self.list.value_summary_ids, [('total', 42)])
         self.assertEqual(self.list.items[:], [*items, item])
         await self.list.edit(order='title')
         self.assertEqual(self.list.items[:], [items[1], item, items[0], items[2]])
@@ -160,9 +177,10 @@ class ItemTest(ListlingTestCase):
     def setUp(self) -> None:
         super().setUp()
         self.list = self.app.lists.create()
+        asyncio.run(self.list.edit(features=['value']))
         asyncio.run(self.list.items.create('Sleep'))
         asyncio.run(self.list.items.create('Feast'))
-        self.item = asyncio.run(self.list.items.create('Cuddle'))
+        self.item = asyncio.run(self.list.items.create('Cuddle', value=5))
 
     async def make_item(self, *, use_case: str = 'simple', mode: str = None) -> Item:
         lst = self.app.lists.create(use_case)
@@ -173,11 +191,12 @@ class ItemTest(ListlingTestCase):
     @gen_test
     async def test_edit(self) -> None:
         items = self.list.items[:]
-        await self.item.edit(title='Hug', text='Meow!', value=42, time=date(2015, 8, 27))
+        await self.item.edit(title='Hug', text='Meow!', value=2, time=date(2015, 8, 27))
         self.assertEqual(self.item.title, 'Hug')
         self.assertEqual(self.item.text, 'Meow!')
-        self.assertEqual(self.item.value, 42)
+        self.assertEqual(self.item.value, 2)
         self.assertEqual(self.item.time, date(2015, 8, 27))
+        self.assertEqual(self.list.value_summary_ids, [('total', 2)])
         self.assertEqual(self.list.items[:], items)
         await self.list.edit(order='title')
         self.assertEqual(self.list.items[:], [items[1], self.item, items[0]])
@@ -198,6 +217,15 @@ class ItemTest(ListlingTestCase):
         self.assertEqual(self.list.items[:], items[:2])
         await self.list.edit(order='title')
         self.assertEqual(self.list.items[:], [items[1], items[0]])
+
+    def test_trash(self) -> None:
+        self.item.trash()
+        self.assertEqual(self.list.value_summary_ids, [('total', 0)])
+
+    def test_restore(self) -> None:
+        self.item.trash()
+        self.item.restore()
+        self.assertEqual(self.list.value_summary_ids, [('total', 5)])
 
     @gen_test
     async def test_check(self):

@@ -17,6 +17,10 @@ test-ext:
 test-ui:
 	$(NPM) $(NPMFLAGS) run test-ui
 
+.PHONY: test-perf
+test-perf:
+	$(PYTHON) -m listling.tests.perf
+
 .PHONY: watch-test
 watch-test:
 	trap "exit 0" INT; $(PYTHON) -m tornado.autoreload -m unittest
@@ -76,6 +80,7 @@ help:
 	@echo "                 TUNNEL_ID:     ID of the tunnel to use for remote tests"
 	@echo "                 PLATFORM:      OS to run the remote tests on"
 	@echo "                 SUBJECT:       Text included in subject of remote tests"
+	@echo "test-perf:       Run all performance tests"
 	@echo "watch-test:      Watch source files and run all unit tests on change"
 	@echo "lint:            Lint and check the style of the code"
 	@echo "check:           Run all code quality checks (test and lint)"
