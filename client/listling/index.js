@@ -306,12 +306,14 @@ listling.ListPage = class extends micro.core.Page {
 
             this.activity =
                 await micro.Activity.open(`/api/lists/${this._data.lst.id}/activity/stream`);
+
             this.activity.events.addEventListener("list-create-item", event => {
                 if (!this._items.find(item => item.id === event.detail.event.detail.item.id)) {
                     this._items.push(event.detail.event.detail.item);
                 }
             });
-            const events = [
+
+            let events = [
                 "editable-edit", "trashable-trash", "trashable-restore", "item-check",
                 "item-uncheck"
             ];
@@ -325,7 +327,8 @@ listling.ListPage = class extends micro.core.Page {
                         if (this._data.editMode) {
                             // Buffer modifications until editing is done
                             this._bufferEvent(event);
-                            break;
+                            event.stopImmediatePropagation();
+                            return;
                         }
                         this.list = object;
                         break;
@@ -336,7 +339,8 @@ listling.ListPage = class extends micro.core.Page {
                         if (li && li.editMode) {
                             // Buffer modifications until editing is done
                             this._bufferEvent(event);
-                            break;
+                            event.stopImmediatePropagation();
+                            return;
                         }
                         i = this._items.findIndex(item => item.id === object.id);
                         this._items[i] = object;
@@ -345,6 +349,31 @@ listling.ListPage = class extends micro.core.Page {
                     default:
                         // Unreachable
                         throw new Error();
+                    }
+                });
+            }
+
+            events = [
+                "list-create-item", "editable-edit", "trashable-trash", "trashable-restore"
+            ];
+            for (let type of events) {
+                this.activity.events.addEventListener(type, async event => {
+                    event = event.detail.event;
+                    if (
+                        this.list.features.includes("value") &&
+                        // Ignore synthetic events to not update twice
+                        event.id !== "Event" &&
+                        (event.type === "list-create-item" || event.object.__type__ === "Item")
+                    ) {
+                        try {
+                            this.list = await ui.call("GET", `/api/lists/${this.list.id}`);
+                        } catch (e) {
+                            if (e instanceof micro.NetworkError) {
+                                // Ignore
+                                return;
+                            }
+                            throw e;
+                        }
                     }
                 });
             }

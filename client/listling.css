@@ -12,3 +12,9 @@ html {
     font-size: 0.875em;
     text-align: right;
 }
+
+/** Card: Distinct unit of related content. */
+
+.micro-card {
+    margin: var(--micro-size-s) 0;
+}

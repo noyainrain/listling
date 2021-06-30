@@ -37,7 +37,7 @@ describe("UI", function() {
     let browser;
     let timeout;
 
-    this.timeout(5 * 60 * 1000);
+    this.timeout(10 * 60 * 1000);
 
     async function createExampleList() {
         await browser.findElement({css: ".micro-ui-menu"}).click();
@@ -50,6 +50,8 @@ describe("UI", function() {
         await item.findElement({css: ".listling-item-menu"}).click();
         const text = await item.findElement({css: ".listling-item-play-pause"}).getText();
         await item.click();
+        // Work around Safari not collapsing line breaks (see
+        // https://bugs.webkit.org/show_bug.cgi?id=174617)
         return text.trim();
     }
 
@@ -136,7 +138,7 @@ describe("UI", function() {
         await browser.executeScript(() => scroll(0, document.scrollingElement.scrollHeight));
         form = await browser.findElement({css: ".listling-list-create-item form"});
         await form.findElement({name: "title"}).sendKeys("Sleep");
-        await form.findElement({name: "value"}).sendKeys("45");
+        await form.findElement({name: "value"}).sendKeys("60");
         await browser.executeScript(() => {
             document.querySelector(".listling-list-create-item micro-datetime-input").value =
                 "2015-08-27T12:00:00.000Z";
@@ -148,7 +150,12 @@ describe("UI", function() {
             () => document.querySelector(".listling-list-create-item button:not([type])").click()
         );
         await browser.wait(
-            untilElementTextLocated({css: "[is=listling-item]:last-child h1"}, "Sleep"), timeout);
+            untilElementTextLocated({css: "[is=listling-item]:last-child h1"}, "Sleep"), timeout
+        );
+        const td = browser.findElement({css: ".listling-list-value-summary td:last-child"});
+        // Work around Safari not collapsing line breaks (see
+        // https://bugs.webkit.org/show_bug.cgi?id=174617)
+        await browser.wait(until.elementTextMatches(td, /60\s+min/u), timeout);
 
         // Edit item
         await browser.executeScript(() => scroll(0, 0));
@@ -207,7 +214,9 @@ describe("UI", function() {
         // Assign to item
         await browser.findElement({css: ".listling-item-menu"}).click();
         await browser.findElement({css: ".listling-item-assign"}).click();
-        await browser.findElement({css: "[name=assignee] + micro-options li"}).click();
+        await browser.wait(
+            until.elementLocated({css: "[name=assignee] + micro-options li"}), timeout
+        ).click();
         await browser.wait(
             untilElementTextLocated({css: ".listling-assign-assignees p"}, "Guest"),
             timeout

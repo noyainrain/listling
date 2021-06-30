@@ -377,8 +377,19 @@
                     </label>
                 </section>
             </div>
-
         </form>
+
+        <template data-this="if lst.value_summary_ids.length">
+            <table class="listling-list-value-summary micro-card listling-list-mode-view">
+                <tr>
+                    <td><i class="fa fa-calculator"></i> Total</td>
+                    <td>
+                        <span data-content="lst.value_summary_ids.0.1"></span>
+                        <span data-content="lst.value_unit"></span>
+                    </td>
+                </tr>
+            </table>
+        </template>
 
         <ol
             is="micro-ol"
@@ -388,8 +399,8 @@
         >
             <template>
                 <li
-                    is="listling-item" class="micro-quick-nav" data-item="item" data-list="lst"
-                    data-onmove="moveItemKey"
+                    is="listling-item" class="micro-card micro-quick-nav" data-item="item"
+                    data-list="lst" data-onmove="moveItemKey"
                 ></li>
             </template>
         </ol>
@@ -405,7 +416,7 @@
                 <i class="fa fa-plus-circle"></i> Add item
             </button>
             <li
-                is="listling-item" data-list="lst" data-onedit="stopCreateItem"
+                is="listling-item" class="micro-card" data-list="lst" data-onedit="stopCreateItem"
                 data-oncancel="stopCreateItem"
             ></li>
         </div>
@@ -413,7 +424,7 @@
         <div class="listling-list-trash listling-list-mode-view micro-interactive"
              data-class-listling-list-trash-expanded="trashExpanded">
             <button
-                is="micro-button" type="button" class="link micro-small" title="⌨ G"
+                is="micro-button" type="button" class="link micro-card micro-small" title="⌨ G"
                 data-run="toggleTrash"
             >
                 <i class="fa fa-trash"></i>
@@ -436,7 +447,7 @@
                 <ul class="listling-list-trashed-items" data-content="list trashedItems 'item'">
                     <template>
                         <li
-                            is="listling-item" class="micro-quick-nav" data-item="item"
+                            is="listling-item" class="micro-card micro-quick-nav" data-item="item"
                             data-list="lst"
                         ></li>
                     </template>
@@ -572,9 +583,7 @@
             color: #888;
         }
 
-        listling-list-page [is=listling-item],
-        .listling-list-create-item > .action,
-        .listling-list-trash > .link {
+        .listling-list-create-item > .action {
             margin: var(--micro-size-s) 0;
         }
 
