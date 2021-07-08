@@ -159,8 +159,16 @@ List
 
 .. describe:: value_summary_ids
 
-   Summary table for :ref:`Item` *value* s. If *features* ``value`` is enabled, ``total`` holds the
-   sum over all items.
+   Summary table for :ref:`Item` *value* s, referencing :ref:`User`s by *id*. See *value_summary*.
+
+.. describe:: value_summary
+
+   Summary table for :ref:`Item` *value* s.
+
+   If *features* ``value`` is enabled, ``total`` holds the sum over all items.
+
+   Additionally, if *features* ``assign`` is enabled, the share of each assigned :ref:`User` is
+   included. If an item has multiple assignees, its value is split equally between them.
 
 .. describe:: owners
 
