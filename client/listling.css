@@ -13,6 +13,10 @@ html {
     text-align: right;
 }
 
+table:empty {
+    display: none;
+}
+
 /** Card: Distinct unit of related content. */
 
 .micro-card {

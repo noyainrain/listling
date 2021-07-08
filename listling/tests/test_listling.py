@@ -17,13 +17,13 @@
 import asyncio
 from datetime import date, datetime, timezone
 from tempfile import mkdtemp
-from typing import Tuple
+from typing import Tuple, cast
 
-from micro import User, error
+from micro import error
 from micro.core import context
 from tornado.testing import AsyncTestCase, gen_test
 
-from listling import Item, Listling
+from listling import Item, Listling, User
 
 class ListlingTestCase(AsyncTestCase):
     def setUp(self) -> None:
@@ -31,7 +31,7 @@ class ListlingTestCase(AsyncTestCase):
         self.app = Listling(redis_url='15', files_path=mkdtemp())
         self.app.r.flushdb()
         self.app.update()
-        self.user = self.app.devices.sign_in().user
+        self.user = cast(User, self.app.devices.sign_in().user)
         context.user.set(self.user)
 
 class ListlingTest(ListlingTestCase):
@@ -99,18 +99,37 @@ class ListTest(ListlingTestCase):
         self.assertEqual(self.list.features, ['time'])
         self.assertEqual(self.list.mode, 'view')
         self.assertEqual(self.list.item_template, 'Details:')
-        self.assertEqual(self.list.value_summary_ids, [])
+        self.assertEqual(self.list.value_summary, [])
+
+    @gen_test
+    async def test_edit_assign_value_features(self) -> None:
+        grumpy = cast(User, self.app.devices.sign_in().user)
+        await self.list.edit(features=['assign'])
+        item = await self.list.items.create('Sleep', value=60)
+        item.assignees.assign(self.user)
+        item.assignees.assign(grumpy)
+        item = await self.list.items.create('Feast', value=42.5)
+        item.assignees.assign(self.user)
+        item = await self.list.items.create('Cuddle')
+        item.assignees.assign(self.user)
+        await self.list.items.create('Stroll', value=20)
+        item = await self.list.items.create('Play', value=10)
+        item.assignees.assign(self.user)
+        item.trash()
+
+        await self.list.edit(features=['assign', 'value'])
+        self.assertEqual(self.list.value_summary,
+                         [('total', 122.5), (self.user, 72.5), (grumpy, 30)])
 
     @gen_test
     async def test_edit_value_features(self) -> None:
-        await self.list.items.create('Sleep', value=60)
-        await self.list.items.create('Feast', value=42.5)
-        await self.list.items.create('Cuddle')
-        item = await self.list.items.create('Stroll', value=15)
-        item.trash()
+        await self.list.edit(features=['assign'])
+        item = await self.list.items.create('Sleep', value=60)
+        item.assignees.assign(self.user)
+
         await self.list.edit(value_unit='min', features=['value'])
         self.assertEqual(self.list.value_unit, 'min')
-        self.assertEqual(self.list.value_summary_ids, [('total', 102.5)])
+        self.assertEqual(self.list.value_summary, [('total', 60)])
 
     @gen_test
     async def test_edit_no_features(self) -> None:
@@ -166,7 +185,7 @@ class ListItemsTest(ListlingTestCase):
         self.assertEqual(item.value, 42)
         self.assertEqual(item.time, datetime(2015, 8, 27, 0, 42, tzinfo=timezone.utc))
         self.assertEqual(self.app.items[item.id], item)
-        self.assertEqual(self.list.value_summary_ids, [('total', 42)])
+        self.assertEqual(self.list.value_summary, [('total', 42)])
         self.assertEqual(self.list.items[:], [*items, item])
         await self.list.edit(order='title')
         self.assertEqual(self.list.items[:], [items[1], item, items[0], items[2]])
@@ -203,7 +222,7 @@ class ItemTest(ListlingTestCase):
         self.assertEqual(self.item.text, 'Meow!')
         self.assertEqual(self.item.value, 2)
         self.assertEqual(self.item.time, date(2015, 8, 27))
-        self.assertEqual(self.list.value_summary_ids, [('total', 2)])
+        self.assertEqual(self.list.value_summary, [('total', 2)])
         self.assertEqual(self.list.items[:], items)
         await self.list.edit(order='title')
         self.assertEqual(self.list.items[:], [items[1], self.item, items[0]])
@@ -227,12 +246,12 @@ class ItemTest(ListlingTestCase):
 
     def test_trash(self) -> None:
         self.item.trash()
-        self.assertEqual(self.list.value_summary_ids, [('total', 0)])
+        self.assertEqual(self.list.value_summary, [('total', 0)])
 
     def test_restore(self) -> None:
         self.item.trash()
         self.item.restore()
-        self.assertEqual(self.list.value_summary_ids, [('total', 5)])
+        self.assertEqual(self.list.value_summary, [('total', 5)])
 
     @gen_test
     async def test_check(self):
@@ -269,22 +288,28 @@ class ItemTest(ListlingTestCase):
         self.assertFalse(item.checked)
 
 class ItemAssigneesTest(ListlingTestCase):
+    def setUp(self) -> None:
+        super().setUp()
+        lst = self.app.lists.create()
+        asyncio.run(lst.edit(features=['assign', 'value']))
+        self.item = asyncio.run(lst.items.create('Sleep', value=60))
+        self.grumpy = cast(User, self.app.devices.sign_in().user)
+
     @gen_test
     async def test_assign(self) -> None:
-        item = await self.app.lists.create('todo').items.create('Sleep')
-        user = self.app.devices.sign_in().user
-        item.assignees.assign(self.user)
-        item.assignees.assign(user)
-        self.assertEqual(list(item.assignees), [user, self.user])
+        self.item.assignees.assign(self.user)
+        self.item.assignees.assign(self.grumpy)
+        self.assertEqual(list(self.item.assignees), [self.grumpy, self.user])
+        self.assertEqual(self.item.list.value_summary,
+                         [('total', 60), (self.grumpy, 30), (self.user, 30)])
 
     @gen_test
     async def test_unassign(self) -> None:
-        item = await self.app.lists.create('todo').items.create('Sleep')
-        user = self.app.devices.sign_in().user
-        item.assignees.assign(self.user)
-        item.assignees.assign(user)
-        item.assignees.unassign(user)
-        self.assertEqual(list(item.assignees), [self.user])
+        self.item.assignees.assign(self.user)
+        self.item.assignees.assign(self.grumpy)
+        self.item.assignees.unassign(self.grumpy)
+        self.assertEqual(list(self.item.assignees), [self.user])
+        self.assertEqual(self.item.list.value_summary, [('total', 60), (self.user, 60)])
 
 class ItemVotesTest(ListlingTestCase):
     async def make_item(self) -> Tuple[Item, User]:

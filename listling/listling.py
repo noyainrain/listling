@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
 from datetime import date, datetime, timezone
 import json
 import typing
@@ -30,6 +31,7 @@ from micro.jsonredis import (JSONRedis, LexicalRedisSortedSet, RedisList, RedisS
                              RedisSortedSet, lexical_value, script)
 from micro.resource import Resource
 from micro.util import expect_type, parse_isotime, randstr, str_or_none
+from typing_extensions import Literal
 
 from .list import Owners, OwnersEvent
 
@@ -253,12 +255,20 @@ class Listling(Application):
             r.delete(f'{id}.assignees', f'{id}.votes')
             item_rel_updates.add(id)
 
-        # Deprecated since 0.43.0
         for lst in lists:
-            if 'value_summary_ids' not in lst:
+            if (
+                # Deprecated since 0.43.0
+                'value_summary_ids' not in lst or
+                # Deprecated since 0.44.0
+                (
+                    {'assign', 'value'} <= set(cast('list[str]', lst['features'])) and
+                    len(cast('list[object]', lst['value_summary_ids'])) <= 1
+                )
+            ):
                 lst['activity'] = Activity(app=self, pre=None,
                                            **cast('dict[str, object]', lst['activity']))
-                List(app=self, value_summary_ids=[], **lst).update_value_summary()
+                lst['value_summary_ids'] = []
+                List(app=self, **lst).update_value_summary()
                 list_updates[cast(str, lst['id'])] = lst
 
         return {
@@ -331,6 +341,12 @@ class User(micro.User):
             **({'lists': self.lists.json(restricted=restricted, include=include, rewrite=rewrite)}
                if restricted and self.app.user == self else {})
         }
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, Object) and self.id == other.id
+
+    def __hash__(self) -> int:
+        return hash(self.id)
 
 class List(Object, Editable):
     """See :ref:`List`."""
@@ -417,6 +433,17 @@ class List(Object, Editable):
         self.activity.host = self
 
     @property
+    def value_summary(self) -> list[tuple[Literal['total'] | User, float]]:
+        # pylint: disable=missing-function-docstring; already documented
+        ids = [id for id, _ in self.value_summary_ids[1:]]
+        users = {
+            id: User(app=self.app, **json.loads(data))
+            for id, data in zip(ids, self.app.r.r.mget(ids))
+        }
+        return [('total' if name == 'total' else users[name], value)
+                for name, value in self.value_summary_ids]
+
+    @property
     def items(self) -> List.Items:
         # pylint: disable=missing-function-docstring; already documented
         ids = (
@@ -456,7 +483,9 @@ class List(Object, Editable):
                 features[feature] = true
             end
 
-            local items = nil
+            -- false in tables is converted to null by Redis
+            local items = false
+            local assignee_ids = false
             if features.value then
                 local item_ids = redis.call("LRANGE", id .. ".items", 0, -1)
                 if next(item_ids) then
@@ -464,16 +493,34 @@ class List(Object, Editable):
                 else
                     items = {}
                 end
+
+                if features.assign then
+                    assignee_ids = {}
+                    for i, item_id in ipairs(item_ids) do
+                        assignee_ids[i] = redis.call("ZRANGE", item_id .. ".assignees", 0, -1)
+                    end
+                end
             end
-            return items
+            return {items, assignee_ids}
         """)
-        items_data = cast('list[bytes] | None', f([self.id]))
+        items_data, assignee_ids_data = cast('tuple[list[bytes] | None, list[list[bytes]] | None]',
+                                             f([self.id]))
 
         self.value_summary_ids = []
         if items_data is not None:
-            items = (Item(app=self.app, **json.loads(item)) for item in items_data)
+            items = [Item(app=self.app, **json.loads(item)) for item in items_data]
             self.value_summary_ids.append(
-                ('total', sum(item.value or .0 for item in items if not item.trashed)))
+                ('total', sum(item.value or 0 for item in items if not item.trashed)))
+
+            if assignee_ids_data:
+                assignee_ids = ([id.decode() for id in ids] for ids in assignee_ids_data)
+                shares: defaultdict[str, float] = defaultdict(float)
+                for item, ids in zip(items, assignee_ids):
+                    if not item.trashed:
+                        for id in ids:
+                            shares[id] += (item.value or 0) / len(ids)
+                self.value_summary_ids += list(
+                    sorted(shares.items(), key=lambda share: share[1], reverse=True))
 
         f = script(self.app.r.r, """
             local id, value_summary_ids = unpack(KEYS), unpack(ARGV)
@@ -528,6 +575,12 @@ class List(Object, Editable):
             'mode': self.mode,
             'item_template': self.item_template,
             'value_summary_ids': self.value_summary_ids,
+            'value_summary': [
+                (
+                    (name.json(restricted=restricted, rewrite=rewrite)
+                     if isinstance(name, User) else name),
+                    value
+                ) for name, value in self.value_summary],
             'activity': self.activity.json(restricted=restricted, rewrite=rewrite),
             **(
                 {
@@ -565,7 +618,8 @@ class Item(Object, Editable, Trashable, WithContent):
             """See :http:post:`/api/items/(id)/assignees`."""
             # pylint: disable=protected-access; Item is a friend
             self.item._check_permission(context.user.get(), 'list-modify')
-            if 'assign' not in self.item.list.features:
+            lst = self.item.list
+            if 'assign' not in lst.features:
                 raise error.ValueError('Disabled item list features assign')
             if self.item.trashed:
                 raise error.ValueError('Trashed item')
@@ -573,7 +627,8 @@ class Item(Object, Editable, Trashable, WithContent):
                                    {assignee.id.encode(): -self.app.now().timestamp()}):
                 raise error.ValueError(
                     'assignee {} already in assignees of item {}'.format(assignee.id, self.item.id))
-            self.item.list.activity.publish(
+            lst.update_value_summary()
+            lst.activity.publish(
                 Event.create('item-assignees-assign', self.item, detail={'assignee': assignee},
                              app=self.app))
 
@@ -581,14 +636,16 @@ class Item(Object, Editable, Trashable, WithContent):
             """See :http:delete:`/api/items/(id)/assignees/(assignee-id)`."""
             # pylint: disable=protected-access; Item is a friend
             self.item._check_permission(context.user.get(), 'list-modify')
-            if 'assign' not in self.item.list.features:
+            lst = self.item.list
+            if 'assign' not in lst.features:
                 raise error.ValueError('Disabled item list features assign')
             if self.item.trashed:
                 raise error.ValueError('Trashed item')
             if not self.app.r.zrem(self.ids.key, assignee.id.encode()):
                 raise error.ValueError(
                     'No assignee {} in assignees of item {}'.format(assignee.id, self.item.id))
-            self.item.list.activity.publish(
+            lst.update_value_summary()
+            lst.activity.publish(
                 Event.create('item-assignees-unassign', self.item, detail={'assignee': assignee},
                              app=self.app))
 

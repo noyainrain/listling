@@ -354,7 +354,8 @@ listling.ListPage = class extends micro.core.Page {
             }
 
             events = [
-                "list-create-item", "editable-edit", "trashable-trash", "trashable-restore"
+                "list-create-item", "editable-edit", "trashable-trash", "trashable-restore",
+                "item-assignees-assign", "item-assignees-unassign"
             ];
             for (let type of events) {
                 this.activity.events.addEventListener(type, async event => {

@@ -40,8 +40,8 @@ async def main():
     lst = await app.lists.create_example('todo')
     # Compatibility with synchronous edit (deprecated since 0.34.0)
     await lst.edit(features=['check', 'assign', 'vote', 'value'], asynchronous=ON)
-    await lst.items[0].edit(value=60)
     item = lst.items[1]
+    await item.edit(value=60)
     # Compatibility for user argument (deprecated since 0.39.1)
     try:
         item.votes.vote()
@@ -90,13 +90,14 @@ class UpdateTest(AsyncTestCase):
 
     @gen_test
     async def test_update_db_version_previous(self) -> None:
-        self.setup_db('0.42.0')
+        self.setup_db('0.43.2')
         app = Listling(redis_url='15', files_path=mkdtemp())
         app.update()
 
-        # List.value_summary_ids
+        # List.value_summary_ids with user shares
+        user = next(iter(app.users))
         lst = app.lists[0]
-        self.assertEqual(lst.value_summary_ids, [('total', 60)])
+        self.assertEqual(lst.value_summary, [('total', 60), (user, 60)])
 
     @gen_test
     async def test_update_db_version_first(self) -> None:
@@ -123,5 +124,5 @@ class UpdateTest(AsyncTestCase):
         self.assertIsNone(lst.order)
         await lst.edit(order='title')
         self.assertEqual(lst.items[:], [items[1], items[0], items[2]])
-        # List.value_summary_ids
-        self.assertEqual(lst.value_summary_ids, [('total', 60)])
+        # List.value_summary_ids with user shares
+        self.assertEqual(lst.value_summary, [('total', 60), (user, 60)])

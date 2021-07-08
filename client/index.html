@@ -379,17 +379,27 @@
             </div>
         </form>
 
-        <template data-this="if lst.value_summary_ids.length">
-            <table class="listling-list-value-summary micro-card listling-list-mode-view">
+        <table
+            class="listling-list-value-summary micro-card listling-list-mode-view"
+            data-content="list lst.value_summary 'entry'"
+        >
+            <template>
                 <tr>
-                    <td><i class="fa fa-calculator"></i> Total</td>
                     <td>
-                        <span data-content="lst.value_summary_ids.0.1"></span>
+                        <template data-this="if eq entry.0 'total'">
+                            <i class="fa fa-calculator"></i> Total
+                        </template>
+                        <template data-this="if entry.0.id">
+                            <micro-user data-user="entry.0"></micro-user>
+                        </template>
+                    </td>
+                    <td>
+                        <span data-content="entry.1"></span>
                         <span data-content="lst.value_unit"></span>
                     </td>
                 </tr>
-            </table>
-        </template>
+            </template>
+        </table>
 
         <ol
             is="micro-ol"
@@ -565,6 +575,10 @@
 
         .listling-list-settings label {
             margin: var(--micro-size-s) 0;
+        }
+
+        .listling-list-value-summary td:last-child {
+            text-align: right;
         }
 
         .listling-list-items,
