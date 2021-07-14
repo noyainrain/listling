@@ -159,7 +159,7 @@ List
 
 .. describe:: value_summary_ids
 
-   Summary table for :ref:`Item` *value* s, referencing :ref:`User`s by *id*. See *value_summary*.
+   Summary table for :ref:`Item` *value* s, referencing :ref:`User` s by *id*. See *value_summary*.
 
 .. describe:: value_summary
 

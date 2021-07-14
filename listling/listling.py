@@ -342,12 +342,6 @@ class User(micro.User):
                if restricted and self.app.user == self else {})
         }
 
-    def __eq__(self, other: object) -> bool:
-        return isinstance(other, Object) and self.id == other.id
-
-    def __hash__(self) -> int:
-        return hash(self.id)
-
 class List(Object, Editable):
     """See :ref:`List`."""
 
@@ -710,12 +704,6 @@ class Item(Object, Editable, Trashable, WithContent):
     def list(self):
         # pylint: disable=missing-function-docstring; already documented
         return self.app.lists[self._list_id]
-
-    def __eq__(self, other: object) -> bool:
-        return isinstance(other, Object) and self.id == other.id
-
-    def __hash__(self) -> int:
-        return hash(self.id)
 
     def delete(self) -> None:
         f = script(self.app.r.r, """
