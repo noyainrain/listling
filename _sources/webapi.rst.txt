@@ -128,15 +128,20 @@ List
 
    Key by which items are ordered. Available keys are ``title``. May be ``null``.
 
-.. describe:: value_unit
-
-   Unit of :ref:`Item` *value* s. May be ``null``.
-
 .. describe:: features
 
    Set of features enabled for the list.
 
-   Available features are ``check``, ``vote``, ``value``, ``time``, ``location`` and ``play``.
+   Available features are ``check``, ``assign``, ``vote``, ``value``, ``time``, ``location`` and
+   ``play``.
+
+.. describe:: assign_by_default
+
+   Indicates if the author is assigned to new items by default.
+
+.. describe:: value_unit
+
+   Unit of :ref:`Item` *value* s. May be ``null``.
 
 .. describe:: mode
 
