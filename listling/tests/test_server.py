@@ -59,6 +59,7 @@ class ServerTest(ServerTestCase):
             body=json.dumps({
                 'description': 'What has to be done!',
                 'order': 'title',
+                'assign_by_default': True,
                 'value_unit': 'min'
             }))
         await self.request(f'/api/lists/{lst.id}/owners', method='POST',

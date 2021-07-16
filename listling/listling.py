@@ -151,8 +151,9 @@ class Listling(Application):
             now = self.app.now().timestamp()
             lst = List(
                 id=id, app=self.app, authors=[user.id], title=data['title'], description=None,
-                order=None, value_unit=data.get('value_unit'), features=data['features'],
-                mode=data.get('mode', 'collaborate'), item_template=None,
+                order=None, features=data['features'], assign_by_default=False,
+                value_unit=data.get('value_unit'), mode=data.get('mode', 'collaborate'),
+                item_template=None,
                 value_summary_ids=[('total', 0)] if 'value' in data['features'] else [],
                 activity=Activity(id=f'{id}.activity', subscriber_ids=[], app=self.app))
             self.app.r.oset(lst.id, lst)
@@ -229,6 +230,8 @@ class Listling(Application):
 
         lists = r.omget(r.lrange('lists', 0, -1), default=AssertionError)
         for lst in lists:
+            id = cast(str, lst['id'])
+
             # Deprecated since 0.41.0
             if 'order' not in lst:
                 lst['order'] = None
@@ -237,7 +240,12 @@ class Listling(Application):
                     id_by_title = lexical_value(cast(str, item['id']), cast(str, item['title']))
                     r.zadd(f"{lst['id']}.items.by_title", {id_by_title: 0})
                     r.hset(f"{lst['id']}.items.by_title.lexical", item['id'], id_by_title)
-                list_updates[cast(str, lst['id'])] = lst
+                list_updates[id] = lst
+
+            # Deprecated since 0.45.0
+            if 'assign_by_default' not in lst:
+                lst['assign_by_default'] = False
+                list_updates[id] = lst
         r.omset(list_updates)
 
         items = r.omget(r.smembers('items'), default=AssertionError)
@@ -378,16 +386,29 @@ class List(Object, Editable):
                 text=attrs['text'], resource=attrs['resource'], list_id=self.lst.id, title=title,
                 value=value, time=time.isoformat() if time else None,
                 location=location.json() if location else None, checked=False)
+
             f = script(self.app.r.r, """
-                local item_data, id_by_title = unpack(ARGV)
+                local item_data, id_by_title, user_id, now = unpack(ARGV)
                 local item = cjson.decode(item_data)
+                local list = cjson.decode(redis.call("GET", item.list_id))
+                local features = {}
+                for _, feature in pairs(list.features) do
+                    features[feature] = true
+                end
+
                 redis.call("SET", item.id, item_data)
                 redis.call("SADD", "items", item.id)
-                redis.call("RPUSH", item.list_id .. ".items", item.id)
-                redis.call("ZADD", item.list_id .. ".items.by_title", 0, id_by_title)
-                redis.call("HSET", item.list_id .. ".items.by_title.lexical", item.id, id_by_title)
+                redis.call("RPUSH", list.id .. ".items", item.id)
+                redis.call("ZADD", list.id .. ".items.by_title", 0, id_by_title)
+                redis.call("HSET", list.id .. ".items.by_title.lexical", item.id, id_by_title)
+                if features.assign and list.assign_by_default then
+                    redis.call("ZADD", item.id .. ".assignees", -now, user_id)
+                end
             """)
-            f([], [json.dumps(item.json()), lexical_value(item.id, item.title)])
+            f(
+                [],
+                [json.dumps(item.json()), lexical_value(item.id, item.title), user.id,
+                 self.app.now().timestamp()])
             self.lst.update_value_summary()
             self.lst.activity.publish(
                 Event.create('list-create-item', self.lst, {'item': item}, self.app))
@@ -412,10 +433,11 @@ class List(Object, Editable):
         self.title = cast(str, data['title'])
         self.description = cast(Optional[str], data['description'])
         self.order = cast('str | None', data['order'])
-        self.value_unit = cast(Optional[str], data['value_unit'])
         # Work around Lua CJSON encoding empty arrays as objects (see
         # https://github.com/mpx/lua-cjson/issues/11 and https://github.com/redis/redis/issues/8755)
         self.features = cast('list[str]', data['features'] or [])
+        self.assign_by_default = cast(bool, data['assign_by_default'])
+        self.value_unit = cast('str | None', data['value_unit'])
         self.mode = cast(str, data['mode'])
         self.item_template = cast(Optional[str], data['item_template'])
         self.value_summary_ids = cast(
@@ -547,10 +569,12 @@ class List(Object, Editable):
             self.description = str_or_none(attrs['description'])
         if 'order' in attrs:
             self.order = attrs['order']
-        if 'value_unit' in attrs:
-            self.value_unit = str_or_none(attrs['value_unit'])
         if 'features' in attrs:
             self.features = attrs['features']
+        if 'assign_by_default' in attrs:
+            self.assign_by_default = attrs['assign_by_default']
+        if 'value_unit' in attrs:
+            self.value_unit = str_or_none(attrs['value_unit'])
         if 'mode' in attrs:
             self.mode = attrs['mode']
         if 'item_template' in attrs:
@@ -564,8 +588,9 @@ class List(Object, Editable):
             'title': self.title,
             'description': self.description,
             'order': self.order,
-            'value_unit': self.value_unit,
             'features': self.features,
+            'assign_by_default': self.assign_by_default,
+            'value_unit': self.value_unit,
             'mode': self.mode,
             'item_template': self.item_template,
             'value_summary_ids': self.value_summary_ids,

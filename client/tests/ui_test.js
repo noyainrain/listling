@@ -122,11 +122,14 @@ describe("UI", function() {
         await input.clear();
         await input.sendKeys("Cat colony tasks");
         await form.findElement({name: "description"}).sendKeys("What has to be done!");
+        await form.findElement({name: "assign-by-default"}).click();
         await form.findElement({css: "[name=features][value=vote]"}).click();
         await form.findElement({css: "[name=features][value=value]"}).click();
         await form.findElement({name: "value-unit"}).sendKeys("min");
         await form.findElement({css: "[name=features][value=time]"}).click();
         await form.findElement({css: "[name=features][value=play]"}).click();
+        await browser.executeScript(
+            () => document.querySelector("listling-list-page button:not([type])").scrollIntoView());
         await form.findElement({css: "button:not([type])"}).click();
         await browser.wait(
             untilElementTextLocated({css: "listling-list-page h1"}, "Cat colony tasks"));

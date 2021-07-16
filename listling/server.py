@@ -33,7 +33,7 @@ import micro.server
 from micro.server import (
     CollectionEndpoint, Handler, Server, UI, make_activity_endpoints, make_orderable_endpoints,
     make_trashable_endpoints)
-from micro.util import Expect, parse_isotime, randstr
+from micro.util import Expect, expect_type, parse_isotime, randstr
 
 from . import Listling
 from .list import Owners
@@ -138,6 +138,8 @@ class _ListEndpoint(Endpoint):
         })
         if 'order' in self.args:
             args['order'] = self.get_arg('order', Expect.opt(Expect.str))
+        if 'assign_by_default' in self.args:
+            args['assign_by_default'] = self.get_arg('assign_by_default', expect_type(bool))
         if 'value_unit' in self.args:
             args['value_unit'] = self.get_arg('value_unit', Expect.opt(Expect.str))
         await lst.edit(**args)

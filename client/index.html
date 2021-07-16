@@ -293,9 +293,17 @@
                     <label class="micro-block">
                         <input
                             type="checkbox" name="features" value="assign"
-                            data-checked="includes lst.features 'assign'"
+                            data-checked="assignFeature" data-onchange="onAssignFeatureChange"
                         />
                         Items can be assigned
+                    </label>
+
+                    <label class="micro-block" data-class-micro-disabled="not assignFeature">
+                        <input
+                            type="checkbox" name="assign-by-default"
+                            data-disabled="not assignFeature"
+                        />
+                        Assign author to new items by default
                     </label>
 
                     <label class="micro-block">

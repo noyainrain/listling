@@ -90,14 +90,13 @@ class UpdateTest(AsyncTestCase):
 
     @gen_test
     async def test_update_db_version_previous(self) -> None:
-        self.setup_db('0.43.2')
+        self.setup_db('0.44.1')
         app = Listling(redis_url='15', files_path=mkdtemp())
         app.update()
 
-        # List.value_summary_ids with user shares
-        user = next(iter(app.users))
+        # List.assign_by_default
         lst = app.lists[0]
-        self.assertEqual(lst.value_summary, [('total', 60), (user, 60)])
+        self.assertFalse(lst.assign_by_default)
 
     @gen_test
     async def test_update_db_version_first(self) -> None:
@@ -126,3 +125,5 @@ class UpdateTest(AsyncTestCase):
         self.assertEqual(lst.items[:], [items[1], items[0], items[2]])
         # List.value_summary_ids with user shares
         self.assertEqual(lst.value_summary, [('total', 60), (user, 60)])
+        # List.assign_by_default
+        self.assertFalse(lst.assign_by_default)

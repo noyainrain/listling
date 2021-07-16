@@ -137,6 +137,7 @@ listling.ListPage = class extends micro.core.Page {
             trashedItemsCount: 0,
             locations: null,
             locationEnabled: false,
+            assignFeature: false,
             valueFeature: false,
             editMode: true,
             trashExpanded: false,
@@ -165,6 +166,9 @@ listling.ListPage = class extends micro.core.Page {
             },
 
             startEdit: micro.core.action(() => {
+                this._data.assignFeature = this.list.features.includes("assign");
+                this._data.valueFeature = this.list.features.includes("value");
+                this._form.elements["assign-by-default"].checked = this.list.assign_by_default;
                 this._data.editMode = true;
                 this._form.elements.title.focus();
             }),
@@ -174,10 +178,11 @@ listling.ListPage = class extends micro.core.Page {
                     const list = await ui.call("POST", `/api/lists/${this._data.lst.id}`, {
                         title: this._form.elements.title.value,
                         description: this._form.elements.description.value,
-                        value_unit: this._form.elements["value-unit"].value || null,
                         features:
                             Array.from(this._form.elements.features, e => e.checked && e.value)
                                 .filter(feature => feature),
+                        assign_by_default: this._form.elements["assign-by-default"].checked,
+                        value_unit: this._form.elements["value-unit"].value || null,
                         mode: this._form.elements.mode.valueAsObject,
                         item_template: this._form.elements["item-template"].value
                     });
@@ -243,6 +248,10 @@ listling.ListPage = class extends micro.core.Page {
                 // Move, then refocus
                 this._moveItem(item, to);
                 ol.children[i + (event.detail.dir === "up" ? -1 : 1)].focus();
+            },
+
+            onAssignFeatureChange: event => {
+                this._data.assignFeature = event.target.checked;
             },
 
             onValueFeatureChange: event => {
@@ -448,7 +457,6 @@ listling.ListPage = class extends micro.core.Page {
         this._data.owners = new micro.Collection(`/api/lists/${this._data.lst.id}/owners`);
         this._data.locationEnabled =
             Boolean(ui.mapServiceKey) && this._data.lst.features.includes("location");
-        this._data.valueFeature = value.features.includes("value");
         this._data.editMode = !this._data.lst;
         this.caption = this._data.lst.title;
         ui.url = listling.util.makeListURL(this._data.lst) + location.hash;

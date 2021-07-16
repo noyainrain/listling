@@ -93,10 +93,11 @@ class ListTest(ListlingTestCase):
 
     @gen_test
     async def test_edit(self) -> None:
-        await self.list.edit(description='What has to be done!', features=['time'], mode='view',
-                             item_template="Details:")
+        await self.list.edit(description='What has to be done!', features=['time'],
+                             assign_by_default=True, mode='view', item_template="Details:")
         self.assertEqual(self.list.description, 'What has to be done!')
         self.assertEqual(self.list.features, ['time'])
+        self.assertTrue(self.list.assign_by_default)
         self.assertEqual(self.list.mode, 'view')
         self.assertEqual(self.list.item_template, 'Details:')
         self.assertEqual(self.list.value_summary, [])
@@ -171,7 +172,7 @@ class ListItemsTest(ListlingTestCase):
     def setUp(self) -> None:
         super().setUp()
         self.list = self.app.lists.create()
-        asyncio.run(self.list.edit(features=['value']))
+        asyncio.run(self.list.edit(features=['assign', 'value']))
         asyncio.run(self.list.items.create('Sleep'))
         asyncio.run(self.list.items.create('Cuddle'))
         asyncio.run(self.list.items.create('Stroll'))
@@ -186,9 +187,16 @@ class ListItemsTest(ListlingTestCase):
         self.assertEqual(item.time, datetime(2015, 8, 27, 0, 42, tzinfo=timezone.utc))
         self.assertEqual(self.app.items[item.id], item)
         self.assertEqual(self.list.value_summary, [('total', 42)])
+        self.assertFalse(item.assignees)
         self.assertEqual(self.list.items[:], [*items, item])
         await self.list.edit(order='title')
         self.assertEqual(self.list.items[:], [items[1], item, items[0], items[2]])
+
+    @gen_test
+    async def test_create_for_assign_by_default(self) -> None:
+        await self.list.edit(assign_by_default=True)
+        item = await self.list.items.create('Feast')
+        self.assertEqual(item.assignees[:], [self.user])
 
     @gen_test
     async def test_move(self) -> None:
