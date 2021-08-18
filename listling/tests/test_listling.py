@@ -15,9 +15,12 @@
 # pylint: disable=missing-docstring; test module
 
 import asyncio
+from asyncio import get_event_loop
 from datetime import date, datetime, timezone
+from pathlib import Path
 from tempfile import mkdtemp
 from typing import Tuple, cast
+from urllib.parse import urlsplit
 
 from micro import error
 from micro.core import context
@@ -30,23 +33,26 @@ class ListlingTestCase(AsyncTestCase):
         super().setUp()
         self.app = Listling(redis_url='15', files_path=mkdtemp())
         self.app.r.flushdb()
-        self.app.update()
+        get_event_loop().run_until_complete(self.app.update())
         self.user = cast(User, self.app.devices.sign_in().user)
         context.user.set(self.user)
 
 class ListlingTest(ListlingTestCase):
     @gen_test
     async def test_file_references(self):
-        urls = [
-            await self.app.files.write(b'<svg />', 'image/svg+xml'),
-            await self.app.files.write(b'<svg  />', 'image/svg+xml')
-        ]
+        # importlib.resources.files is only available in Python >= 3.9
+        with (Path(__file__).parent / 'res/image.png').open('rb') as f:
+            image_url = await self.app.files.write(f.read(), 'image/png')
+        text_url = await self.app.files.write(b'Meow!', 'text/plain')
         lst = self.app.lists.create()
-        await lst.items.create('Sleep', resource=urls[0])
-        await lst.items.create('Feast', resource=urls[1])
+        await lst.items.create('Sleep', resource=image_url)
+        await lst.items.create('Feast', resource=text_url)
         await lst.items.create('Cuddle')
         references = list(self.app.file_references())
-        self.assertEqual(references, urls)
+        self.assertEqual(len(references), 3)
+        self.assertEqual(references[0], image_url)
+        self.assertEqual(urlsplit(references[1]).scheme, 'file')
+        self.assertEqual(references[2], text_url)
 
     @gen_test
     async def test_lists_create_example(self):

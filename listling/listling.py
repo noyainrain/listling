@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Iterator
 from datetime import date, datetime, timezone
 import json
 import typing
@@ -296,11 +297,14 @@ class Listling(Application):
             provider_description={}, feedback_url=None, staff=[], push_vapid_private_key='',
             push_vapid_public_key='')
 
-    def file_references(self):
+    def file_references(self) -> Iterator[str]:
         for lst in self.lists[:]:
             for item in lst.items[:]:
-                if item.resource and urlsplit(item.resource.url).scheme == 'file':
-                    yield item.resource.url
+                if item.resource:
+                    if urlsplit(item.resource.url).scheme == 'file':
+                        yield item.resource.url
+                    if item.resource.thumbnail:
+                        yield item.resource.thumbnail.url
 
 class User(micro.User):
     """See :ref:`User`."""

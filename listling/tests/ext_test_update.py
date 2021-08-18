@@ -82,17 +82,18 @@ class UpdateTest(AsyncTestCase):
             run(['.venv/bin/pip3', 'install', '-q', 'six~=1.15'], cwd=d, check=True)
         run(['.venv/bin/python3', '-c', SETUP_DB_SCRIPT], cwd=d, check=True)
 
-    def test_update_db_fresh(self) -> None:
+    @gen_test
+    async def test_update_db_fresh(self) -> None:
         app = Listling(redis_url='15', files_path=mkdtemp())
         app.r.flushdb()
-        app.update()
+        await app.update()
         self.assertEqual(app.settings.title, 'My Open Listling')
 
     @gen_test
     async def test_update_db_version_previous(self) -> None:
         self.setup_db('0.44.1')
         app = Listling(redis_url='15', files_path=mkdtemp())
-        app.update()
+        await app.update()
 
         # List.assign_by_default
         lst = app.lists[0]
@@ -102,7 +103,7 @@ class UpdateTest(AsyncTestCase):
     async def test_update_db_version_first(self) -> None:
         self.setup_db('0.38.0')
         app = Listling(redis_url='15', files_path=mkdtemp())
-        app.update()
+        await app.update()
 
         # Items
         lst = app.lists[0]

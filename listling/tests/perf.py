@@ -34,7 +34,7 @@ def test_performance(name: str, f: Callable[[], object]) -> None:
 async def prepare_list(*, items: int = 0) -> List:
     app = Listling(redis_url='15', files_path=mkdtemp())
     app.r.flushdb()
-    app.update()
+    await app.update()
     context.user.set(app.devices.sign_in().user)
 
     lst = app.lists.create('meeting-agenda')

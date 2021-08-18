@@ -14,6 +14,7 @@
 
 # pylint: disable=missing-docstring; test module
 
+from asyncio import get_event_loop
 import json
 from tempfile import mkdtemp
 from typing import cast
@@ -31,7 +32,7 @@ class ServerTest(ServerTestCase):
         self.server = make_server(port=16160, redis_url='15', files_path=mkdtemp())
         self.app = cast(Listling, self.server.app)
         self.app.r.flushdb()
-        self.server.start()
+        get_event_loop().run_until_complete(self.server.start())
         self.client_device = self.app.devices.sign_in()
         self.user = self.client_device.user
         context.user.set(self.user)
