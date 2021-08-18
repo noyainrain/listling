@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>2. Web API &#8212; Open Listling 0.45.0 documentation</title>
+    <title>2. Web API &#8212; Open Listling 0.46.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -354,15 +354,33 @@ if the event is global.</p>
 
 <dl class="describe">
 <dt>
-<code class="sig-name descname">image</code></dt>
-<dd><p><a class="reference internal" href="#image"><span class="std std-ref">Image</span></a> representation. May be <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
+<code class="sig-name descname">thumbnail</code></dt>
+<dd><p><a class="reference internal" href="#resourcethumbnail"><span class="std std-ref">Thumbnail</span></a> image. May be <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
 </dd></dl>
 
+<dl class="describe">
+<dt>
+<code class="sig-name descname">image</code></dt>
+<dd><p><a class="reference internal" href="#image"><span class="std std-ref">Image</span></a> representation. May be <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 0.67.0: </span>Use <em>thumbnail</em> instead.</p>
+</div>
+</dd></dl>
+
+<div class="section" id="thumbnail">
+<span id="resourcethumbnail"></span><h4><span class="section-number">2.13.1.1. </span>Thumbnail<a class="headerlink" href="#thumbnail" title="Permalink to this headline">¶</a></h4>
+<p>Thumbnail image description.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">url</code></dt>
+<dd><p>URL of the thumbnail.</p>
+</dd></dl>
+
+</div>
 </div>
 <div class="section" id="image">
 <span id="id10"></span><h3><span class="section-number">2.13.2. </span>Image<a class="headerlink" href="#image" title="Permalink to this headline">¶</a></h3>
 <p>Image <a class="reference internal" href="#resource"><span class="std std-ref">Resource</span></a> description.</p>
-<p>Note that the <em>image</em> representation is always <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
 <dl class="describe">
 <dt>
 <code class="sig-name descname">url</code></dt>
@@ -383,8 +401,17 @@ if the event is global.</p>
 
 <dl class="describe">
 <dt>
+<code class="sig-name descname">thumbnail</code></dt>
+<dd><p><a class="reference internal" href="#resourcethumbnail"><span class="std std-ref">Thumbnail</span></a> image. May be <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
 <code class="sig-name descname">image</code></dt>
 <dd><p><a class="reference internal" href="#image"><span class="std std-ref">Image</span></a> representation. May be <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 0.67.0: </span>Use <em>thumbnail</em> instead.</p>
+</div>
 </dd></dl>
 
 </div>
@@ -411,8 +438,17 @@ if the event is global.</p>
 
 <dl class="describe">
 <dt>
+<code class="sig-name descname">thumbnail</code></dt>
+<dd><p><a class="reference internal" href="#resourcethumbnail"><span class="std std-ref">Thumbnail</span></a> image. May be <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
 <code class="sig-name descname">image</code></dt>
 <dd><p><a class="reference internal" href="#image"><span class="std std-ref">Image</span></a> representation. May be <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 0.67.0: </span>Use <em>thumbnail</em> instead.</p>
+</div>
 </dd></dl>
 
 </div>
