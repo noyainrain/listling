@@ -36,12 +36,14 @@ check: test test-ext test-ui lint
 .PHONY: deps
 deps:
 	$(PIP) install $(PIPFLAGS) -r requirements.txt
-	$(NPM) $(NPMFLAGS) update --only=prod
+	@# Work around npm 7 update modifying package.json (see https://github.com/npm/cli/issues/3044)
+	$(NPM) $(NPMFLAGS) install --only=prod
 
 .PHONY: deps-dev
 deps-dev:
 	$(PIP) install $(PIPFLAGS) -r requirements-dev.txt
-	$(NPM) $(NPMFLAGS) update --only=dev
+	@# Work around npm 7 update modifying package.json (see https://github.com/npm/cli/issues/3044)
+	$(NPM) $(NPMFLAGS) install
 
 .PHONY: doc
 doc:
@@ -60,12 +62,14 @@ release:
 .PHONY: micro-link
 micro-link:
 	$(PIP) install $(PIPFLAGS) -e "$(MICROPATH)"
-	$(NPM) $(NPMFLAGS) install "file:$(MICROPATH)/client"
-	$(NPM) $(NPMFLAGS) dedupe
+	@# Work around npm 7 uninstalling local dependencies if outside package (see
+	@# https://github.com/npm/cli/issues/2339)
+	rm -r client/node_modules/@noyainrain/micro
+	ln -sT "$(MICROPATH)/client" client/node_modules/@noyainrain/micro
 
 .PHONY: clean
 clean:
-	rm -rf doc/build
+	rm -rf $$(find . -name __pycache__) doc/build doc/micro
 	$(NPM) $(NPMFLAGS) run clean
 
 .PHONY: help

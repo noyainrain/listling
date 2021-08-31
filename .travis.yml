@@ -1,15 +1,15 @@
-dist: bionic
+dist: focal
 language: python
 python:
-    - 3.7
-    - 3.8
+    - 3.9
+    - 3.10-dev
 git:
     # Commit history is required for update tests
     depth: false
 services:
-    - redis-server
+    - redis
 before_install:
-    - nvm use 10.16.0
+    - nvm use v12.7.0
 install:
     - make deps
     - make deps-dev
