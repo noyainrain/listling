@@ -3,8 +3,9 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <title>3. Python API &#8212; Open Listling 0.46.0 documentation</title>
+    <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>3. Python API &#8212; Open Listling 0.47.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -33,9 +34,9 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="python-api">
+  <section id="python-api">
 <h1><span class="section-number">3. </span>Python API<a class="headerlink" href="#python-api" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="module-listling">
+<section id="module-listling">
 <span id="listling"></span><h2><span class="section-number">3.1. </span>listling<a class="headerlink" href="#module-listling" title="Permalink to this headline">¶</a></h2>
 <p>Web app to make and edit lists collaboratively.</p>
 <dl class="class">
@@ -138,7 +139,7 @@ checking, managing <em>authors</em> and storing the updated object in the databa
 
 <dl class="method">
 <dt id="listling.Item.json">
-<code class="sig-name descname">json</code><span class="sig-paren">(</span><em class="sig-param">restricted: bool = False, include: bool = False, *, rewrite: Optional[Callable[[str], str]] = None</em><span class="sig-paren">)</span> &#x2192; Dict[str, object]<a class="headerlink" href="#listling.Item.json" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#listling.Item.json" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <code class="xref py py-meth docutils literal notranslate"><span class="pre">JSONifiable.json()</span></code>.</p>
 <p>Subclass API: May be overridden by subclass. The default implementation returns the
 attributes of <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code>. <em>restricted</em> and <em>include</em> are ignored.</p>
@@ -197,7 +198,7 @@ checking, managing <em>authors</em> and storing the updated object in the databa
 
 <dl class="method">
 <dt id="listling.List.json">
-<code class="sig-name descname">json</code><span class="sig-paren">(</span><em class="sig-param">restricted: bool = False</em>, <em class="sig-param">include: bool = False</em>, <em class="sig-param">*</em>, <em class="sig-param">rewrite: RewriteFunc = None</em><span class="sig-paren">)</span> &#x2192; dict[str, object]<a class="headerlink" href="#listling.List.json" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">json</code><span class="sig-paren">(</span><em class="sig-param">restricted: bool = False, include: bool = False, *, rewrite: Optional[Callable[[str], str]] = None</em><span class="sig-paren">)</span> &#x2192; dict<a class="headerlink" href="#listling.List.json" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <code class="xref py py-meth docutils literal notranslate"><span class="pre">JSONifiable.json()</span></code>.</p>
 <p>Subclass API: May be overridden by subclass. The default implementation returns the
 attributes of <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code>. <em>restricted</em> and <em>include</em> are ignored.</p>
@@ -207,7 +208,7 @@ attributes of <code class="xref py py-class docutils literal notranslate"><span 
 
 <dl class="class">
 <dt id="listling.Listling">
-<em class="property">class </em><code class="sig-prename descclassname">listling.</code><code class="sig-name descname">Listling</code><span class="sig-paren">(</span><em class="sig-param">redis_url: str = '', email: str = 'bot&#64;localhost', smtp_url: str = '', render_email_auth_message: Optional[Callable[[str, micro.micro.AuthRequest, str], str]] = None, *, files_path: str = 'data', video_service_keys: Dict[str, str] = {}</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">listling.</code><code class="sig-name descname">Listling</code><a class="headerlink" href="#listling.Listling" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#listling"><span class="std std-ref">Listling</span></a>.</p>
 <dl class="class">
 <dt id="listling.Listling.Lists">
@@ -235,7 +236,7 @@ attributes of <code class="xref py py-class docutils literal notranslate"><span 
 
 <dl class="method">
 <dt id="listling.Listling.do_update">
-<code class="sig-name descname">do_update</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict[str, int]<a class="headerlink" href="#listling.Listling.do_update" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">do_update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling.do_update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Subclass API: Perform the database update.</p>
 <p>Information about the update, more precisely the number of entity updates by type, is
 returned.</p>
@@ -262,7 +263,7 @@ storing the object. By default, a standard <a class="reference internal" href="#
 
 <dl class="method">
 <dt id="listling.Listling.file_references">
-<code class="sig-name descname">file_references</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Iterator[str]<a class="headerlink" href="#listling.Listling.file_references" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">file_references</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#listling.Listling.file_references" title="Permalink to this definition">¶</a></dt>
 <dd><p>Subclass API: Iterate over all file references.</p>
 <p>Called by the <code class="xref py py-attr docutils literal notranslate"><span class="pre">files</span></code> garbage collect job. The default implementation returns an empty
 iterator.</p>
@@ -307,13 +308,13 @@ iterator.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-listling.server">
+</section>
+<section id="module-listling.server">
 <span id="server"></span><h2><span class="section-number">3.2. </span>server<a class="headerlink" href="#module-listling.server" title="Permalink to this headline">¶</a></h2>
 <p>Open Listling server.</p>
 <dl class="function">
 <dt id="listling.server.make_server">
-<code class="sig-prename descclassname">listling.server.</code><code class="sig-name descname">make_server</code><span class="sig-paren">(</span><em class="sig-param">*</em>, <em class="sig-param">port: int = 8080</em>, <em class="sig-param">url: str = None</em>, <em class="sig-param">debug: bool = False</em>, <em class="sig-param">redis_url: str = ''</em>, <em class="sig-param">smtp_url: str = ''</em>, <em class="sig-param">files_path: str = 'data'</em>, <em class="sig-param">video_service_keys: Dict[str</em>, <em class="sig-param">str] = {}</em>, <em class="sig-param">client_map_service_key: Optional[str] = None</em><span class="sig-paren">)</span> &#x2192; micro.server.Server<a class="headerlink" href="#listling.server.make_server" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">listling.server.</code><code class="sig-name descname">make_server</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#listling.server.make_server" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create an Open Listling server.</p>
 </dd></dl>
 
@@ -322,8 +323,8 @@ iterator.</p>
 <em class="property">class </em><code class="sig-prename descclassname">listling.server.</code><code class="sig-name descname">Endpoint</code><span class="sig-paren">(</span><em class="sig-param">application: tornado.web.Application</em>, <em class="sig-param">request: tornado.httputil.HTTPServerRequest</em>, <em class="sig-param">**kwargs: object</em><span class="sig-paren">)</span><a class="headerlink" href="#listling.server.Endpoint" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</div>
-</div>
+</section>
+</section>
 
 
           </div>

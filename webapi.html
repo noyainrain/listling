@@ -3,8 +3,9 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <title>2. Web API &#8212; Open Listling 0.46.0 documentation</title>
+    <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>2. Web API &#8212; Open Listling 0.47.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -33,9 +34,9 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="web-api">
+  <section id="web-api">
 <h1><span class="section-number">2. </span>Web API<a class="headerlink" href="#web-api" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="introduction">
+<section id="introduction">
 <h2><span class="section-number">2.1. </span>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>The application provides a JSON REST API.</p>
 <p>Arguments are passed to an endpoint simply as JSON object and the result is returned as JSON value.
@@ -45,16 +46,16 @@
 returned if the current client exceeds the allowed rate limit for an operation.</p>
 <p>The URL that uniquely identifies an object is referred to as <em>object-url</em>, e.g. <code class="docutils literal notranslate"><span class="pre">users/abc</span></code> for a
 <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> with the <em>id</em> <code class="docutils literal notranslate"><span class="pre">abc</span></code>.</p>
-</div>
-<div class="section" id="authentication-and-permissions">
+</section>
+<section id="authentication-and-permissions">
 <h2><span class="section-number">2.2. </span>Authentication and Permissions<a class="headerlink" href="#authentication-and-permissions" title="Permalink to this headline">¶</a></h2>
 <p>To make an API request authenticated as some user, include a cookie named <code class="docutils literal notranslate"><span class="pre">auth_secret</span></code> with the
 <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> ‘s <em>auth_secret</em>.</p>
 <p>If user authentication with the given secret fails, an <a class="reference internal" href="#authenticationerror"><span class="std std-ref">AuthenticationError</span></a> is returned. For
 any endpoint, a <a class="reference internal" href="#permissionerror"><span class="std std-ref">PermissionError</span></a> is returned if the current user is not allowed to perform the
 action.</p>
-</div>
-<div class="section" id="additional-types">
+</section>
+<section id="additional-types">
 <h2><span class="section-number">2.3. </span>Additional types<a class="headerlink" href="#additional-types" title="Permalink to this headline">¶</a></h2>
 <p>A <em>datetime</em> is an ISO 8601 date and time string in UTC, e.g. <code class="docutils literal notranslate"><span class="pre">2015-08-27T00:42:00.000Z</span></code>.</p>
 <p>A <em>date</em> is an ISO 8601 date string, e.g. <code class="docutils literal notranslate"><span class="pre">2015-08-27</span></code>.</p>
@@ -71,8 +72,8 @@ language tag.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">**Important</span> <span class="pre">text**</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">*</span> <span class="pre">List</span> <span class="pre">item</span></code></p></li>
 </ul>
-</div>
-<div class="section" id="usage-examples">
+</section>
+<section id="usage-examples">
 <h2><span class="section-number">2.4. </span>Usage examples<a class="headerlink" href="#usage-examples" title="Permalink to this headline">¶</a></h2>
 <p>A new <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> is created and signed in with the following request:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ curl -d &quot;&quot; https://example.org/api/devices
@@ -108,12 +109,12 @@ setting the email address:</p>
 }
 </pre></div>
 </div>
-</div>
-<div class="section" id="gone">
+</section>
+<section id="gone">
 <span id="id1"></span><h2><span class="section-number">2.5. </span>Gone<a class="headerlink" href="#gone" title="Permalink to this headline">¶</a></h2>
 <p>Former object that does not exist anymore.</p>
-</div>
-<div class="section" id="collection">
+</section>
+<section id="collection">
 <span id="id2"></span><h2><span class="section-number">2.6. </span>Collection<a class="headerlink" href="#collection" title="Permalink to this headline">¶</a></h2>
 <p>Collection of objects.</p>
 <dl class="describe">
@@ -145,8 +146,8 @@ setting the email address:</p>
 the items from index 10 up to including 19.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="device">
+</section>
+<section id="device">
 <span id="id3"></span><h2><span class="section-number">2.7. </span>Device<a class="headerlink" href="#device" title="Permalink to this headline">¶</a></h2>
 <p><a class="reference internal" href="#user"><span class="std std-ref">User</span></a> device.</p>
 <dl class="describe">
@@ -190,8 +191,8 @@ the items from index 10 up to including 19.</p>
 <dd><p><a class="reference internal" href="#user"><span class="std std-ref">User</span></a> the device belongs to.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="devices">
+</section>
+<section id="devices">
 <span id="id4"></span><h2><span class="section-number">2.8. </span>Devices<a class="headerlink" href="#devices" title="Permalink to this headline">¶</a></h2>
 <dl class="post">
 <dt id="post--api-devices">
@@ -222,8 +223,8 @@ returned.</p>
 <p>Permission: Device owner.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="authrequest">
+</section>
+<section id="authrequest">
 <span id="id5"></span><h2><span class="section-number">2.9. </span>AuthRequest<a class="headerlink" href="#authrequest" title="Permalink to this headline">¶</a></h2>
 <p>Third party authentication request.</p>
 <p>To set an <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> ‘s email address, a third party authentication via the email provider is
@@ -237,8 +238,8 @@ application.</p>
 <dd><p>Unique ID of the object.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="activity">
+</section>
+<section id="activity">
 <span id="id6"></span><h2><span class="section-number">2.10. </span>Activity<a class="headerlink" href="#activity" title="Permalink to this headline">¶</a></h2>
 <p>Activity feed (of events) around a common topic/context.</p>
 <p><em>activity-url</em> is the URL that identifies the activity feed, e.g. <code class="docutils literal notranslate"><span class="pre">/api/activity</span></code>.</p>
@@ -271,8 +272,8 @@ application.</p>
 <dd><p>Get a live stream of <a class="reference internal" href="#event"><span class="std std-ref">Event</span></a> s as <code class="docutils literal notranslate"><span class="pre">text/event-stream</span></code>.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="event">
+</section>
+<section id="event">
 <span id="id7"></span><h2><span class="section-number">2.11. </span>Event<a class="headerlink" href="#event" title="Permalink to this headline">¶</a></h2>
 <p>Event about an action on an <em>object</em> by an <em>user</em>.</p>
 <dl class="describe">
@@ -312,8 +313,8 @@ if the event is global.</p>
 <dd><p>Dictionary with additonal details about the event. The contents depend on the event <em>type</em>.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="location">
+</section>
+<section id="location">
 <span id="id8"></span><h2><span class="section-number">2.12. </span>Location<a class="headerlink" href="#location" title="Permalink to this headline">¶</a></h2>
 <p>Location.</p>
 <dl class="describe">
@@ -328,10 +329,10 @@ if the event is global.</p>
 <dd><p>Coordinates as latitude-longitude pair. May be <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="resources">
+</section>
+<section id="resources">
 <h2><span class="section-number">2.13. </span>Resources<a class="headerlink" href="#resources" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="resource">
+<section id="resource">
 <span id="id9"></span><h3><span class="section-number">2.13.1. </span>Resource<a class="headerlink" href="#resource" title="Permalink to this headline">¶</a></h3>
 <p>Web resource description.</p>
 <dl class="describe">
@@ -367,7 +368,7 @@ if the event is global.</p>
 </div>
 </dd></dl>
 
-<div class="section" id="thumbnail">
+<section id="thumbnail">
 <span id="resourcethumbnail"></span><h4><span class="section-number">2.13.1.1. </span>Thumbnail<a class="headerlink" href="#thumbnail" title="Permalink to this headline">¶</a></h4>
 <p>Thumbnail image description.</p>
 <dl class="describe">
@@ -376,9 +377,9 @@ if the event is global.</p>
 <dd><p>URL of the thumbnail.</p>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="image">
+</section>
+</section>
+<section id="image">
 <span id="id10"></span><h3><span class="section-number">2.13.2. </span>Image<a class="headerlink" href="#image" title="Permalink to this headline">¶</a></h3>
 <p>Image <a class="reference internal" href="#resource"><span class="std std-ref">Resource</span></a> description.</p>
 <dl class="describe">
@@ -414,8 +415,8 @@ if the event is global.</p>
 </div>
 </dd></dl>
 
-</div>
-<div class="section" id="video">
+</section>
+<section id="video">
 <span id="id11"></span><h3><span class="section-number">2.13.3. </span>Video<a class="headerlink" href="#video" title="Permalink to this headline">¶</a></h3>
 <p>Video <a class="reference internal" href="#resource"><span class="std std-ref">Resource</span></a> description.</p>
 <dl class="describe">
@@ -451,8 +452,8 @@ if the event is global.</p>
 </div>
 </dd></dl>
 
-</div>
-<div class="section" id="previews">
+</section>
+<section id="previews">
 <h3><span class="section-number">2.13.4. </span>Previews<a class="headerlink" href="#previews" title="Permalink to this headline">¶</a></h3>
 <p>Web <a class="reference internal" href="#resource"><span class="std std-ref">Resource</span></a> previews.</p>
 <dl class="get">
@@ -461,11 +462,11 @@ if the event is global.</p>
 <dd><p>Get a description of the web <a class="reference internal" href="#resource"><span class="std std-ref">Resource</span></a> at <em>url</em>.</p>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="analytics">
+</section>
+</section>
+<section id="analytics">
 <h2><span class="section-number">2.14. </span>Analytics<a class="headerlink" href="#analytics" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="statistic">
+<section id="statistic">
 <span id="id12"></span><h3><span class="section-number">2.14.1. </span>Statistic<a class="headerlink" href="#statistic" title="Permalink to this headline">¶</a></h3>
 <p>Statistic about a topic over time.</p>
 <dl class="get">
@@ -482,8 +483,8 @@ if the event is global.</p>
 <p>Permission: Staff members.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="point">
+</section>
+<section id="point">
 <span id="id13"></span><h3><span class="section-number">2.14.2. </span>Point<a class="headerlink" href="#point" title="Permalink to this headline">¶</a></h3>
 <p>Statistic data point.</p>
 <dl class="describe">
@@ -498,8 +499,8 @@ if the event is global.</p>
 <dd><p>Statistic value.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="referral">
+</section>
+<section id="referral">
 <span id="id14"></span><h3><span class="section-number">2.14.3. </span>Referral<a class="headerlink" href="#referral" title="Permalink to this headline">¶</a></h3>
 <p>Referral from another site.</p>
 <dl class="describe">
@@ -520,8 +521,8 @@ if the event is global.</p>
 <dd><p><em>datetime</em> of the referral.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="referrals">
+</section>
+<section id="referrals">
 <span id="id15"></span><h3><span class="section-number">2.14.4. </span>Referrals<a class="headerlink" href="#referrals" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="#referral"><span class="std std-ref">Referral</span></a> <a class="reference internal" href="#collection"><span class="std std-ref">Collection</span></a>, latest first.</p>
 <p>Only staff members can query the referrals.</p>
@@ -553,20 +554,20 @@ the items from index 10 up to including 19.</p>
 <p>Permission: Staff members.</p>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="files">
+</section>
+</section>
+<section id="files">
 <h2><span class="section-number">2.15. </span>Files<a class="headerlink" href="#files" title="Permalink to this headline">¶</a></h2>
 <p>To upload a file, <code class="docutils literal notranslate"><span class="pre">POST</span></code> to <code class="docutils literal notranslate"><span class="pre">/files</span></code>. Supported file types are <code class="docutils literal notranslate"><span class="pre">image/bmp</span></code>, <code class="docutils literal notranslate"><span class="pre">image/gif</span></code>,
 <code class="docutils literal notranslate"><span class="pre">image/jpeg</span></code>, <code class="docutils literal notranslate"><span class="pre">image/png</span></code> and <code class="docutils literal notranslate"><span class="pre">image/svg+xml</span></code>.</p>
-</div>
-<div class="section" id="errors">
+</section>
+<section id="errors">
 <h2><span class="section-number">2.16. </span>Errors<a class="headerlink" href="#errors" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="valueerror">
+<section id="valueerror">
 <span id="id16"></span><h3><span class="section-number">2.16.1. </span>ValueError<a class="headerlink" href="#valueerror" title="Permalink to this headline">¶</a></h3>
 <p>Returned for value-related errors.</p>
-</div>
-<div class="section" id="inputerror">
+</section>
+<section id="inputerror">
 <span id="id17"></span><h3><span class="section-number">2.16.2. </span>InputError<a class="headerlink" href="#inputerror" title="Permalink to this headline">¶</a></h3>
 <p>Returned if the input to an endpoint contains one or more arguments with an invalid value.</p>
 <p>InputError is a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a> with <em>code</em> set to <code class="docutils literal notranslate"><span class="pre">input_invalid</span></code>.</p>
@@ -576,45 +577,45 @@ the items from index 10 up to including 19.</p>
 <dd><p>Map of argument names / error strings for every problematic argument of the input.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="notfounderror">
+</section>
+<section id="notfounderror">
 <span id="id18"></span><h3><span class="section-number">2.16.3. </span>NotFoundError<a class="headerlink" href="#notfounderror" title="Permalink to this headline">¶</a></h3>
 <p>Returned if a requested endpoint does not exist.</p>
-</div>
-<div class="section" id="authenticationerror">
+</section>
+<section id="authenticationerror">
 <span id="id19"></span><h3><span class="section-number">2.16.4. </span>AuthenticationError<a class="headerlink" href="#authenticationerror" title="Permalink to this headline">¶</a></h3>
 <p>Returned if user authentication fails.</p>
-</div>
-<div class="section" id="permissionerror">
+</section>
+<section id="permissionerror">
 <span id="id20"></span><h3><span class="section-number">2.16.5. </span>PermissionError<a class="headerlink" href="#permissionerror" title="Permalink to this headline">¶</a></h3>
 <p>Returned if the current user is not allowed to perform an action.</p>
-</div>
-<div class="section" id="ratelimiterror">
+</section>
+<section id="ratelimiterror">
 <span id="id21"></span><h3><span class="section-number">2.16.6. </span>RateLimitError<a class="headerlink" href="#ratelimiterror" title="Permalink to this headline">¶</a></h3>
 <p>Returned if the current client exceeds the allowed rate limit for an operation.</p>
-</div>
-<div class="section" id="communicationerror">
+</section>
+<section id="communicationerror">
 <span id="id22"></span><h3><span class="section-number">2.16.7. </span>CommunicationError<a class="headerlink" href="#communicationerror" title="Permalink to this headline">¶</a></h3>
 <p>Returned if communication with a third party fails.</p>
-</div>
-<div class="section" id="analysiserror">
+</section>
+<section id="analysiserror">
 <span id="id23"></span><h3><span class="section-number">2.16.8. </span>AnalysisError<a class="headerlink" href="#analysiserror" title="Permalink to this headline">¶</a></h3>
 <p>Returned if analyzing a web resource fails.</p>
-</div>
-<div class="section" id="noresourceerror">
+</section>
+<section id="noresourceerror">
 <span id="id24"></span><h3><span class="section-number">2.16.9. </span>NoResourceError<a class="headerlink" href="#noresourceerror" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="#analysiserror"><span class="std std-ref">AnalysisError</span></a> returned if there is no resource at the URL to analyze.</p>
-</div>
-<div class="section" id="forbiddenresourceerror">
+</section>
+<section id="forbiddenresourceerror">
 <span id="id25"></span><h3><span class="section-number">2.16.10. </span>ForbiddenResourceError<a class="headerlink" href="#forbiddenresourceerror" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="#analysiserror"><span class="std std-ref">AnalysisError</span></a> returned if access to the resource subject to analysis is forbidden.</p>
-</div>
-<div class="section" id="brokenresourceerror">
+</section>
+<section id="brokenresourceerror">
 <span id="borkenresourceerror"></span><h3><span class="section-number">2.16.11. </span>BrokenResourceError<a class="headerlink" href="#brokenresourceerror" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="#analysiserror"><span class="std std-ref">AnalysisError</span></a> returned if the resource subject to analysis is broken.</p>
-</div>
-</div>
-<div class="section" id="listling">
+</section>
+</section>
+<section id="listling">
 <span id="id26"></span><h2><span class="section-number">2.17. </span>Listling<a class="headerlink" href="#listling" title="Permalink to this headline">¶</a></h2>
 <p>Listling application.</p>
 <dl class="get">
@@ -629,8 +630,8 @@ the items from index 10 up to including 19.</p>
 <dd><p>Global <a class="reference internal" href="#activity"><span class="std std-ref">Activity</span></a> feed.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="user">
+</section>
+<section id="user">
 <span id="id27"></span><h2><span class="section-number">2.18. </span>User<a class="headerlink" href="#user" title="Permalink to this headline">¶</a></h2>
 <p>Listling user.</p>
 <p>User is editable by the user oneself.</p>
@@ -682,8 +683,8 @@ the items from index 10 up to including 19.</p>
 <dd><p><a class="reference internal" href="#userlists"><span class="std std-ref">Lists</span></a> of the user.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="users">
+</section>
+<section id="users">
 <span id="id28"></span><h2><span class="section-number">2.19. </span>Users<a class="headerlink" href="#users" title="Permalink to this headline">¶</a></h2>
 <dl class="get">
 <dt id="get--api-users-(id)">
@@ -732,7 +733,7 @@ the given email address is already associated with another user, a <a class="ref
 <p>Permission: The user oneself.</p>
 </dd></dl>
 
-<div class="section" id="userdevices">
+<section id="userdevices">
 <span id="id29"></span><h3><span class="section-number">2.19.1. </span>Devices<a class="headerlink" href="#userdevices" title="Permalink to this headline">¶</a></h3>
 <p>Collection of registered user <a class="reference internal" href="#device"><span class="std std-ref">Device</span></a> s.</p>
 <dl class="get">
@@ -746,8 +747,8 @@ the given email address is already associated with another user, a <a class="ref
 the items from index 10 up to including 19.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="lists">
+</section>
+<section id="lists">
 <span id="userlists"></span><h3><span class="section-number">2.19.2. </span>Lists<a class="headerlink" href="#lists" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="#list"><span class="std std-ref">List</span></a> <a class="reference internal" href="#collection"><span class="std std-ref">Collection</span></a> of the user, ordered by time added, latest first.</p>
 <p>Lists created by the user are added automatically.</p>
@@ -798,9 +799,9 @@ with <em>list_id</em>, a <a class="reference internal" href="#valueerror"><span 
 <p>Permission: The user oneself.</p>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="settings">
+</section>
+</section>
+<section id="settings">
 <span id="id30"></span><h2><span class="section-number">2.20. </span>Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h2>
 <p>App settings.</p>
 <dl class="describe">
@@ -886,8 +887,8 @@ with <em>list_id</em>, a <a class="reference internal" href="#valueerror"><span 
 <p>Permission: Authenticated users.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="id31">
+</section>
+<section id="id31">
 <span id="id32"></span><h2><span class="section-number">2.21. </span>Lists<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h2>
 <dl class="post">
 <dt id="post--api-lists">
@@ -914,8 +915,8 @@ with <em>list_id</em>, a <a class="reference internal" href="#valueerror"><span 
 <dd><p>Get the <a class="reference internal" href="#list"><span class="std std-ref">List</span></a> given by <em>id</em>.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="list">
+</section>
+<section id="list">
 <span id="id33"></span><h2><span class="section-number">2.22. </span>List<a class="headerlink" href="#list" title="Permalink to this headline">¶</a></h2>
 <dl class="describe">
 <dt>
@@ -1062,7 +1063,7 @@ included. If an item has multiple assignees, its value is split equally between 
 <dd><p>Published when an item has been unvoted.</p>
 </dd></dl>
 
-<div class="section" id="owners">
+<section id="owners">
 <span id="listowners"></span><h3><span class="section-number">2.22.1. </span>Owners<a class="headerlink" href="#owners" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="#collection"><span class="std std-ref">Collection</span></a> of <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> s who hold ownership of an object.</p>
 <p>The object has at least one owner.</p>
@@ -1106,7 +1107,7 @@ the items from index 10 up to including 19.</p>
 <p>Permission: Object owners.</p>
 </dd></dl>
 
-<div class="section" id="ownersevent">
+<section id="ownersevent">
 <h4><span class="section-number">2.22.1.1. </span>OwnersEvent<a class="headerlink" href="#ownersevent" title="Permalink to this headline">¶</a></h4>
 <p><a class="reference internal" href="#event"><span class="std std-ref">Event</span></a> related to Owners.</p>
 <dl class="describe">
@@ -1121,9 +1122,9 @@ the items from index 10 up to including 19.</p>
 <dd><p>Affected <a class="reference internal" href="#user"><span class="std std-ref">User</span></a>.</p>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="listusers">
+</section>
+</section>
+<section id="listusers">
 <span id="id38"></span><h3><span class="section-number">2.22.2. </span>Users<a class="headerlink" href="#listusers" title="Permalink to this headline">¶</a></h3>
 <dl class="get">
 <dt id="get--api-lists-(id)-users?name=">
@@ -1132,8 +1133,8 @@ the items from index 10 up to including 19.</p>
 <p>A maximum of 10 items is returned.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="items">
+</section>
+<section id="items">
 <span id="listitems"></span><h3><span class="section-number">2.22.3. </span>Items<a class="headerlink" href="#items" title="Permalink to this headline">¶</a></h3>
 <p>List <a class="reference internal" href="#item"><span class="std std-ref">Item</span></a> s in <a class="reference internal" href="#list"><span class="std std-ref">List</span></a> <em>order</em>.</p>
 <dl class="get">
@@ -1166,9 +1167,9 @@ the items from index 10 up to including 19.</p>
 <p>Permission: Authenticated users.</p>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="item">
+</section>
+</section>
+<section id="item">
 <span id="id39"></span><h2><span class="section-number">2.23. </span>Item<a class="headerlink" href="#item" title="Permalink to this headline">¶</a></h2>
 <dl class="describe">
 <dt>
@@ -1248,8 +1249,8 @@ the items from index 10 up to including 19.</p>
 <dd><p><a class="reference internal" href="#itemvotes"><span class="std std-ref">Votes</span></a> for the item.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="id40">
+</section>
+<section id="id40">
 <span id="id41"></span><h2><span class="section-number">2.24. </span>Items<a class="headerlink" href="#id40" title="Permalink to this headline">¶</a></h2>
 <dl class="get">
 <dt id="get--api-items-(id)">
@@ -1326,7 +1327,7 @@ returned.</p>
 </div>
 </dd></dl>
 
-<div class="section" id="assignees">
+<section id="assignees">
 <span id="itemassignees"></span><h3><span class="section-number">2.24.1. </span>Assignees<a class="headerlink" href="#assignees" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="#collection"><span class="std std-ref">Collection</span></a> of <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> s assigned to the item.</p>
 <dl class="get">
@@ -1374,8 +1375,8 @@ the items from index 10 up to including 19.</p>
 </div>
 </dd></dl>
 
-</div>
-<div class="section" id="votes">
+</section>
+<section id="votes">
 <span id="itemvotes"></span><h3><span class="section-number">2.24.2. </span>Votes<a class="headerlink" href="#votes" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="#collection"><span class="std std-ref">Collection</span></a> of <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> s who voted for the item, latest first.</p>
 <dl class="describe">
@@ -1425,9 +1426,9 @@ the items from index 10 up to including 19.</p>
 </div>
 </dd></dl>
 
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
           </div>
