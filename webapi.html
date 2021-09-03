@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>2. Web API &#8212; Open Listling 0.47.0 documentation</title>
+    <title>2. Web API &#8212; Open Listling 0.48.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -59,6 +59,7 @@ action.</p>
 <h2><span class="section-number">2.3. </span>Additional types<a class="headerlink" href="#additional-types" title="Permalink to this headline">¶</a></h2>
 <p>A <em>datetime</em> is an ISO 8601 date and time string in UTC, e.g. <code class="docutils literal notranslate"><span class="pre">2015-08-27T00:42:00.000Z</span></code>.</p>
 <p>A <em>date</em> is an ISO 8601 date string, e.g. <code class="docutils literal notranslate"><span class="pre">2015-08-27</span></code>.</p>
+<p>A <em>color</em> is a CSS hex color string, e.g. <code class="docutils literal notranslate"><span class="pre">#0088ff</span></code>.</p>
 <p>A <em>slice</em> represents a range of a list, as array <code class="docutils literal notranslate"><span class="pre">[start,</span> <span class="pre">stop]</span></code>, from index <em>start</em> (inclusive)
 to <em>stop</em> (exclusive). Both <em>start</em> and <em>stop</em> may be <code class="docutils literal notranslate"><span class="pre">null</span></code>, referring to the beginning (0) and
 end (list length) of the list respectively.</p>
@@ -375,6 +376,12 @@ if the event is global.</p>
 <dt>
 <code class="sig-name descname">url</code></dt>
 <dd><p>URL of the thumbnail.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="sig-name descname">color</code></dt>
+<dd><p>Average thumbnail <em>color</em>.</p>
 </dd></dl>
 
 </section>
